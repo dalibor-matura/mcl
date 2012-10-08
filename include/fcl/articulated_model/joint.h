@@ -71,12 +71,9 @@ public:
   const std::string& getName() const;
   void setName(const std::string& name);
 
-  virtual Transform3f getLocalTransform() const = 0;
+  virtual Transform3f getLocalTransform(const JointConfig& cfg) const = 0;
 
   virtual std::size_t getNumDofs() const = 0;
-
-  boost::shared_ptr<JointConfig> getJointConfig() const;
-  void setJointConfig(const boost::shared_ptr<JointConfig>& joint_cfg);
 
   boost::shared_ptr<Link> getParentLink() const;
   boost::shared_ptr<Link> getChildLink() const;
@@ -88,6 +85,8 @@ public:
 
   const Transform3f& getTransformToParent() const;
   void setTransformToParent(const Transform3f& t);
+
+  virtual const Vec3f& getAxis() const;
   
 protected:
 
@@ -97,8 +96,6 @@ protected:
   JointType type_;
 
   std::string name_;
-  
-  boost::shared_ptr<JointConfig> joint_cfg_;
 
   Transform3f transform_to_parent_;
 };
@@ -114,7 +111,7 @@ public:
 
   virtual ~PrismaticJoint() {}
 
-  Transform3f getLocalTransform() const;
+  Transform3f getLocalTransform(const JointConfig& cfg) const;
 
   std::size_t getNumDofs() const;
 
@@ -134,7 +131,7 @@ public:
 
   virtual ~RevoluteJoint() {}
 
-  Transform3f getLocalTransform() const;
+  Transform3f getLocalTransform(const JointConfig& cfg) const;
 
   std::size_t getNumDofs() const;
 
@@ -157,7 +154,7 @@ public:
 
   std::size_t getNumDofs() const;
 
-  Transform3f getLocalTransform() const; 
+  Transform3f getLocalTransform(const JointConfig& cfg) const; 
 };
 
 

@@ -765,7 +765,8 @@ bool GJKDistance(void* obj1, ccd_support_fn supp1,
   ccd.max_iterations = max_iterations;
   ccd.dist_tolerance = tolerance;
 
-  dist = ccdGJKDist(obj1, obj2, &ccd);
+  ccd_simplex_t simplex;
+  dist = __ccdGJKDist(obj1, obj2, &ccd, &simplex, tolerance);
   *res = dist;
   if(dist < 0) return false;
   else return true;

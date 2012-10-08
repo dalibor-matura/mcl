@@ -1,0 +1,5 @@
+build*/
+
+fcl.pc
+include/fcl/config.h
+test/fcl_resources/config.h

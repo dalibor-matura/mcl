@@ -62,6 +62,8 @@ public:
 
   virtual FCL_REAL getValue(FCL_REAL time) const = 0;
 
+  FCL_REAL& getValue(FCL_REAL time, FCL_REAL& value) const;
+
   /// @brief return the smallest value in time interval [0, 1]
   virtual FCL_REAL getValueLowerBound() const = 0;
 

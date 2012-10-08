@@ -47,12 +47,16 @@
 namespace fcl
 {
 
+class Model;
+
 class ModelConfig
 {
 public:
   ModelConfig();
 
   ModelConfig(const ModelConfig& model_cfg);
+
+  ModelConfig(boost::shared_ptr<const Model> model);
 
   ModelConfig(std::map<std::string, boost::shared_ptr<Joint> > joints_map);
 
@@ -64,6 +68,9 @@ public:
 
   std::map<std::string, JointConfig> getJointCfgsMap() const
   { return joint_cfgs_map_; }
+
+private:
+  void initJointCFGsMap(const std::map<std::string, boost::shared_ptr<Joint> >& joints_map);
 
 private:
   std::map<std::string, JointConfig> joint_cfgs_map_;

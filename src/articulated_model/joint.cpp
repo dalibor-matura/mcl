@@ -64,16 +64,6 @@ void Joint::setName(const std::string& name)
   name_ = name;
 }
 
-boost::shared_ptr<JointConfig> Joint::getJointConfig() const
-{
-  return joint_cfg_;
-}
-
-void Joint::setJointConfig(const boost::shared_ptr<JointConfig>& joint_cfg)
-{
-  joint_cfg_ = joint_cfg;
-}
-
 boost::shared_ptr<Link> Joint::getParentLink() const
 {
   return link_parent_.lock();
@@ -109,6 +99,13 @@ void Joint::setTransformToParent(const Transform3f& t)
   transform_to_parent_ = t;
 }
 
+const Vec3f& Joint::getAxis() const
+{
+  static Vec3f vec;
+
+  return vec;
+}
+
 
 PrismaticJoint::PrismaticJoint(const boost::shared_ptr<Link>& link_parent, const boost::shared_ptr<Link>& link_child,
                                const Transform3f& transform_to_parent,
@@ -130,11 +127,11 @@ std::size_t PrismaticJoint::getNumDofs() const
   return 1;
 }
 
-Transform3f PrismaticJoint::getLocalTransform() const
+Transform3f PrismaticJoint::getLocalTransform(const JointConfig& cfg) const
 {
   const Quaternion3f& quat = transform_to_parent_.getQuatRotation();
   const Vec3f& transl = transform_to_parent_.getTranslation();
-  return Transform3f(quat, quat.transform(axis_ * (*joint_cfg_)[0]) + transl);
+  return Transform3f(quat, quat.transform(axis_ * cfg[0]) + transl);
 }
 
 
@@ -158,10 +155,10 @@ std::size_t RevoluteJoint::getNumDofs() const
   return 1;
 }
 
-Transform3f RevoluteJoint::getLocalTransform() const
+Transform3f RevoluteJoint::getLocalTransform(const JointConfig& cfg) const
 {
   Quaternion3f quat;
-  quat.fromAxisAngle(axis_, (*joint_cfg_)[0]);
+  quat.fromAxisAngle(axis_, cfg[0]);
   return Transform3f(transform_to_parent_.getQuatRotation() * quat, transform_to_parent_.getTranslation());
 }
 
@@ -177,10 +174,10 @@ std::size_t BallEulerJoint::getNumDofs() const
   return 3;
 }
 
-Transform3f BallEulerJoint::getLocalTransform() const
+Transform3f BallEulerJoint::getLocalTransform(const JointConfig& cfg) const
 {
   Matrix3f rot;
-  rot.setEulerYPR((*joint_cfg_)[0], (*joint_cfg_)[1], (*joint_cfg_)[2]);
+  rot.setEulerYPR(cfg[0], cfg[1], cfg[2]);
   return transform_to_parent_ * Transform3f(rot);
 }
 

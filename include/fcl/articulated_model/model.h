@@ -39,6 +39,7 @@
 
 #include "fcl/articulated_model/joint.h"
 #include "fcl/articulated_model/link.h"
+#include "fcl/ccd/interpolation/interpolation.h"
 
 #include "fcl/data_types.h"
 #include <boost/shared_ptr.hpp>
@@ -65,11 +66,13 @@ public:
   
   void addLink(const boost::shared_ptr<Link>& link);
 
-  void addJoint(const boost::shared_ptr<Joint>& joint);
+  void addJoint(const boost::shared_ptr<Joint>& joint, const InterpolationType& interpolation_type = LINEAR);
 
   void initRoot(const std::map<std::string, std::string>& link_parent_tree);
 
   void initTree(std::map<std::string, std::string>& link_parent_tree);
+
+  std::map<std::string, std::string> getParentTree() const;
 
   std::size_t getNumDofs() const;
 
@@ -80,13 +83,17 @@ public:
   boost::shared_ptr<Link> getRoot() const;
   boost::shared_ptr<Link> getLink(const std::string& name) const;
   boost::shared_ptr<Joint> getJoint(const std::string& name) const;
+  InterpolationType getJointInterpolationType(const std::string& name) const;
 
   std::vector<boost::shared_ptr<Link> > getLinks() const;
   std::vector<boost::shared_ptr<Joint> > getJoints() const;
+
+  std::map<std::string, boost::shared_ptr<Joint> > getJointsMap() const;
 protected:
   boost::shared_ptr<Link> root_link_;
   std::map<std::string, boost::shared_ptr<Link> > links_;
   std::map<std::string, boost::shared_ptr<Joint> > joints_;
+  std::map<std::string,  InterpolationType> joints_interpolation_types_;
 
   std::string name_;
   

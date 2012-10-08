@@ -72,4 +72,11 @@ bool Interpolation::operator != (const Interpolation& interpolation) const
   return !(*this == interpolation);
 }
 
+FCL_REAL& Interpolation::getValue(FCL_REAL time, FCL_REAL& value) const
+{
+	value = getValue(time);
+
+	return value;
+}
+
 }

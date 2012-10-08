@@ -79,17 +79,6 @@ protected:
   Vec3f n;
 };
 
-template<>
-FCL_REAL TBVMotionBoundVisitor<RSS>::visit(const SplineMotion& motion) const;
-
-template<>
-FCL_REAL TBVMotionBoundVisitor<RSS>::visit(const ScrewMotion& motion) const;
-
-template<>
-FCL_REAL TBVMotionBoundVisitor<RSS>::visit(const InterpMotion& motion) const;
-
-
-
 class TriangleMotionBoundVisitor
 {
 public:

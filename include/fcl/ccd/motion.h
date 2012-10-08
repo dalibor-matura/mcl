@@ -532,6 +532,138 @@ public:
   }
 };
 
+/// @brief Articular interpolation motion
+/// Each Motion is assumed to be a motion of an object connected to the link, which is a part of an articulated model
+//class ArticulatMotion : public MotionBase
+//{
+//public:  
+//    /// @brief Construct motion from the initial rotation/translation and goal rotation/translation
+//    ArticulatMotion(const Matrix3f& R1, const Vec3f& T1,
+//        const Matrix3f& R2, const Vec3f& T2);
+//
+//    ArticulatMotion(const Transform3f& tf1_, const Transform3f& tf2_);
+//
+//    /// @brief Construct motion from the initial rotation/translation and goal rotation/translation related to some rotation center
+//    ArticulatMotion(const Matrix3f& R1, const Vec3f& T1,
+//        const Matrix3f& R2, const Vec3f& T2,
+//        const Vec3f& O);
+//
+//    ArticulatMotion(const Transform3f& tf1_, const Transform3f& tf2_, const Vec3f& O);
+//
+//    /// @brief Integrate the motion from 0 to dt
+//    /// We compute the current transformation from zero point instead of from last integrate time, for precision.
+//    bool integrate(double dt) const;
+//
+//    /// @brief Compute the motion bound for a bounding volume along a given direction n, which is defined in the visitor
+//    FCL_REAL computeMotionBound(const BVMotionBoundVisitor& mb_visitor) const
+//    {
+//        return mb_visitor.visit(*this);
+//    }
+//
+//    /// @brief Compute the motion bound for a triangle along a given direction n, which is defined in the visitor 
+//    FCL_REAL computeMotionBound(const TriangleMotionBoundVisitor& mb_visitor) const
+//    {
+//        return mb_visitor.visit(*this);
+//    }
+//
+//    /// @brief Get the rotation and translation in current step
+//    void getCurrentTransform(Matrix3f& R, Vec3f& T) const
+//    {
+//        R = tf.getRotation();
+//        T = tf.getTranslation();
+//    }
+//
+//    void getCurrentRotation(Matrix3f& R) const
+//    {
+//        R = tf.getRotation();
+//    }
+//
+//    void getCurrentTranslation(Vec3f& T) const
+//    {
+//        T = tf.getTranslation();
+//    }
+//
+//    void getCurrentTransform(Transform3f& tf_) const
+//    {
+//        tf_ = tf;
+//    }
+//
+//    void getTaylorModel(TMatrix3& tm, TVector3& tv) const
+//    {
+//        Matrix3f hat_angular_axis;
+//        hat(hat_angular_axis, angular_axis);
+//
+//        TaylorModel cos_model(getTimeInterval());
+//        generateTaylorModelForCosFunc(cos_model, angular_vel, 0);
+//        TaylorModel sin_model(getTimeInterval());
+//        generateTaylorModelForSinFunc(sin_model, angular_vel, 0);
+//
+//        TMatrix3 delta_R = hat_angular_axis * sin_model - hat_angular_axis * hat_angular_axis * (cos_model - 1) + Matrix3f(1, 0, 0, 0, 1, 0, 0, 0, 1);
+//
+//        TaylorModel a(getTimeInterval()), b(getTimeInterval()), c(getTimeInterval());
+//        generateTaylorModelForLinearFunc(a, 0, linear_vel[0]);
+//        generateTaylorModelForLinearFunc(b, 0, linear_vel[1]);
+//        generateTaylorModelForLinearFunc(c, 0, linear_vel[2]);
+//        TVector3 delta_T(a, b, c);
+//
+//        tm = delta_R * tf1.getRotation();
+//        tv = tf1.transform(reference_p) + delta_T - delta_R * tf1.getQuatRotation().transform(reference_p);
+//    }
+//
+//private:
+//    // Non parametrized constructor is not allowed
+//    ArticulatMotion() {};
+//
+//protected:
+//
+//    void computeVelocity();
+//
+//    Quaternion3f deltaRotation(FCL_REAL dt) const;
+//
+//    Quaternion3f absoluteRotation(FCL_REAL dt) const;
+//
+//    /// @brief The transformation at time 0
+//    Transform3f tf1;
+//
+//    /// @brief The transformation at time 1
+//    Transform3f tf2;
+//
+//    /// @brief The transformation at current time t
+//    mutable Transform3f tf;
+//
+//    /// @brief Linear velocity
+//    Vec3f linear_vel;
+//
+//    /// @brief Angular speed
+//    FCL_REAL angular_vel;
+//
+//    /// @brief Angular velocity axis
+//    Vec3f angular_axis;
+//
+//    /// @brief Reference point for the motion (in the object's local frame)
+//    Vec3f reference_p;
+//
+//public:
+//    const Vec3f& getReferencePoint() const
+//    {
+//        return reference_p;
+//    }
+//
+//    const Vec3f& getAngularAxis() const
+//    {
+//        return angular_axis;
+//    }
+//
+//    FCL_REAL getAngularVelocity() const
+//    {
+//        return angular_vel;
+//    }
+//
+//    const Vec3f& getLinearVelocity() const
+//    {
+//        return linear_vel;
+//    }
+//};
 
 
 }

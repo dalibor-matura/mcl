@@ -35,6 +35,7 @@
 /** \author Dalibor Matura, Jia Pan */
 
 #include "fcl/articulated_model/model_config.h"
+#include "fcl/articulated_model/model.h"
 #include "fcl/articulated_model/joint.h"
 #include <algorithm>
 
@@ -47,11 +48,21 @@ ModelConfig::ModelConfig(const ModelConfig& model_cfg) :
   joint_cfgs_map_(model_cfg.joint_cfgs_map_)
 {}
 
+ModelConfig::ModelConfig(boost::shared_ptr<const Model> model)
+{
+  initJointCFGsMap(model->getJointsMap() ); 
+}
+
 ModelConfig::ModelConfig(std::map<std::string, boost::shared_ptr<Joint> > joints_map)
 {
-  std::map<std::string, boost::shared_ptr<Joint> >::iterator it;
-  for(it = joints_map.begin(); it != joints_map.end(); ++it)
-    joint_cfgs_map_[it->first] = JointConfig(it->second);
+  initJointCFGsMap(joints_map);
+}
+
+void ModelConfig::initJointCFGsMap(const std::map<std::string, boost::shared_ptr<Joint> >& joints_map)
+{
+	std::map<std::string, boost::shared_ptr<Joint> >::const_iterator it;
+	for(it = joints_map.begin(); it != joints_map.end(); ++it)
+		joint_cfgs_map_[it->first] = JointConfig(it->second);
 }
 
 JointConfig ModelConfig::getJointConfigByJointName(const std::string& joint_name) const

@@ -69,6 +69,24 @@ boost::shared_ptr<Joint> Model::getJoint(const std::string& name) const
   return ptr;
 }
 
+InterpolationType Model::getJointInterpolationType(const std::string& name) const
+{
+  InterpolationType interpolation_type;
+
+  std::map<std::string, InterpolationType>::const_iterator it = joints_interpolation_types_.find(name);
+  if(it != joints_interpolation_types_.end())
+  {
+    interpolation_type = it->second;; 
+  }
+
+  return interpolation_type;
+}
+
+std::map<std::string, boost::shared_ptr<Joint> > Model::getJointsMap() const
+{
+  return joints_;
+}
+
 const std::string& Model::getName() const
 {
   return name_;
@@ -83,6 +101,17 @@ std::vector<boost::shared_ptr<Link> > Model::getLinks() const
   }
 
   return links;
+}
+
+std::vector<boost::shared_ptr<Joint> > Model::getJoints() const
+{
+	std::vector<boost::shared_ptr<Joint> > joints;
+	for(std::map<std::string, boost::shared_ptr<Joint> >::const_iterator it = joints_.begin(); it != joints_.end(); ++it)
+	{
+		joints.push_back(it->second);
+	}
+
+	return joints;
 }
 
 std::size_t Model::getNumLinks() const
@@ -111,9 +140,10 @@ void Model::addLink(const boost::shared_ptr<Link>& link)
   links_[link->getName()] = link;
 }
 
-void Model::addJoint(const boost::shared_ptr<Joint>& joint)
+void Model::addJoint(const boost::shared_ptr<Joint>& joint,const InterpolationType& interpolation_type)
 {
   joints_[joint->getName()] = joint;
+  joints_interpolation_types_[joint->getName()] = interpolation_type; 
 }
 
 void Model::initRoot(const std::map<std::string, std::string>& link_parent_tree)
@@ -153,6 +183,21 @@ void Model::initTree(std::map<std::string, std::string>& link_parent_tree)
 
     link_parent_tree[child_link_name] = parent_link_name;
   }
+}
+
+std::map<std::string, std::string> Model::getParentTree() const
+{
+  std::map<std::string, std::string> link_parent_tree;
+
+  for(std::map<std::string, boost::shared_ptr<Joint> >::const_iterator it = joints_.begin(); it != joints_.end(); ++it)
+  {
+    std::string parent_link_name = it->second->getParentLink()->getName();
+    std::string child_link_name = it->second->getChildLink()->getName();
+
+    link_parent_tree[child_link_name] = parent_link_name;
+  }
+
+  return link_parent_tree;
 }
 
 }
