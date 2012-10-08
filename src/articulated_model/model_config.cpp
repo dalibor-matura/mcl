@@ -65,7 +65,7 @@ void ModelConfig::initJointCFGsMap(const std::map<std::string, boost::shared_ptr
 		joint_cfgs_map_[it->first] = JointConfig(it->second);
 }
 
-JointConfig ModelConfig::getJointConfigByJointName(const std::string& joint_name) const
+JointConfig ModelConfig::getJointConfig(const std::string& joint_name) const
 {
   std::map<std::string, JointConfig>::const_iterator it = joint_cfgs_map_.find(joint_name);
   BOOST_ASSERT_MSG((it != joint_cfgs_map_.end()), "Joint name not valid");
@@ -73,7 +73,7 @@ JointConfig ModelConfig::getJointConfigByJointName(const std::string& joint_name
   return it->second;
 }
 
-JointConfig& ModelConfig::getJointConfigByJointName(const std::string& joint_name)
+JointConfig& ModelConfig::getJointConfig(const std::string& joint_name)
 {
   std::map<std::string, JointConfig>::iterator it = joint_cfgs_map_.find(joint_name);
   BOOST_ASSERT_MSG((it != joint_cfgs_map_.end()), "Joint name not valid");
@@ -81,14 +81,14 @@ JointConfig& ModelConfig::getJointConfigByJointName(const std::string& joint_nam
   return it->second;
 }
 
-JointConfig ModelConfig::getJointConfigByJoint(boost::shared_ptr<Joint> joint) const
+JointConfig ModelConfig::getJointConfig(boost::shared_ptr<Joint> joint) const
 {
-  return getJointConfigByJointName(joint->getName());
+  return getJointConfig(joint->getName());
 }
 
-JointConfig& ModelConfig::getJointConfigByJoint(boost::shared_ptr<Joint> joint)
+JointConfig& ModelConfig::getJointConfig(boost::shared_ptr<Joint> joint)
 {
-  return getJointConfigByJointName(joint->getName());
+  return getJointConfig(joint->getName());
 }
 
 

@@ -105,13 +105,13 @@ std::vector<boost::shared_ptr<Link> > Model::getLinks() const
 
 std::vector<boost::shared_ptr<Joint> > Model::getJoints() const
 {
-	std::vector<boost::shared_ptr<Joint> > joints;
-	for(std::map<std::string, boost::shared_ptr<Joint> >::const_iterator it = joints_.begin(); it != joints_.end(); ++it)
-	{
-		joints.push_back(it->second);
-	}
+    std::vector<boost::shared_ptr<Joint> > joints;
+    for(std::map<std::string, boost::shared_ptr<Joint> >::const_iterator it = joints_.begin(); it != joints_.end(); ++it)
+    {
+        joints.push_back(it->second);
+    }
 
-	return joints;
+    return joints;
 }
 
 std::size_t Model::getNumLinks() const
