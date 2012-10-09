@@ -72,8 +72,6 @@ public:
 
   void initTree(std::map<std::string, std::string>& link_parent_tree);
 
-  std::map<std::string, std::string> getParentTree() const;
-
   std::size_t getNumDofs() const;
 
   std::size_t getNumLinks() const;

@@ -15,6 +15,7 @@ namespace fcl
 
 class Model;
 class ModelConfig;
+class Link;
 class Joint;
 class Interpolation;
 
@@ -23,7 +24,7 @@ class ModelBoundCache;
 class ModelBound 
 {
 public:
-	ModelBound(boost::shared_ptr<const Model> model, 
+	ModelBound(boost::shared_ptr<Model> model, 
 		boost::shared_ptr<const ModelConfig> cfg_start, boost::shared_ptr<const ModelConfig> cfg_end);
 
 	// direction must be normalized
@@ -41,6 +42,9 @@ public:
 private:
 	void initJointsInterpolations();
 	void initJointsParentTree();
+
+	void constructParentTree(const std::map<std::string, std::string>& link_parent_tree,
+		std::map<std::string, std::string>& joint_parent_tree, boost::shared_ptr<const Link>& link);
 
 	// order of joints in vector is from last one to root joint
 	std::vector<boost::shared_ptr<const Joint> >
@@ -87,13 +91,13 @@ private:
 	Vec3f direction_;
 	FCL_REAL max_distance_; // distance from center of last joint to the furthermost point of the collision object
 
-	boost::shared_ptr<const Model> model_;
+	boost::shared_ptr<Model> model_;
 
 	boost::shared_ptr<const ModelConfig> cfg_start_;
 	boost::shared_ptr<const ModelConfig> cfg_end_;
 
 	std::map<std::string, boost::shared_ptr<Interpolation> > joints_interpolations_;
-	std::map<std::string, std::string> joints_parent_tree_;
+	std::map<std::string, std::string> joint_parent_tree_;
 
 	FCL_REAL angular_bound_accumulation_;
 

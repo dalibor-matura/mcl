@@ -2,6 +2,7 @@
 
 #include "fcl/articulated_model/model.h"
 #include "fcl/articulated_model/model_config.h"
+#include "fcl/articulated_model/link.h"
 #include "fcl/articulated_model/joint.h"
 #include "fcl/articulated_model/joint_config.h"
 #include "fcl/ccd/interpolation/interpolation.h"
@@ -12,7 +13,7 @@
 namespace fcl 
 {
 
-ModelBound::ModelBound(boost::shared_ptr<const Model> model, 
+ModelBound::ModelBound(boost::shared_ptr<Model> model, 
 	boost::shared_ptr<const ModelConfig> cfg_start, boost::shared_ptr<const ModelConfig> cfg_end) :
   model_(model),
   cfg_start_(cfg_start),
@@ -32,7 +33,7 @@ void ModelBound::initJointsInterpolations()
 		boost::shared_ptr<Joint>& joint = (*it);
 
 		// for NOW works just for JT_PRISMATIC, JT_REVOLUTE joint types
-		BOOST_ASSERT_MSG((joint->getJointType() == JT_PRISMATIC) || (joint->getJointType() == JT_PRISMATIC),
+		BOOST_ASSERT_MSG((joint->getJointType() == JT_PRISMATIC) || (joint->getJointType() == JT_REVOLUTE),
 			"Joint type not supported yet");
 
 		const std::string& joint_name = joint->getName();
@@ -48,7 +49,38 @@ void ModelBound::initJointsInterpolations()
 
 void ModelBound::initJointsParentTree()
 {
-	joints_parent_tree_ = model_->getParentTree();
+	std::map<std::string, std::string> link_parent_tree;
+
+	model_->initTree(link_parent_tree);
+	model_->initRoot(link_parent_tree);	
+
+	boost::shared_ptr<const Link> root_link = model_->getRoot();
+
+	constructParentTree(link_parent_tree, joint_parent_tree_, root_link);
+}
+
+void ModelBound::constructParentTree(const std::map<std::string, std::string>& link_parent_tree,
+	std::map<std::string, std::string>& joint_parent_tree, boost::shared_ptr<const Link>& link)
+{	
+	std::vector<boost::shared_ptr<const Joint> > child_joints = link->getChildJoints();
+	boost::shared_ptr<const Joint> parent_joint = link->getParentJoint();
+	std::vector<boost::shared_ptr<const Joint> >::const_iterator it;
+
+	for (it = child_joints.begin(); it != child_joints.end(); ++it)
+	{
+		boost::shared_ptr<const Joint> joint = (*it);
+		boost::shared_ptr<const Link> child_link = joint->getChildLink();
+
+		if (parent_joint.use_count() != 0)
+		{
+			joint_parent_tree[joint->getName()] = parent_joint->getName();
+		}		
+
+		if (child_link.use_count() != 0)
+		{
+			constructParentTree(link_parent_tree, joint_parent_tree_, child_link);
+		}
+	}
 }
 
 FCL_REAL ModelBound::getMotionBound(const std::string& link_name, const FCL_REAL& time, 
@@ -61,7 +93,17 @@ FCL_REAL ModelBound::getMotionBound(const std::string& link_name, const FCL_REAL
 	
 	resetAngularBoundAccumulation();
 
-	std::string last_joint_name = model_->getLink(link_name)->getName();
+	boost::shared_ptr<const Link> link = model_->getLink(link_name);
+	BOOST_ASSERT_MSG(link.use_count() != 0.0, "Link with with given name doesn't exist!");
+
+	boost::shared_ptr<const Joint> joint = link->getParentJoint();
+	if (joint.use_count() == 0.0)
+	{
+		// no joint's parent means motion bound equals 0.0
+		return 0.0;
+	}
+
+	std::string last_joint_name = joint->getName();
 	boost::shared_ptr<const Joint> last_joint = model_->getJoint(last_joint_name);
 	std::vector<boost::shared_ptr<const Joint> > joints_chain = getJointsChainFromLastJoint(last_joint_name);		
 
@@ -101,9 +143,13 @@ boost::shared_ptr<const Joint> ModelBound::getJointParent(const boost::shared_pt
 
 std::string ModelBound::getJointParentName(const std::string& joint_name) const
 {
-	std::map<std::string, std::string>::const_iterator it = joints_parent_tree_.find(joint_name);
+	std::map<std::string, std::string>::const_iterator it = joint_parent_tree_.find(joint_name);
 
-	BOOST_ASSERT_MSG((it != joints_parent_tree_.end()), "Joint name not valid");
+	//BOOST_ASSERT_MSG((it != joint_parent_tree_.end()), "Joint name is not valid");
+	if (it == joint_parent_tree_.end() )
+	{
+		return "";
+	}
 
 	return it->second;
 }

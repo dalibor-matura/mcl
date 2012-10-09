@@ -57,24 +57,28 @@ public:
   
   void setName(const std::string& name);
   
-  void addChildJoint(const boost::shared_ptr<Joint>& joint);
+  void addChildJoint(const boost::shared_ptr<const Joint>& joint);
   
-  void setParentJoint(const boost::shared_ptr<Joint>& joint);
+  void setParentJoint(const boost::shared_ptr<const Joint>& joint);
   
-  void addObject(const boost::shared_ptr<CollisionObject>& object);
+  void addObject(const boost::shared_ptr<const CollisionObject>& object);
   
   std::size_t getNumChildJoints() const;
   
   std::size_t getNumObjects() const;
+
+  std::vector<boost::shared_ptr<const Joint> > getChildJoints() const;
+
+  boost::shared_ptr<const Joint> getParentJoint() const;
   
 protected:
   std::string name_;
 
-  std::vector<boost::shared_ptr<CollisionObject> > objects_;
+  std::vector<boost::shared_ptr<const CollisionObject> > objects_;
 
-  std::vector<boost::shared_ptr<Joint> > children_joints_;
+  std::vector<boost::shared_ptr<const Joint> > children_joints_;
 
-  boost::shared_ptr<Joint> parent_joint_;
+  boost::shared_ptr<const Joint> parent_joint_;
 };
 
 }

@@ -185,19 +185,4 @@ void Model::initTree(std::map<std::string, std::string>& link_parent_tree)
   }
 }
 
-std::map<std::string, std::string> Model::getParentTree() const
-{
-  std::map<std::string, std::string> link_parent_tree;
-
-  for(std::map<std::string, boost::shared_ptr<Joint> >::const_iterator it = joints_.begin(); it != joints_.end(); ++it)
-  {
-    std::string parent_link_name = it->second->getParentLink()->getName();
-    std::string child_link_name = it->second->getChildLink()->getName();
-
-    link_parent_tree[child_link_name] = parent_link_name;
-  }
-
-  return link_parent_tree;
-}
-
 }
