@@ -87,6 +87,8 @@ public:
   void setTransformToParent(const Transform3f& t);
 
   virtual const Vec3f& getAxis() const;
+
+  bool operator==(const Joint& joint) const;
   
 protected:
 

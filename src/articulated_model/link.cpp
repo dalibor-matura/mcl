@@ -89,5 +89,12 @@ boost::shared_ptr<const Joint> Link::getParentJoint() const
 	return parent_joint_;
 }
 
+bool Link::operator==(const Link& link) const
+{
+	return name_ == link.name_ &&
+		objects_ == link.objects_ &&
+		children_joints_ == link.children_joints_ &&
+		parent_joint_ == parent_joint_;
+}
 
 }
