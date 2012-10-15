@@ -2,6 +2,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/math/constants/constants.hpp>
 
 #include "fcl/articulated_model/link.h"
 #include "fcl/articulated_model/joint.h"
@@ -226,7 +227,7 @@ public:
 
 		transform = Transform3f(test_joint_matrix_, test_joint_vector_);
 		axis = Vec3f(0.0, 0.0, 1.0);
-		shoulder_joint_.reset(new PrismaticJoint(body_, arm_, transform, test_joint_name_, axis) );
+		test_joint_.reset(new PrismaticJoint(body_, arm_, transform, test_joint_name_, axis) );
 	}
 
 protected:
@@ -237,6 +238,21 @@ protected:
 	std::string test_joint_name_;
 	Vec3f test_joint_vector_;
 	Matrix3f test_joint_matrix_;
+};
+
+class ModelConfigFixture :
+	public InitFixture
+{
+public:
+	ModelConfigFixture() :
+		InitFixture()
+	{
+		initModel();
+		initConfigurations();		
+	}
+
+protected:
+	
 };
 
 class JointBoundInfoFixture :
@@ -267,6 +283,8 @@ public:
 	}
 };
 
+////////////////////////////////////////////////////////////////////////////////
+
 bool operator==(const Vec3f& first, const Vec3f& second)
 {
 	return first[0] == second[0] &&
@@ -274,15 +292,205 @@ bool operator==(const Vec3f& first, const Vec3f& second)
 		first[2] == second[2];
 }
 
+bool operator==(const Matrix3f& first, const Matrix3f& second)
+{
+	return first.getRow(0) == second.getRow(0) &&
+		first.getRow(1) == second.getRow(1) &&
+		first.getRow(2) == second.getRow(2);
+}
+
+bool operator==(const Quaternion3f& first, const Quaternion3f& second)
+{
+	return first.getW() == second.getW() &&
+		first.getX() == second.getX() &&
+		first.getY() == second.getY() &&
+		first.getZ() == second.getZ();
+}
+
+bool operator==(const Transform3f& first, const Transform3f& second)
+{
+	bool are_equal = true;
+
+	// there could be a small arithmetical error so check with epsilon
+	static const FCL_REAL epsilon = 0.0000001;
+
+	// Needs to use quaternions in order to prevent small arithmetical errors that could (would) cause unsuccessful comparison.
+	const Vec3f& first_translation = first.getTranslation();
+	const Vec3f& second_translation = second.getTranslation();
+
+	for (int i = 0; i < 3; ++i)
+	{
+		FCL_REAL difference = std::fabs(first_translation[i] - second_translation[i]);
+
+		are_equal &= difference <= epsilon;
+	}	
+	
+	are_equal &= first.getQuatRotation() == second.getQuatRotation();
+
+	return are_equal;
+}
+
+std::ostream& operator << (std::ostream& o, const Quaternion3f& q)
+{
+	o << "(" << q.getW() << ", " << q.getX() << ", " << q.getY() << ", " << q.getZ() << ")";
+	return o;
+}
+
+std::ostream& operator << (std::ostream& o, const Transform3f& t)
+{
+	o << t.getTranslation() << ", " << t.getQuatRotation();
+	return o;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+BOOST_AUTO_TEST_SUITE(test_joint)
+
+BOOST_FIXTURE_TEST_CASE(test_set_get_name, JointFixture)
+{
+	std::string new_name = "new name";
+
+	shoulder_joint_->setName(new_name);
+
+	BOOST_CHECK_EQUAL(new_name, shoulder_joint_->getName() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_local_transform_on_prismatic_joint, JointFixture)
+{
+	Matrix3f matrix = Matrix3f::getIdentity();
+	Vec3f vector = Vec3f(2, 0 , 0);
+	Transform3f transform = Transform3f(matrix, vector);
+	Vec3f axis = Vec3f(1, 0, 0);
+
+	boost::shared_ptr<Joint> joint(new PrismaticJoint(body_, arm_, transform, "joint", axis) );
+
+	FCL_REAL joint_cfg_value = 3;
+	JointConfig joint_cfg(joint, joint_cfg_value);
+	Transform3f local_transform = joint->getLocalTransform(joint_cfg);
+
+	Vec3f expected_vector = vector + (axis * joint_cfg_value); 
+	Transform3f expected_transform = Transform3f(matrix, expected_vector);
+
+	BOOST_CHECK_EQUAL(expected_transform, local_transform);
+
+	// Rotation 90° about the axis Z 
+	// correct visualization needs to consider direction of Z axis => then X axis take place of Y axis
+	matrix = Matrix3f(
+		0, -1, 0,
+		1, 0, 0,
+		0, 0, 1
+	);
+	transform = Transform3f(matrix, vector);
+
+	boost::shared_ptr<Joint> joint_with_rotation(new PrismaticJoint(body_, arm_, transform, "joint with rotation", axis) );
+
+	JointConfig joint_with_rotation_cfg(joint_with_rotation, joint_cfg_value);
+	local_transform = joint_with_rotation->getLocalTransform(joint_with_rotation_cfg);
+
+	expected_vector = vector + (Vec3f(0, 1, 0) * joint_cfg_value); 
+	expected_transform = Transform3f(matrix, expected_vector);
+
+	BOOST_CHECK_EQUAL(expected_transform, local_transform);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_local_transform_on_revolute_joint, JointFixture)
+{
+	Matrix3f matrix = Matrix3f::getIdentity();
+	Vec3f vector = Vec3f(2, 0 , 0);
+	Transform3f transform = Transform3f(matrix, vector);
+	Vec3f axis = Vec3f(0, 0, 1);
+
+	boost::shared_ptr<Joint> joint(new RevoluteJoint(body_, arm_, transform, "joint", axis) );
+
+
+	// 90°
+	FCL_REAL joint_cfg_value = boost::math::constants::pi<double>() / 2;
+
+	JointConfig joint_cfg(joint, joint_cfg_value);
+	Transform3f local_transform = joint->getLocalTransform(joint_cfg);
+
+	Vec3f expected_vector = vector; 
+	// Rotation 90° about the axis Z 
+	// correct visualization needs to consider direction of Z axis => then X axis take place of Y axis
+	Matrix3f expected_matrix = Matrix3f(
+		0, -1, 0,
+		1, 0, 0,
+		0, 0, 1
+	);
+
+	Transform3f expected_transform = Transform3f(expected_matrix, expected_vector);
+
+	BOOST_CHECK_EQUAL(expected_transform, local_transform);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_num_dofs, JointFixture)
+{
+	BOOST_CHECK_EQUAL(1, shoulder_joint_->getNumDofs() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_set_get_parent_link, JointFixture)
+{
+	BOOST_CHECK(body_ == shoulder_joint_->getParentLink() );
+
+	shoulder_joint_->setParentLink(finger_);
+	BOOST_CHECK(finger_ == shoulder_joint_->getParentLink() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_set_get_child_link, JointFixture)
+{
+	BOOST_CHECK(arm_ == shoulder_joint_->getChildLink() );
+
+	shoulder_joint_->setChildLink(finger_);
+	BOOST_CHECK(finger_ == shoulder_joint_->getChildLink() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_joint_type, JointFixture)
+{
+	BOOST_CHECK_EQUAL(JT_PRISMATIC, shoulder_joint_->getJointType() );
+	BOOST_CHECK_EQUAL(JT_REVOLUTE, elbow_joint_->getJointType() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_set_get_transform_to_parent, JointFixture)
+{
+	Matrix3f matrix = Matrix3f(
+		0.0, 0.0, 0.0,
+		0.0, 1.0, 0.0,
+		0.0, 1.0, 0.0
+		);
+	Vec3f vector = Vec3f(1, 0 , 0);
+	Transform3f transform = Transform3f(matrix, vector);
+
+	shoulder_joint_->setTransformToParent(transform);
+
+	BOOST_CHECK_EQUAL(transform, shoulder_joint_->getTransformToParent() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_axis, JointFixture)
+{
+	Matrix3f matrix = Matrix3f(
+		0.0, 0.0, 0.0,
+		0.0, 1.0, 0.0,
+		0.0, 1.0, 0.0
+		);
+	Vec3f vector = Vec3f(1, 0 , 0);
+	Transform3f transform = Transform3f(matrix, vector);
+	Vec3f axis = Vec3f(0, 1, 0);
+
+	boost::shared_ptr<Joint> joint(new PrismaticJoint(body_, arm_, transform, "name", axis) );
+
+	BOOST_CHECK_EQUAL(axis, joint->getAxis() );
+}
+
+BOOST_AUTO_TEST_SUITE_END()	
+////////////////////////////////////////////////////////////////////////////////
 BOOST_AUTO_TEST_SUITE(test_model)
 
 BOOST_FIXTURE_TEST_CASE(test_add_get_joint, ModelFixture)
 {
-	/*model_->addJoint(test_joint_);
+	model_->addJoint(test_joint_);
 
 	boost::shared_ptr<Joint> joint = model_->getJoint(test_joint_name_);
 
-	BOOST_CHECK_EQUAL(test_joint_, joint);*/
+	BOOST_CHECK_EQUAL(test_joint_, joint);
 }
 
 BOOST_FIXTURE_TEST_CASE(test_add_get_link, ModelFixture)
@@ -294,7 +502,123 @@ BOOST_FIXTURE_TEST_CASE(test_add_get_link, ModelFixture)
 	BOOST_CHECK_EQUAL(test_link_, link);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_init_tree, ModelFixture)
+{
+	std::map<std::string, std::string> link_parent_tree;
+
+	model_->initTree(link_parent_tree);
+
+	BOOST_CHECK_EQUAL(hand_name_, link_parent_tree[finger_name_]);
+	BOOST_CHECK_EQUAL(forearm_name_, link_parent_tree[hand_name_]);
+	BOOST_CHECK_EQUAL(arm_name_, link_parent_tree[forearm_name_]);
+	BOOST_CHECK_EQUAL(body_name_, link_parent_tree[arm_name_]);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_init_root, ModelFixture)
+{
+	std::map<std::string, std::string> link_parent_tree;
+
+	BOOST_CHECK_EQUAL(0, model_->getRoot().use_count() );
+
+	model_->initTree(link_parent_tree);
+	model_->initRoot(link_parent_tree);
+
+	BOOST_CHECK_EQUAL(body_, model_->getRoot() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_num_dofs, ModelFixture)
+{
+	BOOST_CHECK_EQUAL(4, model_->getNumDofs() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_num_links, ModelFixture)
+{
+	BOOST_CHECK_EQUAL(5, model_->getNumLinks() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_num_joints, ModelFixture)
+{
+	BOOST_CHECK_EQUAL(4, model_->getNumJoints() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_joint_interpolation_type, ModelFixture)
+{
+	BOOST_CHECK_EQUAL(LINEAR , model_->getJointInterpolationType(shoulder_joint_name_) );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_links, ModelFixture)
+{
+	std::vector<boost::shared_ptr<Link> > links = model_->getLinks();
+
+	BOOST_CHECK_EQUAL(5, links.size() );
+
+	BOOST_CHECK(std::find(links.begin(), links.end(), body_) != links.end() );
+	BOOST_CHECK(std::find(links.begin(), links.end(), arm_) != links.end() );
+	BOOST_CHECK(std::find(links.begin(), links.end(), forearm_) != links.end() );
+	BOOST_CHECK(std::find(links.begin(), links.end(), hand_) != links.end() );
+	BOOST_CHECK(std::find(links.begin(), links.end(), finger_) != links.end() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_joints, ModelFixture)
+{
+	std::vector<boost::shared_ptr<Joint> > joints = model_->getJoints();
+
+	BOOST_CHECK_EQUAL(4, joints.size() );
+
+	BOOST_CHECK(std::find(joints.begin(), joints.end(), shoulder_joint_) != joints.end() );
+	BOOST_CHECK(std::find(joints.begin(), joints.end(), elbow_joint_) != joints.end() );
+	BOOST_CHECK(std::find(joints.begin(), joints.end(), wrist_joint_) != joints.end() );
+	BOOST_CHECK(std::find(joints.begin(), joints.end(), finger_joint_) != joints.end() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_joints_map, ModelFixture)
+{
+	 std::map<std::string, boost::shared_ptr<Joint> > joints_map = model_->getJointsMap();
+
+	 BOOST_CHECK_EQUAL(shoulder_joint_, joints_map[shoulder_joint_name_]);
+	 BOOST_CHECK_EQUAL(elbow_joint_, joints_map[elbow_joint_name_]);
+	 BOOST_CHECK_EQUAL(wrist_joint_, joints_map[wrist_joint_name_]);
+	 BOOST_CHECK_EQUAL(finger_joint_, joints_map[finger_joint_name_]);
+}
+
+BOOST_AUTO_TEST_SUITE_END()	
+////////////////////////////////////////////////////////////////////////////////
+BOOST_AUTO_TEST_SUITE(test_model_config)
+
+BOOST_FIXTURE_TEST_CASE(test_get_joint_config, ModelConfigFixture)
+{
+	JointConfig cfg_1 = cfg_start_->getJointConfig(shoulder_joint_name_);
+	JointConfig cfg_2 = cfg_start_->getJointConfig(shoulder_joint_);
+
+	BOOST_CHECK(cfg_1 == cfg_2);
+
+	JointConfig& cfg_ref_1 = cfg_start_->getJointConfig(shoulder_joint_name_);
+	JointConfig& cfg_ref_2 = cfg_start_->getJointConfig(shoulder_joint_);
+
+	BOOST_CHECK(cfg_ref_1 == cfg_ref_2);
+
+	int cfg_value = 20;
+	cfg_ref_1[0] = cfg_value;
+
+	cfg_1 = cfg_start_->getJointConfig(shoulder_joint_name_);
+
+	BOOST_CHECK_EQUAL(cfg_value, cfg_1[0]);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_joint_cfgs_map, ModelConfigFixture)
+{
+	std::map<std::string, JointConfig> joint_cfgs_map = cfg_start_->getJointCfgsMap();
+
+	BOOST_CHECK_EQUAL(4, joint_cfgs_map.size() );
+
+	BOOST_CHECK(cfg_start_->getJointConfig(shoulder_joint_name_) == joint_cfgs_map[shoulder_joint_name_]);
+	BOOST_CHECK(cfg_start_->getJointConfig(elbow_joint_name_) == joint_cfgs_map[elbow_joint_name_]);
+	BOOST_CHECK(cfg_start_->getJointConfig(wrist_joint_name_) == joint_cfgs_map[wrist_joint_name_]);
+	BOOST_CHECK(cfg_start_->getJointConfig(finger_joint_name_) == joint_cfgs_map[finger_joint_name_]);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
+////////////////////////////////////////////////////////////////////////////////
 BOOST_AUTO_TEST_SUITE(test_joint_bound_info)
 
 BOOST_FIXTURE_TEST_CASE(test_set_get_current_time, JointBoundInfoFixture)
@@ -359,6 +683,7 @@ BOOST_FIXTURE_TEST_CASE(test_get_vector_length_bound, JointBoundInfoFixture)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+////////////////////////////////////////////////////////////////////////////////
 BOOST_AUTO_TEST_SUITE(test_model_bound)
 
 BOOST_FIXTURE_TEST_CASE(test_get_motion_bound, ModelBoundFixture)
@@ -376,10 +701,6 @@ BOOST_FIXTURE_TEST_CASE(test_get_motion_bound, ModelBoundFixture)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-BOOST_AUTO_TEST_SUITE(test_model)
-
-
-
-BOOST_AUTO_TEST_SUITE_END()
+////////////////////////////////////////////////////////////////////////////////
 
 }

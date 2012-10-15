@@ -115,6 +115,10 @@ bool Joint::operator==(const Joint& joint) const
 		//link_child_.lock() == joint.link_child_.lock();
 }
 
+bool Joint::operator!=(const Joint& joint) const
+{
+	return !((*this) == joint);
+}
 
 PrismaticJoint::PrismaticJoint(const boost::shared_ptr<Link>& link_parent, const boost::shared_ptr<Link>& link_child,
 							   const Transform3f& transform_to_parent,

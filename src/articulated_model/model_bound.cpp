@@ -32,10 +32,10 @@ void ModelBound::initJointsParentTree()
 
 	boost::shared_ptr<const Link> root_link = model_->getRoot();
 
-	constructParentTree(link_parent_tree, joint_parent_tree_, root_link);
+	constructJointParentTree(joint_parent_tree_, root_link);
 }
 
-void ModelBound::constructParentTree(const std::map<std::string, std::string>& link_parent_tree,
+void ModelBound::constructJointParentTree(
 	std::map<std::string, std::string>& joint_parent_tree, boost::shared_ptr<const Link>& link)
 {	
 	std::vector<boost::shared_ptr<const Joint> > child_joints = link->getChildJoints();
@@ -54,7 +54,7 @@ void ModelBound::constructParentTree(const std::map<std::string, std::string>& l
 
 		if (child_link.use_count() != 0)
 		{
-			constructParentTree(link_parent_tree, joint_parent_tree_, child_link);
+			constructJointParentTree(joint_parent_tree_, child_link);
 		}
 	}
 }

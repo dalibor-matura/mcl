@@ -68,9 +68,9 @@ public:
 
   void addJoint(const boost::shared_ptr<Joint>& joint, const InterpolationType& interpolation_type = LINEAR);
 
-  void initRoot(const std::map<std::string, std::string>& link_parent_tree);
-
   void initTree(std::map<std::string, std::string>& link_parent_tree);
+
+  void initRoot(const std::map<std::string, std::string>& link_parent_tree);  
 
   std::size_t getNumDofs() const;
 

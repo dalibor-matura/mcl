@@ -33,7 +33,7 @@ public:
 private:	
 	void initJointsParentTree();
 
-	void constructParentTree(const std::map<std::string, std::string>& link_parent_tree,
+	void constructJointParentTree(
 		std::map<std::string, std::string>& joint_parent_tree, boost::shared_ptr<const Link>& link);
 
 	// order of joints in vector is from last one to root joint

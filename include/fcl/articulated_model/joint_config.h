@@ -85,6 +85,9 @@ public:
   
   boost::shared_ptr<Joint> getJoint() const;
 
+  bool operator==(const JointConfig& joint_config) const;
+  bool operator!=(const JointConfig& joint_config) const;
+
 private:
   boost::weak_ptr<Joint> joint_;
   

@@ -96,11 +96,31 @@ FCL_REAL& JointConfig::getLimitMax(std::size_t i)
   return limits_max_[i];
 }
 
-
-
 boost::shared_ptr<Joint> JointConfig::getJoint() const
 {
   return joint_.lock();
+}
+
+bool JointConfig::operator==(const JointConfig& joint_config) const
+{
+  std::size_t size = getDim();
+
+  for (std::size_t i = 0; i < size; ++i)
+  {
+    if (getValue(i) != joint_config.getValue(i) ||
+      getLimitMin(i) != joint_config.getLimitMin(i) ||
+      getLimitMax(i) != joint_config.getLimitMax(i) )
+    {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+bool JointConfig::operator!=(const JointConfig& joint_config) const
+{
+  return !((*this) == joint_config);
 }
 
 }

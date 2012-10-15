@@ -91,5 +91,9 @@ JointConfig& ModelConfig::getJointConfig(boost::shared_ptr<Joint> joint)
   return getJointConfig(joint->getName());
 }
 
+bool ModelConfig::operator==(const ModelConfig& model_config) const
+{
+	return getJointCfgsMap() == model_config.getJointCfgsMap();
+}
 
 }

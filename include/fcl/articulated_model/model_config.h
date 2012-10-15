@@ -69,6 +69,8 @@ public:
   std::map<std::string, JointConfig> getJointCfgsMap() const
   { return joint_cfgs_map_; }
 
+  bool operator==(const ModelConfig& model_config) const;
+
 private:
   void initJointCFGsMap(const std::map<std::string, boost::shared_ptr<Joint> >& joints_map);
 
