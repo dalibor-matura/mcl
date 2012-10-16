@@ -38,8 +38,19 @@
 #include "fcl/articulated_model/link.h"
 #include "fcl/articulated_model/joint_config.h"
 
+#include <boost/assert.hpp>
+
 namespace fcl
 {
+
+#ifndef NDEBUG
+
+bool isNormalized(const Vec3f& vec)
+{
+	return vec.length() == 1;
+}
+
+#endif
 
 Joint::Joint(const boost::shared_ptr<Link>& link_parent, const boost::shared_ptr<Link>& link_child,
 			 const Transform3f& transform_to_parent,
@@ -127,6 +138,8 @@ PrismaticJoint::PrismaticJoint(const boost::shared_ptr<Link>& link_parent, const
   Joint(link_parent, link_child, transform_to_parent, name),
   axis_(axis)
 {
+  BOOST_ASSERT_MSG(isNormalized(axis), "Axis is not normalized.");
+
   type_ = JT_PRISMATIC;
 }
 
@@ -155,6 +168,8 @@ RevoluteJoint::RevoluteJoint(const boost::shared_ptr<Link>& link_parent, const b
   Joint(link_parent, link_child, transform_to_parent, name),
   axis_(axis)
 {
+  BOOST_ASSERT_MSG(isNormalized(axis), "Axis is not normalized.");
+
   type_ = JT_REVOLUTE;
 }
 

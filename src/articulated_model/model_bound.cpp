@@ -135,11 +135,11 @@ FCL_REAL ModelBound::getJointsChainMotionBound(std::vector<boost::shared_ptr<con
 	// remove root joint
 	pop(joints_chain);
 
-	std::vector<boost::shared_ptr<const Joint> >::iterator it;
+	std::vector<boost::shared_ptr<const Joint> >::reverse_iterator reverse_it;
 
-	for (it = joints_chain.begin(); it != joints_chain.end(); ++it)
+	for (reverse_it = joints_chain.rbegin(); reverse_it != joints_chain.rend(); ++reverse_it)
 	{
-		boost::shared_ptr<const Joint>& joint = *it;
+		boost::shared_ptr<const Joint>& joint = *reverse_it;
 
 		motion_bound += getMotionBoundInParentFrame(joint);
 	}
@@ -150,6 +150,8 @@ FCL_REAL ModelBound::getJointsChainMotionBound(std::vector<boost::shared_ptr<con
 FCL_REAL ModelBound::getMotionBoundInParentFrame(boost::shared_ptr<const Joint>& joint) const 
 {
 	boost::shared_ptr<const Joint> parent = getJointParent(joint);
+
+	BOOST_ASSERT_MSG(parent.use_count() != 0, "Joint is not assigned.");
 
 	if (isRoot(parent) )
 	{

@@ -51,6 +51,7 @@ Vec3f JointBoundInfo::getLinearVelocityBound(boost::shared_ptr<const Joint>& joi
 {
 	if (isJointTranslational(joint) )
 	{
+		// suggest that vector returned by getAxis() method is normalized
 		return joint->getAxis() * getInterpolationVelocityBound(joint);
 	}
 	else
@@ -94,6 +95,7 @@ Vec3f JointBoundInfo::getAngularVelocityBound(boost::shared_ptr<const Joint>& jo
 {
 	if (isJointRevolute(joint) )
 	{
+		// suggest that vector returned by getAxis() method is normalized
 		return joint->getAxis() * getInterpolationVelocityBound(joint);
 	}
 	else
@@ -142,16 +144,13 @@ bool JointBoundInfo::isJointTranslational(boost::shared_ptr<const Joint>& joint)
 
 FCL_REAL JointBoundInfo::getVectorLengthBound(boost::shared_ptr<const Joint>& joint_parent, boost::shared_ptr<const Joint>& joint) const
 {	
-	// TODO: ask Jia Pan what exactly getTransformToParent means
-	// Is it transformation from joint's coordinates to parent's coordinates
-	// or it is transformation from parent's coordinates to joint's coordinates?
-	// I suggest the second option in spite of the method's name.
 	Vec3f vec = joint->getTransformToParent().getTranslation();
 
 	if (isJointTranslational(joint_parent) )
 	{
 		boost::shared_ptr<const Interpolation> parent_interp = getInterpolation(joint_parent);
 
+		// suggest that vector returned by getAxis() method is normalized
 		Vec3f movement = joint_parent->getAxis() * parent_interp->getMovementLengthBound(getCurrentTime() );
 
 		vec += movement;
