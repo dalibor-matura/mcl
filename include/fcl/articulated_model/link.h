@@ -72,6 +72,7 @@ public:
   boost::shared_ptr<const Joint> getParentJoint() const;
 
   bool operator==(const Link& link) const;
+  bool operator!=(const Link& link) const;
   
 protected:
   std::string name_;

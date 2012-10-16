@@ -176,6 +176,7 @@ public:
 		InitFixture()
 	{
 		initLinks();
+		initJoints();
 	}
 };
 
@@ -186,8 +187,40 @@ public:
 	JointFixture() :
 		InitFixture()
 	{
+		initLinks();
 		initJoints();
 	}
+};
+
+class JointConfigFixture :
+	public InitFixture
+{
+public:
+	JointConfigFixture() :
+		InitFixture()
+	{
+		initJoints();
+		initJointConfig();
+	}
+
+protected:
+	void initJointConfig()
+	{
+		joint_cfg_value_ = 2;
+		joint_cfg_value_min_ = -1;
+		joint_cfg_value_max_ = 3;
+
+		joint_config_.reset(
+			new JointConfig(shoulder_joint_, joint_cfg_value_, joint_cfg_value_min_, joint_cfg_value_max_)
+		);
+	}
+
+protected:
+	boost::shared_ptr<JointConfig> joint_config_;
+
+	FCL_REAL joint_cfg_value_;
+	FCL_REAL joint_cfg_value_min_;
+	FCL_REAL joint_cfg_value_max_;
 };
 
 class ModelFixture :
@@ -343,6 +376,70 @@ std::ostream& operator << (std::ostream& o, const Transform3f& t)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+BOOST_AUTO_TEST_SUITE(test_link)
+
+BOOST_FIXTURE_TEST_CASE(test_set_get_name, LinkFixture)
+{
+	std::string new_name = "new name";
+
+	body_->setName(new_name);
+
+	BOOST_CHECK_EQUAL(new_name, body_->getName() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_add_get_child_joints, LinkFixture)
+{
+	body_->addChildJoint(shoulder_joint_);
+	body_->addChildJoint(elbow_joint_);
+	body_->addChildJoint(wrist_joint_);
+
+	std::vector<boost::shared_ptr<const Joint> > childs = body_->getChildJoints();
+
+	BOOST_CHECK(std::find(childs.begin(), childs.end(), shoulder_joint_) != childs.end() );
+	BOOST_CHECK(std::find(childs.begin(), childs.end(), elbow_joint_) != childs.end() );
+	BOOST_CHECK(std::find(childs.begin(), childs.end(), wrist_joint_) != childs.end() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_set_get_parent_joint, LinkFixture)
+{
+	body_->setParentJoint(finger_joint_);
+
+	BOOST_CHECK_EQUAL(finger_joint_, body_->getParentJoint() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_add_object_and_get_num_objects, LinkFixture)
+{
+	BOOST_CHECK_EQUAL(0, body_->getNumObjects() );
+
+	boost::shared_ptr<const CollisionObject> object_1(new CollisionObject() );
+	body_->addObject(object_1);
+	BOOST_CHECK_EQUAL(1, body_->getNumObjects() );
+
+	boost::shared_ptr<const CollisionObject> object_2(new CollisionObject() );
+	body_->addObject(object_2);
+	BOOST_CHECK_EQUAL(2, body_->getNumObjects() );
+
+	boost::shared_ptr<const CollisionObject> object_3(new CollisionObject() );
+	body_->addObject(object_3);
+	BOOST_CHECK_EQUAL(3, body_->getNumObjects() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_num_child_joints, LinkFixture)
+{
+	BOOST_CHECK_EQUAL(0, body_->getNumChildJoints() );
+
+	body_->addChildJoint(shoulder_joint_);
+	BOOST_CHECK_EQUAL(1, body_->getNumChildJoints() );
+
+	body_->addChildJoint(elbow_joint_);
+	BOOST_CHECK_EQUAL(2, body_->getNumChildJoints() );
+
+	body_->addChildJoint(wrist_joint_);
+	BOOST_CHECK_EQUAL(3, body_->getNumChildJoints() );
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+////////////////////////////////////////////////////////////////////////////////
 BOOST_AUTO_TEST_SUITE(test_joint)
 
 BOOST_FIXTURE_TEST_CASE(test_set_get_name, JointFixture)
@@ -400,7 +497,6 @@ BOOST_FIXTURE_TEST_CASE(test_get_local_transform_on_revolute_joint, JointFixture
 	Vec3f axis = Vec3f(0, 0, 1);
 
 	boost::shared_ptr<Joint> joint(new RevoluteJoint(body_, arm_, transform, "joint", axis) );
-
 
 	// 90°
 	FCL_REAL joint_cfg_value = boost::math::constants::pi<double>() / 2;
@@ -481,6 +577,80 @@ BOOST_FIXTURE_TEST_CASE(test_get_axis, JointFixture)
 }
 
 BOOST_AUTO_TEST_SUITE_END()	
+////////////////////////////////////////////////////////////////////////////////
+BOOST_AUTO_TEST_SUITE(test_joint_config)
+
+BOOST_FIXTURE_TEST_CASE(test_get_dim, JointConfigFixture)
+{
+	BOOST_CHECK_EQUAL(shoulder_joint_->getNumDofs(), joint_config_->getDim() );
+}
+
+BOOST_FIXTURE_TEST_CASE(test_operator_square_brackets, JointConfigFixture)
+{
+	std::size_t size = joint_config_->getDim();
+
+	for (std::size_t i = 0; i < size; ++i)
+	{
+		BOOST_CHECK_EQUAL(joint_cfg_value_, (*joint_config_)[i]);
+
+		FCL_REAL new_value = 0.25;
+		(*joint_config_)[i] = new_value;
+
+		BOOST_CHECK_EQUAL(new_value, (*joint_config_)[i]);
+	}
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_value, JointConfigFixture)
+{
+	std::size_t size = joint_config_->getDim();
+
+	for (std::size_t i = 0; i < size; ++i)
+	{
+		BOOST_CHECK_EQUAL(joint_cfg_value_, joint_config_->getValue(i) );
+
+		FCL_REAL new_value = 0.25;
+		joint_config_->getValue(i) = new_value;
+
+		BOOST_CHECK_EQUAL(new_value, joint_config_->getValue(i) );
+	}
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_limit_min, JointConfigFixture)
+{
+	std::size_t size = joint_config_->getDim();
+
+	for (std::size_t i = 0; i < size; ++i)
+	{
+		BOOST_CHECK_EQUAL(joint_cfg_value_min_, joint_config_->getLimitMin(i) );
+
+		FCL_REAL new_value = 0.25;
+		joint_config_->getLimitMin(i) = new_value;
+
+		BOOST_CHECK_EQUAL(new_value, joint_config_->getLimitMin(i) );
+	}
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_limit_max, JointConfigFixture)
+{
+	std::size_t size = joint_config_->getDim();
+
+	for (std::size_t i = 0; i < size; ++i)
+	{
+		BOOST_CHECK_EQUAL(joint_cfg_value_max_, joint_config_->getLimitMax(i) );
+
+		FCL_REAL new_value = 0.25;
+		joint_config_->getLimitMax(i) = new_value;
+
+		BOOST_CHECK_EQUAL(new_value, joint_config_->getLimitMax(i) );
+	}
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_joint, JointConfigFixture)
+{
+	BOOST_CHECK_EQUAL(shoulder_joint_, joint_config_->getJoint() );
+}
+
+BOOST_AUTO_TEST_SUITE_END()
 ////////////////////////////////////////////////////////////////////////////////
 BOOST_AUTO_TEST_SUITE(test_model)
 
@@ -692,11 +862,9 @@ BOOST_FIXTURE_TEST_CASE(test_get_motion_bound, ModelBoundFixture)
 	FCL_REAL time = 0.0;	
 
 	bound = model_bound_->getMotionBound(body_name_, time, direction_);
-
 	BOOST_CHECK_EQUAL(0.0, bound);
 
 	bound = model_bound_->getMotionBound(arm_name_, time, direction_);
-
 	BOOST_CHECK_LE(0.0, bound);
 }
 

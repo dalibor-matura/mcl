@@ -97,4 +97,9 @@ bool Link::operator==(const Link& link) const
 		parent_joint_ == parent_joint_;
 }
 
+bool Link::operator!=(const Link& link) const
+{
+	return !((*this) == link);
+}
+
 }
