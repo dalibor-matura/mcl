@@ -47,7 +47,7 @@ void JointBoundInfo::initJointsInterpolations()
 	}	
 }
 
-Vec3f JointBoundInfo::getLinearVelocityBound(boost::shared_ptr<const Joint>& joint) const
+Vec3f JointBoundInfo::getLinearVelocityBound(const boost::shared_ptr<const Joint>& joint) const
 {
 	if (isJointTranslational(joint) )
 	{
@@ -61,7 +61,7 @@ Vec3f JointBoundInfo::getLinearVelocityBound(boost::shared_ptr<const Joint>& joi
 }
 
 
-FCL_REAL JointBoundInfo::getAbsoluteLinearVelocityBound(boost::shared_ptr<const Joint>& joint) const
+FCL_REAL JointBoundInfo::getAbsoluteLinearVelocityBound(const boost::shared_ptr<const Joint>& joint) const
 {
 	if (isJointTranslational(joint) )
 	{
@@ -73,14 +73,14 @@ FCL_REAL JointBoundInfo::getAbsoluteLinearVelocityBound(boost::shared_ptr<const 
 	}
 }
 
-FCL_REAL JointBoundInfo::getInterpolationVelocityBound(boost::shared_ptr<const Joint>& joint) const
+FCL_REAL JointBoundInfo::getInterpolationVelocityBound(const boost::shared_ptr<const Joint>& joint) const
 {
 	boost::shared_ptr<const Interpolation> interp = getInterpolation(joint);	
 
 	return interp->getVelocityBound(getCurrentTime() );
 }
 
-boost::shared_ptr<Interpolation> JointBoundInfo::getInterpolation(boost::shared_ptr<const Joint>& joint) const
+boost::shared_ptr<Interpolation> JointBoundInfo::getInterpolation(const boost::shared_ptr<const Joint>& joint) const
 {
 	std::string joint_name = joint->getName();
 
@@ -91,7 +91,7 @@ boost::shared_ptr<Interpolation> JointBoundInfo::getInterpolation(boost::shared_
 	return it->second;
 }
 
-Vec3f JointBoundInfo::getAngularVelocityBound(boost::shared_ptr<const Joint>& joint) const
+Vec3f JointBoundInfo::getAngularVelocityBound(const boost::shared_ptr<const Joint>& joint) const
 {
 	if (isJointRevolute(joint) )
 	{
@@ -104,7 +104,7 @@ Vec3f JointBoundInfo::getAngularVelocityBound(boost::shared_ptr<const Joint>& jo
 	}
 }
 
-FCL_REAL JointBoundInfo::getAbsoluteAngularVelocityBound(boost::shared_ptr<const Joint>& joint) const
+FCL_REAL JointBoundInfo::getAbsoluteAngularVelocityBound(const boost::shared_ptr<const Joint>& joint) const
 {
 	FCL_REAL velocity;
 
@@ -120,7 +120,7 @@ FCL_REAL JointBoundInfo::getAbsoluteAngularVelocityBound(boost::shared_ptr<const
 	return velocity;
 }
 
-bool JointBoundInfo::isJointRevolute(boost::shared_ptr<const Joint>& joint) const
+bool JointBoundInfo::isJointRevolute(const boost::shared_ptr<const Joint>& joint) const
 {
 	JointType joint_type = joint->getJointType();
 
@@ -137,12 +137,13 @@ bool JointBoundInfo::isJointRevolute(boost::shared_ptr<const Joint>& joint) cons
 	return false;
 }
 
-bool JointBoundInfo::isJointTranslational(boost::shared_ptr<const Joint>& joint) const
+bool JointBoundInfo::isJointTranslational(const boost::shared_ptr<const Joint>& joint) const
 {
 	return !isJointRevolute(joint);
 }
 
-FCL_REAL JointBoundInfo::getVectorLengthBound(boost::shared_ptr<const Joint>& joint_parent, boost::shared_ptr<const Joint>& joint) const
+FCL_REAL JointBoundInfo::getVectorLengthBound(const boost::shared_ptr<const Joint>& joint_parent, 
+	const boost::shared_ptr<const Joint>& joint) const
 {	
 	Vec3f vec = joint->getTransformToParent().getTranslation();
 

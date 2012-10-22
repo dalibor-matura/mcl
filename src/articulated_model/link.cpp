@@ -54,17 +54,17 @@ void Link::setName(const std::string& name)
   name_ = name;
 }
 
-void Link::addChildJoint(const boost::shared_ptr<const Joint>& joint)
+void Link::addChildJoint(boost::shared_ptr<Joint> joint)
 {
   children_joints_.push_back(joint);
 }
 
-void Link::setParentJoint(const boost::shared_ptr<const Joint>& joint)
+void Link::setParentJoint(boost::shared_ptr<Joint> joint)
 {
   parent_joint_ = joint;
 }
 
-void Link::addObject(const boost::shared_ptr<const CollisionObject>& object)
+void Link::addObject(boost::shared_ptr<CollisionObject> object)
 {
   objects_.push_back(object);
 }
@@ -79,12 +79,12 @@ std::size_t Link::getNumObjects() const
   return objects_.size();
 }
 
-std::vector<boost::shared_ptr<const Joint> > Link::getChildJoints() const
+std::vector<boost::shared_ptr<Joint> > Link::getChildJoints() const
 {
   return children_joints_;
 }
 
-boost::shared_ptr<const Joint> Link::getParentJoint() const
+boost::shared_ptr<Joint> Link::getParentJoint() const
 {
 	return parent_joint_;
 }

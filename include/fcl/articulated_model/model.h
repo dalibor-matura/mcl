@@ -66,11 +66,10 @@ public:
   
   void addLink(const boost::shared_ptr<Link>& link);
 
-  void addJoint(const boost::shared_ptr<Joint>& joint, const InterpolationType& interpolation_type = LINEAR);
+  void addJoint(const boost::shared_ptr<Joint>& joint, const InterpolationType& interpolation_type = LINEAR);  
 
-  void initTree(std::map<std::string, std::string>& link_parent_tree);
-
-  void initRoot(const std::map<std::string, std::string>& link_parent_tree);  
+  // must be called after adding of links and joints is completed
+  void initTree();
 
   std::size_t getNumDofs() const;
 
@@ -87,10 +86,20 @@ public:
   std::vector<boost::shared_ptr<Joint> > getJoints() const;
 
   std::map<std::string, boost::shared_ptr<Joint> > getJointsMap() const;
+
+  boost::shared_ptr<Joint> getJointParent(const boost::shared_ptr<const Joint>& joint) const;  
+protected:
+  void initTree(std::map<std::string, std::string>& link_parent_tree);
+  void initRoot(const std::map<std::string, std::string>& link_parent_tree);  
+
+  // recursive construction
+  void constructJointParentTree(boost::shared_ptr<const Link> link);
+
 protected:
   boost::shared_ptr<Link> root_link_;
   std::map<std::string, boost::shared_ptr<Link> > links_;
   std::map<std::string, boost::shared_ptr<Joint> > joints_;
+  std::map<std::string, boost::shared_ptr<Joint> > joint_parents_;
   std::map<std::string,  InterpolationType> joints_interpolation_types_;
 
   std::string name_;

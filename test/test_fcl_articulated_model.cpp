@@ -36,7 +36,7 @@ public:
 		initModel();
 		initConfigurations();
 
-		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_) );
+		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_, finger_) );
 	}
 
 	void initModel()
@@ -57,6 +57,8 @@ public:
 		model_->addJoint(elbow_joint_);
 		model_->addJoint(wrist_joint_);
 		model_->addJoint(finger_joint_);
+
+		model_->initTree();
 	}
 
 	void initLinks()
@@ -318,6 +320,18 @@ public:
 	}
 
 protected:
+	// bounded link = body_
+	void setEndCfgLinkBody()
+	{
+		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_, body_) );		
+	}
+
+	// bounded link = arm_
+	void setEndCfgLinkArm()
+	{
+		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_, arm_) );		
+	}
+
 	// one rotation
 	void setEndCfg_1()
 	{
@@ -328,7 +342,7 @@ protected:
 		cfg_end_->getJointConfig(wrist_joint_)[0] = 0;
 		cfg_end_->getJointConfig(finger_joint_)[0] = finger_joint_cfg_value_;	
 
-		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_) );		
+		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_, finger_) );		
 	}
 
 	// two rotations
@@ -345,7 +359,7 @@ protected:
 		wrist_joint_->setTransformToParent(Transform3f() );
 		finger_joint_->setTransformToParent(Transform3f() );
 
-		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_) );		
+		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_, finger_) );		
 	}
 
 	// one linear movement
@@ -358,7 +372,7 @@ protected:
 		cfg_end_->getJointConfig(wrist_joint_)[0] = wrist_joint_cfg_value_;
 		cfg_end_->getJointConfig(finger_joint_)[0] = 0;	
 
-		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_) );		
+		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_, finger_) );		
 	}
 
 	// two linear movements
@@ -372,7 +386,7 @@ protected:
 		cfg_end_->getJointConfig(wrist_joint_)[0] = wrist_joint_cfg_value_;
 		cfg_end_->getJointConfig(finger_joint_)[0] = 0;	
 
-		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_) );		
+		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_, finger_) );		
 	}
 
 	// one rotation + one linear movement
@@ -386,7 +400,7 @@ protected:
 		cfg_end_->getJointConfig(wrist_joint_)[0] = wrist_joint_cfg_value_;
 		cfg_end_->getJointConfig(finger_joint_)[0] = finger_joint_cfg_value_;	
 
-		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_) );		
+		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_, finger_) );		
 	}
 
 	// two rotations + transform to parent
@@ -405,7 +419,7 @@ protected:
 		wrist_joint_->setTransformToParent(Transform3f() );
 		finger_joint_->setTransformToParent(Transform3f(Matrix3f(), finger_joint_transform_to_parent_) );
 
-		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_) );		
+		model_bound_.reset(new ModelBound(model_, cfg_start_, cfg_end_, finger_) );		
 	}
 
 protected:
@@ -497,7 +511,7 @@ BOOST_FIXTURE_TEST_CASE(test_add_get_child_joints, LinkFixture)
 	body_->addChildJoint(elbow_joint_);
 	body_->addChildJoint(wrist_joint_);
 
-	std::vector<boost::shared_ptr<const Joint> > childs = body_->getChildJoints();
+	std::vector<boost::shared_ptr<Joint> > childs = body_->getChildJoints();
 
 	BOOST_CHECK(std::find(childs.begin(), childs.end(), shoulder_joint_) != childs.end() );
 	BOOST_CHECK(std::find(childs.begin(), childs.end(), elbow_joint_) != childs.end() );
@@ -515,15 +529,15 @@ BOOST_FIXTURE_TEST_CASE(test_add_object_and_get_num_objects, LinkFixture)
 {
 	BOOST_CHECK_EQUAL(0, body_->getNumObjects() );
 
-	boost::shared_ptr<const CollisionObject> object_1(new CollisionObject() );
+	boost::shared_ptr<CollisionObject> object_1(new CollisionObject() );
 	body_->addObject(object_1);
 	BOOST_CHECK_EQUAL(1, body_->getNumObjects() );
 
-	boost::shared_ptr<const CollisionObject> object_2(new CollisionObject() );
+	boost::shared_ptr<CollisionObject> object_2(new CollisionObject() );
 	body_->addObject(object_2);
 	BOOST_CHECK_EQUAL(2, body_->getNumObjects() );
 
-	boost::shared_ptr<const CollisionObject> object_3(new CollisionObject() );
+	boost::shared_ptr<CollisionObject> object_3(new CollisionObject() );
 	body_->addObject(object_3);
 	BOOST_CHECK_EQUAL(3, body_->getNumObjects() );
 }
@@ -776,28 +790,11 @@ BOOST_FIXTURE_TEST_CASE(test_add_get_link, ModelFixture)
 	BOOST_CHECK_EQUAL(test_link_, link);
 }
 
-BOOST_FIXTURE_TEST_CASE(test_init_tree, ModelFixture)
+BOOST_FIXTURE_TEST_CASE(test_get_joint_parent, ModelFixture)
 {
-	std::map<std::string, std::string> link_parent_tree;
-
-	model_->initTree(link_parent_tree);
-
-	BOOST_CHECK_EQUAL(hand_name_, link_parent_tree[finger_name_]);
-	BOOST_CHECK_EQUAL(forearm_name_, link_parent_tree[hand_name_]);
-	BOOST_CHECK_EQUAL(arm_name_, link_parent_tree[forearm_name_]);
-	BOOST_CHECK_EQUAL(body_name_, link_parent_tree[arm_name_]);
-}
-
-BOOST_FIXTURE_TEST_CASE(test_init_root, ModelFixture)
-{
-	std::map<std::string, std::string> link_parent_tree;
-
-	BOOST_CHECK_EQUAL(0, model_->getRoot().use_count() );
-
-	model_->initTree(link_parent_tree);
-	model_->initRoot(link_parent_tree);
-
-	BOOST_CHECK_EQUAL(body_, model_->getRoot() );
+	BOOST_CHECK_EQUAL(shoulder_joint_, model_->getJointParent(elbow_joint_));
+	BOOST_CHECK_EQUAL(elbow_joint_, model_->getJointParent(wrist_joint_));
+	BOOST_CHECK_EQUAL(wrist_joint_, model_->getJointParent(finger_joint_));
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_num_dofs, ModelFixture)
@@ -963,12 +960,16 @@ BOOST_AUTO_TEST_SUITE(test_model_bound)
 BOOST_FIXTURE_TEST_CASE(test_get_motion_bound, ModelBoundFixture)
 {
 	FCL_REAL bound = -1.0;
-	FCL_REAL time = 0.0;	
+	FCL_REAL time = 0.0;
 
-	bound = model_bound_->getMotionBound(body_name_, time, direction_);
+	setEndCfgLinkBody();
+
+	bound = model_bound_->getMotionBound(time, direction_);
 	BOOST_CHECK_EQUAL(0.0, bound);
 
-	bound = model_bound_->getMotionBound(arm_name_, time, direction_);
+	setEndCfgLinkArm();
+
+	bound = model_bound_->getMotionBound(time, direction_);
 	BOOST_CHECK_LE(0.0, bound);
 }
 
@@ -982,7 +983,7 @@ BOOST_FIXTURE_TEST_CASE(test_get_motion_bound_for_end_cfg_1, ModelBoundFixture)
 	FCL_REAL angular_velocity = finger_joint_cfg_value_ / 1.0;
 	FCL_REAL expected_bound = angular_velocity * distance_from_center_;
 
-	bound = model_bound_->getMotionBound(finger_name_, time, direction_, distance_from_center_);
+	bound = model_bound_->getMotionBound(time, direction_, distance_from_center_);
 	BOOST_CHECK_EQUAL(expected_bound, bound);
 }
 
@@ -997,7 +998,7 @@ BOOST_FIXTURE_TEST_CASE(test_get_motion_bound_for_end_cfg_2, ModelBoundFixture)
 	FCL_REAL finger_joint_angular_velocity = finger_joint_cfg_value_ / 1.0;
 	FCL_REAL expected_bound = (elbow_joint_angular_velocity + finger_joint_angular_velocity) * distance_from_center_;
 
-	bound = model_bound_->getMotionBound(finger_name_, time, direction_, distance_from_center_);
+	bound = model_bound_->getMotionBound(time, direction_, distance_from_center_);
 	BOOST_CHECK_EQUAL(expected_bound, bound);
 }
 
@@ -1010,7 +1011,7 @@ BOOST_FIXTURE_TEST_CASE(test_get_motion_bound_for_end_cfg_3, ModelBoundFixture)
 
 	FCL_REAL expected_bound = wrist_joint_cfg_value_ / 1.0;
 
-	bound = model_bound_->getMotionBound(finger_name_, time, direction_, distance_from_center_);
+	bound = model_bound_->getMotionBound(time, direction_, distance_from_center_);
 	BOOST_CHECK_EQUAL(expected_bound, bound);
 }
 
@@ -1027,7 +1028,7 @@ BOOST_FIXTURE_TEST_CASE(test_get_motion_bound_for_end_cfg_4, ModelBoundFixture)
 	FCL_REAL wrist_joint_expected_bound = wrist_joint_cfg_value_ / 1.0;
 	FCL_REAL expected_bound = shoulder_joint_expected_bound + wrist_joint_cfg_value_;
 
-	bound = model_bound_->getMotionBound(finger_name_, time, direction_, distance_from_center_);
+	bound = model_bound_->getMotionBound(time, direction_, distance_from_center_);
 	BOOST_CHECK_EQUAL(expected_bound, bound);
 }
 
@@ -1043,7 +1044,7 @@ BOOST_FIXTURE_TEST_CASE(test_get_motion_bound_for_end_cfg_5, ModelBoundFixture)
 	FCL_REAL finger_joint_expected_bound = finger_joint_angular_velocity * distance_from_center_;
 	FCL_REAL expected_bound = wrist_joint_expected_bound + finger_joint_expected_bound;
 
-	bound = model_bound_->getMotionBound(finger_name_, time, direction_, distance_from_center_);
+	bound = model_bound_->getMotionBound(time, direction_, distance_from_center_);
 	BOOST_CHECK_EQUAL(expected_bound, bound);
 }
 
@@ -1061,7 +1062,7 @@ BOOST_FIXTURE_TEST_CASE(test_get_motion_bound_for_end_cfg_6, ModelBoundFixture)
 	FCL_REAL finger_joint_expected_bound = (elbow_joint_angular_velocity + finger_joint_angular_velocity) * distance_from_center_;
 	FCL_REAL expected_bound = elbow_joint_expected_bound + finger_joint_expected_bound;
 
-	bound = model_bound_->getMotionBound(finger_name_, time, direction_, distance_from_center_);
+	bound = model_bound_->getMotionBound(time, direction_, distance_from_center_);
 	BOOST_CHECK_EQUAL(expected_bound, bound);
 }
 

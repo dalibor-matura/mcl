@@ -171,6 +171,16 @@ void Model::initRoot(const std::map<std::string, std::string>& link_parent_tree)
     throw ModelParseError("No root link found.");
 }
 
+void Model::initTree()
+{
+  std::map<std::string, std::string> link_parent_tree;
+
+  initTree(link_parent_tree);
+  initRoot(link_parent_tree);	
+
+  constructJointParentTree(getRoot() );
+}
+
 void Model::initTree(std::map<std::string, std::string>& link_parent_tree)
 {
   for(std::map<std::string, boost::shared_ptr<Joint> >::iterator it = joints_.begin(); it != joints_.end(); ++it)
@@ -183,6 +193,43 @@ void Model::initTree(std::map<std::string, std::string>& link_parent_tree)
 
     link_parent_tree[child_link_name] = parent_link_name;
   }
+}
+
+void Model::constructJointParentTree(boost::shared_ptr<const Link> link)
+{	
+  std::vector<boost::shared_ptr<Joint> > child_joints = link->getChildJoints();
+  boost::shared_ptr<Joint> parent_joint = link->getParentJoint();
+  std::vector<boost::shared_ptr<Joint> >::const_iterator it;
+
+  for (it = child_joints.begin(); it != child_joints.end(); ++it)
+  {
+    boost::shared_ptr<const Joint> joint = (*it);
+    boost::shared_ptr<const Link> child_link = joint->getChildLink();
+
+    if (parent_joint.use_count() != 0)
+    {
+      joint_parents_[joint->getName()] = parent_joint;
+    }		
+
+    if (child_link.use_count() != 0)
+    {
+      constructJointParentTree(child_link);
+    }
+  }
+}
+
+boost::shared_ptr<Joint> Model::getJointParent(const boost::shared_ptr<const Joint>& joint) const
+{
+  boost::shared_ptr<Joint> parent;
+
+  std::map<std::string, boost::shared_ptr<Joint> >::const_iterator it = joint_parents_.find(joint->getName() );
+
+  if (it != joint_parents_.end() )
+  {
+    parent = it->second;
+  }
+
+  return parent;
 }
 
 }

@@ -21,25 +21,28 @@ public:
 	JointBoundInfo(boost::shared_ptr<Model> model,
 		boost::shared_ptr<const ModelConfig> cfg_start, boost::shared_ptr<const ModelConfig> cfg_end);
 
-	Vec3f getLinearVelocityBound(boost::shared_ptr<const Joint>& joint) const;
-	FCL_REAL getAbsoluteLinearVelocityBound(boost::shared_ptr<const Joint>& joint) const;
-
-	Vec3f getAngularVelocityBound(boost::shared_ptr<const Joint>& joint) const;	
-	FCL_REAL getAbsoluteAngularVelocityBound(boost::shared_ptr<const Joint>& joint) const;	
-
-	FCL_REAL getVectorLengthBound(boost::shared_ptr<const Joint>& joint_parent, boost::shared_ptr<const Joint>& joint) const;
-
 	void setCurrentTime(const FCL_REAL& time);
 	FCL_REAL getCurrentTime() const;
+
+	/* setCurrentTime must be called before any other method is called */
+
+	Vec3f getLinearVelocityBound(const boost::shared_ptr<const Joint>& joint) const;
+	FCL_REAL getAbsoluteLinearVelocityBound(const boost::shared_ptr<const Joint>& joint) const;
+
+	Vec3f getAngularVelocityBound(const boost::shared_ptr<const Joint>& joint) const;	
+	FCL_REAL getAbsoluteAngularVelocityBound(const boost::shared_ptr<const Joint>& joint) const;	
+
+	FCL_REAL getVectorLengthBound(const boost::shared_ptr<const Joint>& joint_parent, 
+		const boost::shared_ptr<const Joint>& joint) const;	
 
 private:
 	void initJointsInterpolations();
 
-	FCL_REAL getInterpolationVelocityBound(boost::shared_ptr<const Joint>& joint) const;
-	boost::shared_ptr<Interpolation> getInterpolation(boost::shared_ptr<const Joint>& joint) const;	
+	FCL_REAL getInterpolationVelocityBound(const boost::shared_ptr<const Joint>& joint) const;
+	boost::shared_ptr<Interpolation> getInterpolation(const boost::shared_ptr<const Joint>& joint) const;	
 
-	bool isJointRevolute(boost::shared_ptr<const Joint>& joint) const;
-	bool isJointTranslational(boost::shared_ptr<const Joint>& joint) const;		
+	bool isJointRevolute(const boost::shared_ptr<const Joint>& joint) const;
+	bool isJointTranslational(const boost::shared_ptr<const Joint>& joint) const;		
 
 private:
 	FCL_REAL time_;

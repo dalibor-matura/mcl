@@ -43,6 +43,11 @@
 #include <iostream>
 #include <vector>
 
+#include "fcl/articulated_model/model.h"
+#include "fcl/articulated_model/model_config.h"
+
+#include <boost/shared_ptr.hpp>
+
 namespace fcl
 {
 
@@ -532,23 +537,12 @@ public:
   }
 };
 
-/// @brief Articular interpolation motion
-/// Each Motion is assumed to be a motion of an object connected to the link, which is a part of an articulated model
-//class ArticulatMotion : public MotionBase
+//class ArticularMotion : public MotionBase
 //{
 //public:  
-//    /// @brief Construct motion from the initial rotation/translation and goal rotation/translation
-//    ArticulatMotion(const Matrix3f& R1, const Vec3f& T1,
-//        const Matrix3f& R2, const Vec3f& T2);
-//
-//    ArticulatMotion(const Transform3f& tf1_, const Transform3f& tf2_);
-//
-//    /// @brief Construct motion from the initial rotation/translation and goal rotation/translation related to some rotation center
-//    ArticulatMotion(const Matrix3f& R1, const Vec3f& T1,
-//        const Matrix3f& R2, const Vec3f& T2,
-//        const Vec3f& O);
-//
-//    ArticulatMotion(const Transform3f& tf1_, const Transform3f& tf2_, const Vec3f& O);
+//  /// @brief Construct motion from the Model and two Model's Configuration (start, end configuration)
+//  ArticularMotion(boost::shared_ptr<const Model>, boost::shared_ptr<const ModelConfig> cfg_start, 
+//    boost::shared_ptr<const ModelConfig> cfg_end, const std::string& link_name);
 //
 //    /// @brief Integrate the motion from 0 to dt
 //    /// We compute the current transformation from zero point instead of from last integrate time, for precision.
@@ -612,7 +606,7 @@ public:
 //
 //private:
 //    // Non parametrized constructor is not allowed
-//    ArticulatMotion() {};
+//    ArticularMotion() {};
 //
 //protected:
 //
