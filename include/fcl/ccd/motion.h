@@ -43,8 +43,8 @@
 #include <iostream>
 #include <vector>
 
-#include "fcl/articulated_model/model.h"
-#include "fcl/articulated_model/model_config.h"
+//#include "fcl/articulated_model/model.h"
+//#include "fcl/articulated_model/model_config.h"
 
 #include <boost/shared_ptr.hpp>
 

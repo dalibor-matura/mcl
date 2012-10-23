@@ -92,9 +92,9 @@ const std::string& Model::getName() const
   return name_;
 }
 
-std::vector<boost::shared_ptr<Link> > Model::getLinks() const
+std::vector<boost::shared_ptr<const Link> > Model::getLinks() const
 {
-  std::vector<boost::shared_ptr<Link> > links;
+  std::vector<boost::shared_ptr<const Link> > links;
   for(std::map<std::string, boost::shared_ptr<Link> >::const_iterator it = links_.begin(); it != links_.end(); ++it)
   {
     links.push_back(it->second);
@@ -103,9 +103,9 @@ std::vector<boost::shared_ptr<Link> > Model::getLinks() const
   return links;
 }
 
-std::vector<boost::shared_ptr<Joint> > Model::getJoints() const
+std::vector<boost::shared_ptr<const Joint> > Model::getJoints() const
 {
-    std::vector<boost::shared_ptr<Joint> > joints;
+    std::vector<boost::shared_ptr<const Joint> > joints;
     for(std::map<std::string, boost::shared_ptr<Joint> >::const_iterator it = joints_.begin(); it != joints_.end(); ++it)
     {
         joints.push_back(it->second);

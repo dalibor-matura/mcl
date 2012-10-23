@@ -68,7 +68,7 @@ public:
 
   void addJoint(const boost::shared_ptr<Joint>& joint, const InterpolationType& interpolation_type = LINEAR);  
 
-  // must be called after adding of links and joints is completed
+  // must be called after links and joints are added
   void initTree();
 
   std::size_t getNumDofs() const;
@@ -82,8 +82,9 @@ public:
   boost::shared_ptr<Joint> getJoint(const std::string& name) const;
   InterpolationType getJointInterpolationType(const std::string& name) const;
 
-  std::vector<boost::shared_ptr<Link> > getLinks() const;
-  std::vector<boost::shared_ptr<Joint> > getJoints() const;
+  std::vector<boost::shared_ptr<const Link> > getLinks() const;
+
+  std::vector<boost::shared_ptr<const Joint> > getJoints() const;
 
   std::map<std::string, boost::shared_ptr<Joint> > getJointsMap() const;
 

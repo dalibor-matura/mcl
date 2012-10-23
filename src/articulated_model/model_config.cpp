@@ -81,12 +81,12 @@ JointConfig& ModelConfig::getJointConfig(const std::string& joint_name)
   return it->second;
 }
 
-JointConfig ModelConfig::getJointConfig(boost::shared_ptr<Joint> joint) const
+JointConfig ModelConfig::getJointConfig(const boost::shared_ptr<const Joint>& joint) const
 {
   return getJointConfig(joint->getName());
 }
 
-JointConfig& ModelConfig::getJointConfig(boost::shared_ptr<Joint> joint)
+JointConfig& ModelConfig::getJointConfig(const boost::shared_ptr<const Joint>& joint)
 {
   return getJointConfig(joint->getName());
 }

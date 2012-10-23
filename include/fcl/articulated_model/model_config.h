@@ -63,8 +63,8 @@ public:
   JointConfig getJointConfig(const std::string& joint_name) const;
   JointConfig& getJointConfig(const std::string& joint_name);
 
-  JointConfig getJointConfig(boost::shared_ptr<Joint> joint) const;
-  JointConfig& getJointConfig(boost::shared_ptr<Joint> joint);
+  JointConfig getJointConfig(const boost::shared_ptr<const Joint>& joint) const;
+  JointConfig& getJointConfig(const boost::shared_ptr<const Joint>& joint);
 
   std::map<std::string, JointConfig> getJointCfgsMap() const
   { return joint_cfgs_map_; }

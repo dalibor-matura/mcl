@@ -14,16 +14,16 @@ namespace fcl
 {
 
 class Model;
-class ModelConfig;
+class Movement;
 class Link;
 class Joint;
 class JointBoundInfo;
 
-class ModelBound 
+class LinkBound 
 {
 public:
-	ModelBound(boost::shared_ptr<Model> model, boost::shared_ptr<const ModelConfig> cfg_start, 
-		boost::shared_ptr<const ModelConfig> cfg_end, boost::shared_ptr<const Link> bounded_link);
+	LinkBound(boost::shared_ptr<const Model> model, boost::shared_ptr<const Movement> movement,
+		boost::shared_ptr<const Link> bounded_link);
 
 	// direction must be normalized
 	FCL_REAL getMotionBound(const FCL_REAL& time, const Vec3f& direction, 
@@ -34,11 +34,7 @@ private:
 	const std::vector<boost::shared_ptr<const Joint> >& getJointsChain() const;
 
 	// get parent joint of bounded link
-	boost::shared_ptr<Joint> getLastJoint() const;
-
-	// order of joints in vector is from last one to root joint
-	std::vector<boost::shared_ptr<const Joint> >
-		getJointsChainFromLastJoint(const boost::shared_ptr<const Joint>& last_joint) const;				
+	boost::shared_ptr<Joint> getLastJoint() const;					
 
 	// joints are ordered from last joint to root joint
 	FCL_REAL getJointsChainMotionBound() const;
@@ -57,20 +53,22 @@ private:
 	void setCurrentDirection(const Vec3f& direction);
 	Vec3f getCurrentDirection() const;
 
+	void setCurrentTime(const FCL_REAL& time);
+	FCL_REAL getCurrentTime() const;
+
 	void resetAngularBoundAccumulation();
 	void addAngularBoundAccumulation(const FCL_REAL& accumulation) const;
-	FCL_REAL getAngularBoundAccumulation() const;
+	FCL_REAL getAngularBoundAccumulation() const;	
 
 private:		
 	Vec3f direction_;
+	FCL_REAL time_;
 	FCL_REAL max_distance_; // distance from center of last joint to the furthermost point of the collision object	
 
 	boost::shared_ptr<const Model> model_;
-	boost::shared_ptr<const ModelConfig> cfg_start_;
-	boost::shared_ptr<const ModelConfig> cfg_end_;
 	boost::shared_ptr<const Link> bounded_link_;
+	boost::shared_ptr<const Movement> movement_;
 
-	boost::shared_ptr<JointBoundInfo> joint_bound_info_;
 	std::vector<boost::shared_ptr<const Joint> > joints_chain_;
 
 	// TODO: find out better solution then using of mutable
