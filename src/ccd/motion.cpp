@@ -526,4 +526,15 @@ Quaternion3f InterpMotion::absoluteRotation(FCL_REAL dt) const
 }
 
 
+bool ArticularMotion::integrate(double dt) const
+{
+  if(dt > 1) dt = 1;
+
+  tf_ = link_bound_->getBoundedLinkGlobalTransform(dt);
+
+  time_ = dt;
+
+  return true;
+}
+
 }

@@ -515,6 +515,42 @@ std::ostream& operator << (std::ostream& o, const Transform3f& t)
 	return o;
 }
 
+std::ostream& operator << (std::ostream& o, const ModelConfig& c)
+{
+	o << "[";
+
+	std::map<std::string, JointConfig> joint_cfgs_map = c.getJointCfgsMap();
+	std::map<std::string, JointConfig>::const_iterator it;
+
+	for (it = joint_cfgs_map.begin(); it != joint_cfgs_map.end(); ++it)
+	{
+		if (it != joint_cfgs_map.begin() )
+		{
+			o << ", ";
+		}
+
+		const JointConfig& joint_cfg = it->second;
+
+		o << "(";
+
+		for (size_t i = 0; i < joint_cfg.getDim(); ++i)
+		{
+			if (i != 0)
+			{
+				o << ", ";
+			}
+
+			o << joint_cfg[i];
+		}
+
+		o << ")";
+	}
+
+	o << "]";
+
+	return o;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 BOOST_AUTO_TEST_SUITE(test_link)
 
@@ -910,6 +946,69 @@ BOOST_FIXTURE_TEST_CASE(test_get_joint_cfgs_map, ModelConfigFixture)
 	BOOST_CHECK(cfg_start_->getJointConfig(finger_joint_name_) == joint_cfgs_map[finger_joint_name_]);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_operator_plus, ModelConfigFixture)
+{
+	ModelConfig first(model_);
+	ModelConfig second(model_);
+
+	ModelConfig expected_result(model_);
+
+	first.getJointConfig(shoulder_joint_)[0] = 2;
+	first.getJointConfig(elbow_joint_name_)[0] = 4;
+	first.getJointConfig(wrist_joint_name_)[0] = 6;
+	first.getJointConfig(finger_joint_name_)[0] = 8;
+
+	second.getJointConfig(shoulder_joint_)[0] = 8.5;
+	second.getJointConfig(elbow_joint_name_)[0] = 6.5;
+	second.getJointConfig(wrist_joint_name_)[0] = 4.5;
+	second.getJointConfig(finger_joint_name_)[0] = 2.5;
+
+	expected_result.getJointConfig(shoulder_joint_)[0] = 10.5;
+	expected_result.getJointConfig(elbow_joint_name_)[0] = 10.5;
+	expected_result.getJointConfig(wrist_joint_name_)[0] = 10.5;
+	expected_result.getJointConfig(finger_joint_name_)[0] = 10.5;
+
+	BOOST_CHECK_EQUAL(expected_result, first + second);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_operator_minus, ModelConfigFixture)
+{
+	ModelConfig first(model_);
+
+	ModelConfig expected_result(model_);
+
+	first.getJointConfig(shoulder_joint_)[0] = 2;
+	first.getJointConfig(elbow_joint_name_)[0] = 4;
+	first.getJointConfig(wrist_joint_name_)[0] = 6;
+	first.getJointConfig(finger_joint_name_)[0] = 8;
+
+	expected_result.getJointConfig(shoulder_joint_)[0] = 0;
+	expected_result.getJointConfig(elbow_joint_name_)[0] = 0;
+	expected_result.getJointConfig(wrist_joint_name_)[0] = 0;
+	expected_result.getJointConfig(finger_joint_name_)[0] = 0;
+
+	BOOST_CHECK_EQUAL(expected_result, first - first);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_operator_devide, ModelConfigFixture)
+{
+	ModelConfig first(model_);
+
+	ModelConfig expected_result(model_);
+
+	first.getJointConfig(shoulder_joint_)[0] = 2;
+	first.getJointConfig(elbow_joint_name_)[0] = 4;
+	first.getJointConfig(wrist_joint_name_)[0] = 6;
+	first.getJointConfig(finger_joint_name_)[0] = 8;
+
+	expected_result.getJointConfig(shoulder_joint_)[0] = 1;
+	expected_result.getJointConfig(elbow_joint_name_)[0] = 2;
+	expected_result.getJointConfig(wrist_joint_name_)[0] = 3;
+	expected_result.getJointConfig(finger_joint_name_)[0] = 4;
+
+	BOOST_CHECK_EQUAL(expected_result, first / 2);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 ////////////////////////////////////////////////////////////////////////////////
 BOOST_AUTO_TEST_SUITE(test_movement)
@@ -950,6 +1049,12 @@ BOOST_FIXTURE_TEST_CASE(test_get_global_transform, MovementFixture)
 		Transform3f(rotation_around_x, elbow_joint_->getAxis() * shoulder_joint_value);
 
 	BOOST_CHECK_EQUAL(expected_transform, transform);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_model_config, MovementFixture)
+{
+	BOOST_CHECK_EQUAL(cfg_start_, movement_->getModelConfig(0.0) );
+	BOOST_CHECK_EQUAL(cfg_end_, movement_->getModelConfig(1.0) );	
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_linear_velocity_bound, MovementFixture)

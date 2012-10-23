@@ -278,4 +278,11 @@ Transform3f Movement::getGlobalTransform(const boost::shared_ptr<const Link>& li
 	return getGlobalTransform(link->getParentJoint(), model_cfg);
 }
 
+boost::shared_ptr<ModelConfig> Movement::getModelConfig(const FCL_REAL& time) const
+{
+	boost::shared_ptr<ModelConfig> model_config(new ModelConfig(model_) );
+
+	return model_config;
+}
+
 }

@@ -3,6 +3,7 @@
 
 #include "fcl/data_types.h"
 #include "fcl/math/vec_3f.h"
+#include "fcl/math/transform.h"
 
 #include <boost/shared_ptr.hpp>
 
@@ -28,6 +29,10 @@ public:
 	// direction must be normalized
 	FCL_REAL getMotionBound(const FCL_REAL& time, const Vec3f& direction, 
 		const FCL_REAL max_distance_from_joint_center = 0);	
+
+	Transform3f getBoundedLinkGlobalTransform(const FCL_REAL& time) const;
+
+	boost::shared_ptr<const Link> getBoundedLink() const;
 
 private:	
 	void initJointsChain();

@@ -39,6 +39,9 @@
 #include "fcl/articulated_model/joint.h"
 #include <algorithm>
 
+#include <boost/assert.hpp>
+#include <boost/lambda/lambda.hpp>
+
 namespace fcl
 {
 
@@ -48,7 +51,8 @@ ModelConfig::ModelConfig(const ModelConfig& model_cfg) :
   joint_cfgs_map_(model_cfg.joint_cfgs_map_)
 {}
 
-ModelConfig::ModelConfig(boost::shared_ptr<const Model> model)
+ModelConfig::ModelConfig(boost::shared_ptr<const Model> model) :
+  model_(model)
 {
   initJointCFGsMap(model->getJointsMap() ); 
 }
@@ -95,5 +99,93 @@ bool ModelConfig::operator==(const ModelConfig& model_config) const
 {
 	return getJointCfgsMap() == model_config.getJointCfgsMap();
 }
+
+bool ModelConfig::operator!=(const ModelConfig& model_config) const
+{
+	return !(*this == model_config);
+}
+
+boost::shared_ptr<const Model> ModelConfig::getModel() const
+{
+	return model_;
+}
+
+template<typename T>
+ModelConfig applyFunction(const ModelConfig& first, const ModelConfig& second, boost::function<T (T,T)> function)
+{
+	ModelConfig new_model_config(first.getModel() );
+
+	BOOST_ASSERT_MSG(first.getModel() == second.getModel(), "Can't add up model configuration of different models");
+
+	if (first.getModel() != second.getModel() )
+	{
+		return new_model_config;
+	}
+
+	const std::map<std::string, JointConfig>& cfg_map_first = first.getJointCfgsMap();
+	const std::map<std::string, JointConfig>& cfg_map_second = second.getJointCfgsMap();
+
+	std::map<std::string, JointConfig>::const_iterator it_first;
+	std::map<std::string, JointConfig>::const_iterator it_second;
+
+	for (it_first = cfg_map_first.begin(), it_second = cfg_map_second.begin();
+		it_first != cfg_map_first.end(); 
+		++it_first, ++it_second)
+	{
+		const std::string& joint_name = it_first->first;
+		const JointConfig& first_cfg_ = it_first->second;
+		const JointConfig& second_cfg = it_second->second;
+
+		JointConfig& new_joint_cfg = new_model_config.getJointConfig(joint_name);
+
+		for (size_t i = 0; i < new_joint_cfg.getDim(); ++i)
+		{
+			new_joint_cfg[i] = function(first_cfg_[i], second_cfg[i]);
+		}
+	}
+
+	return new_model_config;
+}
+
+ModelConfig ModelConfig::operator+(const ModelConfig& model_config) const
+{
+	return applyFunction<FCL_REAL>(*this, model_config, (boost::lambda::_1 + boost::lambda::_2) );
+}
+
+ModelConfig ModelConfig::operator-(const ModelConfig& model_config) const
+{
+	return applyFunction<FCL_REAL>(*this, model_config, (boost::lambda::_1 - boost::lambda::_2) );
+}
+
+template<typename T>
+ModelConfig applyFunction(const ModelConfig& first, boost::function<T (T)> function)
+{
+	ModelConfig new_model_config(first.getModel() );
+
+	const std::map<std::string, JointConfig>& cfg_map_first = first.getJointCfgsMap();
+
+	std::map<std::string, JointConfig>::const_iterator it_first;
+
+	for (it_first = cfg_map_first.begin(); it_first != cfg_map_first.end(); ++it_first)
+	{
+		const std::string& joint_name = it_first->first;
+		const JointConfig& first_cfg_ = it_first->second;
+
+		JointConfig& new_joint_cfg = new_model_config.getJointConfig(joint_name);
+
+		for (size_t i = 0; i < new_joint_cfg.getDim(); ++i)
+		{
+			new_joint_cfg[i] = function(first_cfg_[i]);
+		}
+	}
+
+	return new_model_config;
+}
+
+ModelConfig ModelConfig::operator/(const FCL_REAL& number) const
+{
+	return applyFunction<FCL_REAL>(*this, (boost::lambda::_1 / number) );
+}
+
 
 }

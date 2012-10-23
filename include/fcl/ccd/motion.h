@@ -43,8 +43,7 @@
 #include <iostream>
 #include <vector>
 
-//#include "fcl/articulated_model/model.h"
-//#include "fcl/articulated_model/model_config.h"
+#include "fcl/articulated_model/link_bound.h"
 
 #include <boost/shared_ptr.hpp>
 
@@ -537,127 +536,94 @@ public:
   }
 };
 
-//class ArticularMotion : public MotionBase
-//{
-//public:  
-//  /// @brief Construct motion from the Model and two Model's Configuration (start, end configuration)
-//  ArticularMotion(boost::shared_ptr<const Model>, boost::shared_ptr<const ModelConfig> cfg_start, 
-//    boost::shared_ptr<const ModelConfig> cfg_end, const std::string& link_name);
-//
-//    /// @brief Integrate the motion from 0 to dt
-//    /// We compute the current transformation from zero point instead of from last integrate time, for precision.
-//    bool integrate(double dt) const;
-//
-//    /// @brief Compute the motion bound for a bounding volume along a given direction n, which is defined in the visitor
-//    FCL_REAL computeMotionBound(const BVMotionBoundVisitor& mb_visitor) const
-//    {
-//        return mb_visitor.visit(*this);
-//    }
-//
-//    /// @brief Compute the motion bound for a triangle along a given direction n, which is defined in the visitor 
-//    FCL_REAL computeMotionBound(const TriangleMotionBoundVisitor& mb_visitor) const
-//    {
-//        return mb_visitor.visit(*this);
-//    }
-//
-//    /// @brief Get the rotation and translation in current step
-//    void getCurrentTransform(Matrix3f& R, Vec3f& T) const
-//    {
-//        R = tf.getRotation();
-//        T = tf.getTranslation();
-//    }
-//
-//    void getCurrentRotation(Matrix3f& R) const
-//    {
-//        R = tf.getRotation();
-//    }
-//
-//    void getCurrentTranslation(Vec3f& T) const
-//    {
-//        T = tf.getTranslation();
-//    }
-//
-//    void getCurrentTransform(Transform3f& tf_) const
-//    {
-//        tf_ = tf;
-//    }
-//
-//    void getTaylorModel(TMatrix3& tm, TVector3& tv) const
-//    {
-//        Matrix3f hat_angular_axis;
-//        hat(hat_angular_axis, angular_axis);
-//
-//        TaylorModel cos_model(getTimeInterval());
-//        generateTaylorModelForCosFunc(cos_model, angular_vel, 0);
-//        TaylorModel sin_model(getTimeInterval());
-//        generateTaylorModelForSinFunc(sin_model, angular_vel, 0);
-//
-//        TMatrix3 delta_R = hat_angular_axis * sin_model - hat_angular_axis * hat_angular_axis * (cos_model - 1) + Matrix3f(1, 0, 0, 0, 1, 0, 0, 0, 1);
-//
-//        TaylorModel a(getTimeInterval()), b(getTimeInterval()), c(getTimeInterval());
-//        generateTaylorModelForLinearFunc(a, 0, linear_vel[0]);
-//        generateTaylorModelForLinearFunc(b, 0, linear_vel[1]);
-//        generateTaylorModelForLinearFunc(c, 0, linear_vel[2]);
-//        TVector3 delta_T(a, b, c);
-//
-//        tm = delta_R * tf1.getRotation();
-//        tv = tf1.transform(reference_p) + delta_T - delta_R * tf1.getQuatRotation().transform(reference_p);
-//    }
-//
-//private:
-//    // Non parametrized constructor is not allowed
-//    ArticularMotion() {};
-//
-//protected:
-//
-//    void computeVelocity();
-//
-//    Quaternion3f deltaRotation(FCL_REAL dt) const;
-//
-//    Quaternion3f absoluteRotation(FCL_REAL dt) const;
-//
-//    /// @brief The transformation at time 0
-//    Transform3f tf1;
-//
-//    /// @brief The transformation at time 1
-//    Transform3f tf2;
-//
-//    /// @brief The transformation at current time t
-//    mutable Transform3f tf;
-//
-//    /// @brief Linear velocity
-//    Vec3f linear_vel;
-//
-//    /// @brief Angular speed
-//    FCL_REAL angular_vel;
-//
-//    /// @brief Angular velocity axis
-//    Vec3f angular_axis;
-//
-//    /// @brief Reference point for the motion (in the object's local frame)
-//    Vec3f reference_p;
-//
-//public:
-//    const Vec3f& getReferencePoint() const
-//    {
-//        return reference_p;
-//    }
-//
-//    const Vec3f& getAngularAxis() const
-//    {
-//        return angular_axis;
-//    }
-//
-//    FCL_REAL getAngularVelocity() const
-//    {
-//        return angular_vel;
-//    }
-//
-//    const Vec3f& getLinearVelocity() const
-//    {
-//        return linear_vel;
-//    }
-//};
+class ArticularMotion : public MotionBase
+{
+public:  
+  /// @brief Construct motion from the LinkBound (that contains Model, Start and End Model's Configuration and Motion)
+  ArticularMotion(boost::shared_ptr<LinkBound> link_bound);
+
+  /// @brief Integrate the motion from 0 to dt
+  /// We compute the current transformation from zero point instead of from last integrate time, for precision.
+  bool integrate(double dt) const;
+
+  /// @brief Compute the motion bound for a bounding volume along a given direction n, which is defined in the visitor
+  FCL_REAL computeMotionBound(const BVMotionBoundVisitor& mb_visitor) const
+  {
+    return mb_visitor.visit(*this);
+  }
+
+  /// @brief Compute the motion bound for a triangle along a given direction n, which is defined in the visitor 
+  FCL_REAL computeMotionBound(const TriangleMotionBoundVisitor& mb_visitor) const
+  {
+    return mb_visitor.visit(*this);
+  }
+
+  /// @brief Get the rotation and translation in current step
+  void getCurrentTransform(Matrix3f& R, Vec3f& T) const
+  {
+    R = tf_.getRotation();
+    T = tf_.getTranslation();
+  }
+
+  void getCurrentRotation(Matrix3f& R) const
+  {
+    R = tf_.getRotation();
+  }
+
+  void getCurrentTranslation(Vec3f& T) const
+  {
+    T = tf_.getTranslation();
+  }
+
+  void getCurrentTransform(Transform3f& tf) const
+  {
+    tf = tf_;
+  }
+
+    void getTaylorModel(TMatrix3& tm, TVector3& tv) const
+    {
+        /*Matrix3f hat_angular_axis;
+        hat(hat_angular_axis, angular_axis);
+
+        TaylorModel cos_model(getTimeInterval());
+        generateTaylorModelForCosFunc(cos_model, angular_vel, 0);
+        TaylorModel sin_model(getTimeInterval());
+        generateTaylorModelForSinFunc(sin_model, angular_vel, 0);
+
+        TMatrix3 delta_R = hat_angular_axis * sin_model - hat_angular_axis * hat_angular_axis * (cos_model - 1) + Matrix3f(1, 0, 0, 0, 1, 0, 0, 0, 1);
+
+        TaylorModel a(getTimeInterval()), b(getTimeInterval()), c(getTimeInterval());
+        generateTaylorModelForLinearFunc(a, 0, linear_vel[0]);
+        generateTaylorModelForLinearFunc(b, 0, linear_vel[1]);
+        generateTaylorModelForLinearFunc(c, 0, linear_vel[2]);
+        TVector3 delta_T(a, b, c);
+
+        tm = delta_R * tf1.getRotation();
+        tv = tf1.transform(reference_p) + delta_T - delta_R * tf1.getQuatRotation().transform(reference_p);*/
+    }
+
+private:
+  // Non parametrized constructor is not allowed
+  ArticularMotion() {};
+
+private:
+  boost::shared_ptr<LinkBound> link_bound_;
+
+  /// @brief The transformation at current time t
+  mutable Transform3f tf_;
+
+  /// @brief The transformation at current time t
+  mutable FCL_REAL time_;
+
+    /// @brief Reference point for the motion (in the object's local frame)
+    Vec3f reference_p;
+
+public:
+    const Vec3f& getReferencePoint() const
+    {
+        return reference_p;
+    }
+};
 
 
 }

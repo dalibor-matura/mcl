@@ -33,6 +33,8 @@ public:
 	Transform3f getGlobalTransform(const boost::shared_ptr<const Link>& link,
 		const boost::shared_ptr<const ModelConfig>& model_cfg) const;
 
+	boost::shared_ptr<ModelConfig> getModelConfig(const FCL_REAL& time) const;
+
 	// order of joints in returned vector is from last one to root joint
 	std::vector<boost::shared_ptr<const Joint> >
 		getJointsChainFromLastJoint(const boost::shared_ptr<const Joint>& last_joint) const;

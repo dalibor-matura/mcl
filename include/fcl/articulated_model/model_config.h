@@ -43,6 +43,7 @@
 #include <map>
 #include <boost/weak_ptr.hpp>
 #include <boost/shared_ptr.hpp>
+#include <boost/function.hpp>
 
 namespace fcl
 {
@@ -66,18 +67,26 @@ public:
   JointConfig getJointConfig(const boost::shared_ptr<const Joint>& joint) const;
   JointConfig& getJointConfig(const boost::shared_ptr<const Joint>& joint);
 
-  std::map<std::string, JointConfig> getJointCfgsMap() const
+  const std::map<std::string, JointConfig>& getJointCfgsMap() const
   { return joint_cfgs_map_; }
 
   bool operator==(const ModelConfig& model_config) const;
+  bool operator!=(const ModelConfig& model_config) const;
+
+  boost::shared_ptr<const Model> getModel() const;
+
+  ModelConfig operator+(const ModelConfig& model_config) const;
+  ModelConfig operator-(const ModelConfig& model_config) const;
+
+  ModelConfig operator/(const FCL_REAL& number) const;
 
 private:
-  void initJointCFGsMap(const std::map<std::string, boost::shared_ptr<Joint> >& joints_map);
+  void initJointCFGsMap(const std::map<std::string, boost::shared_ptr<Joint> >& joints_map);  
 
 private:
+  boost::shared_ptr<const Model> model_;
   std::map<std::string, JointConfig> joint_cfgs_map_;
 };
-
 
 }
 
