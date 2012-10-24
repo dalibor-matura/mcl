@@ -64,13 +64,9 @@ void Movement::initChildParentDistanceBounds()
 	{
 		boost::shared_ptr<const Joint>& joint = (*it);
 
-		boost::shared_ptr<Interpolation> interpolation = getInterpolation(joint);
 		boost::shared_ptr<Joint> joint_parent = model_->getJointParent(joint);
 
-		if (joint_parent.use_count() == 0)
-		{
-			continue;
-		}
+		if (joint_parent.use_count() == 0) continue;
 
 		child_parent_distance_bound_[joint->getName() ] = 
 			calculateChildParentDistanceBound(joint, joint_parent);	
@@ -105,15 +101,18 @@ FCL_REAL Movement::calculateChildParentDistanceBound(const boost::shared_ptr<con
 	return std::max(distance_for_lower_bound, distance_for_upper_bound);		
 }
 
-boost::shared_ptr<Interpolation> Movement::getInterpolation(const boost::shared_ptr<const Joint>& joint) const
+const boost::shared_ptr<const Interpolation>& Movement::getInterpolation(const std::string& joint_name) const
 {
-	std::string joint_name = joint->getName();
-
-	std::map<std::string, boost::shared_ptr<Interpolation> >::const_iterator it = joint_interpolation_.find(joint_name);
+	std::map<std::string, boost::shared_ptr<const Interpolation> >::const_iterator it = joint_interpolation_.find(joint_name);
 
 	BOOST_ASSERT_MSG((it != joint_interpolation_.end()), "Joint name is not valid");
 
 	return it->second;
+}
+
+const boost::shared_ptr<const Interpolation>& Movement::getInterpolation(const boost::shared_ptr<const Joint>& joint) const
+{
+	return getInterpolation(joint->getName() );
 }
 
 Vec3f Movement::getLinearVelocityBound(const boost::shared_ptr<const Joint>& joint,
@@ -252,6 +251,14 @@ std::vector<boost::shared_ptr<const Joint> >
 	return joints_chain;
 }
 
+Transform3f Movement::getGlobalTransform(const boost::shared_ptr<const Joint>& joint, 
+	const FCL_REAL& time) const
+{
+	boost::shared_ptr<const ModelConfig> model_cfg = getModelConfig(time);
+
+	return getGlobalTransform(joint, model_cfg);
+}
+
 Transform3f Movement::getGlobalTransform(const boost::shared_ptr<const Joint>& joint,
 	const boost::shared_ptr<const ModelConfig>& model_cfg) const
 {
@@ -272,6 +279,14 @@ Transform3f Movement::getGlobalTransform(const boost::shared_ptr<const Joint>& j
 	return global_transform;
 }
 
+Transform3f Movement::getGlobalTransform(const boost::shared_ptr<const Link>& link, 
+	const FCL_REAL& time) const
+{
+	boost::shared_ptr<const ModelConfig> model_cfg = getModelConfig(time);
+
+	return getGlobalTransform(link, model_cfg);
+}
+
 Transform3f Movement::getGlobalTransform(const boost::shared_ptr<const Link>& link,
 	const boost::shared_ptr<const ModelConfig>& model_cfg) const
 {
@@ -280,9 +295,29 @@ Transform3f Movement::getGlobalTransform(const boost::shared_ptr<const Link>& li
 
 boost::shared_ptr<ModelConfig> Movement::getModelConfig(const FCL_REAL& time) const
 {
-	boost::shared_ptr<ModelConfig> model_config(new ModelConfig(model_) );
+	boost::shared_ptr<ModelConfig> new_model_config(new ModelConfig(model_) );
+	
+	const std::map<std::string, JointConfig>& joint_cfgs_map = new_model_config->getJointCfgsMap();
 
-	return model_config;
+	std::map<std::string, JointConfig>::const_iterator it_first;
+
+	for (it_first = joint_cfgs_map.begin(); it_first != joint_cfgs_map.end(); ++it_first)
+	{
+		const std::string& joint_name = it_first->first;
+		const JointConfig& joint_cfg = it_first->second;
+
+		const boost::shared_ptr<const Interpolation>& joint_interpolation = getInterpolation(joint_name);
+
+		JointConfig& new_joint_cfg = new_model_config->getJointConfig(joint_name);		
+
+		for (size_t i = 0; i < new_joint_cfg.getDim(); ++i)
+		{
+			// TODO: create mechanism that set multiple dimensions joint correctly
+			new_joint_cfg[i] = joint_interpolation->getValue(time);
+		}
+	}
+
+	return new_model_config;
 }
 
 }

@@ -52,6 +52,7 @@ class MotionBase;
 class SplineMotion;
 class ScrewMotion;
 class InterpMotion;
+class ArticularMotion;
 
 /// @brief Compute the motion bound for a bounding volume, given the closest direction n between two query objects
 class BVMotionBoundVisitor
@@ -61,6 +62,7 @@ public:
   virtual FCL_REAL visit(const SplineMotion& motion) const = 0;
   virtual FCL_REAL visit(const ScrewMotion& motion) const = 0;
   virtual FCL_REAL visit(const InterpMotion& motion) const = 0;
+  virtual FCL_REAL visit(const ArticularMotion& motion) const = 0;
 };
 
 template<typename BV>
@@ -73,6 +75,7 @@ public:
   virtual FCL_REAL visit(const SplineMotion& motion) const { return 0; }
   virtual FCL_REAL visit(const ScrewMotion& motion) const { return 0; }
   virtual FCL_REAL visit(const InterpMotion& motion) const { return 0; }
+  virtual FCL_REAL visit(const ArticularMotion& motion) const { return 0; }
 
 protected:
   BV bv;
@@ -89,6 +92,7 @@ public:
   virtual FCL_REAL visit(const SplineMotion& motion) const;
   virtual FCL_REAL visit(const ScrewMotion& motion) const;
   virtual FCL_REAL visit(const InterpMotion& motion) const;
+  virtual FCL_REAL visit(const ArticularMotion& motion) const;
 
 protected:
   Vec3f a, b, c, n;

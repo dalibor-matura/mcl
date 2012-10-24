@@ -27,9 +27,11 @@ public:
 	boost::shared_ptr<const ModelConfig> getStartCfg() const;
 	boost::shared_ptr<const ModelConfig> getEndCfg() const;
 
+	Transform3f getGlobalTransform(const boost::shared_ptr<const Joint>& joint, const FCL_REAL& time) const;
 	Transform3f getGlobalTransform(const boost::shared_ptr<const Joint>& joint,
-		const boost::shared_ptr<const ModelConfig>& model_cfg) const;
+		const boost::shared_ptr<const ModelConfig>& model_cfg) const;	
 
+	Transform3f getGlobalTransform(const boost::shared_ptr<const Link>& link, const FCL_REAL& time) const;
 	Transform3f getGlobalTransform(const boost::shared_ptr<const Link>& link,
 		const boost::shared_ptr<const ModelConfig>& model_cfg) const;
 
@@ -67,7 +69,8 @@ private:
 	FCL_REAL getInterpolationVelocityBound(const boost::shared_ptr<const Joint>& joint,
 		const FCL_REAL& time) const;
 
-	boost::shared_ptr<Interpolation> getInterpolation(const boost::shared_ptr<const Joint>& joint) const;	
+	const boost::shared_ptr<const Interpolation>& getInterpolation(const std::string& joint_name) const;	
+	const boost::shared_ptr<const Interpolation>& getInterpolation(const boost::shared_ptr<const Joint>& joint) const;	
 
 	bool isJointRevolute(const boost::shared_ptr<const Joint>& joint) const;
 	bool isJointTranslational(const boost::shared_ptr<const Joint>& joint) const;		
@@ -79,7 +82,7 @@ private:
 	boost::shared_ptr<const ModelConfig> cfg_start_;
 	boost::shared_ptr<const ModelConfig> cfg_end_;
 
-	std::map<std::string, boost::shared_ptr<Interpolation> > joint_interpolation_;
+	std::map<std::string, boost::shared_ptr<const Interpolation> > joint_interpolation_;
 	std::map<std::string, FCL_REAL> child_parent_distance_bound_;
 };
 

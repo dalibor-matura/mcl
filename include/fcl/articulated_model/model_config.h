@@ -76,7 +76,7 @@ public:
   boost::shared_ptr<const Model> getModel() const;
 
   ModelConfig operator+(const ModelConfig& model_config) const;
-  ModelConfig operator-(const ModelConfig& model_config) const;
+  ModelConfig operator-(const ModelConfig& model_config) const;  
 
   ModelConfig operator/(const FCL_REAL& number) const;
 
@@ -87,6 +87,15 @@ private:
   boost::shared_ptr<const Model> model_;
   std::map<std::string, JointConfig> joint_cfgs_map_;
 };
+
+
+boost::shared_ptr<ModelConfig> operator+(const boost::shared_ptr<const ModelConfig>& first,
+	const boost::shared_ptr<const ModelConfig>& second);
+boost::shared_ptr<ModelConfig> operator-(const boost::shared_ptr<const ModelConfig>& first,
+	const boost::shared_ptr<const ModelConfig>& second);
+
+boost::shared_ptr<ModelConfig> operator/(const boost::shared_ptr<const ModelConfig>& model_cfg,
+	const FCL_REAL& number);
 
 }
 

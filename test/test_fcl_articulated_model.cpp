@@ -1053,8 +1053,12 @@ BOOST_FIXTURE_TEST_CASE(test_get_global_transform, MovementFixture)
 
 BOOST_FIXTURE_TEST_CASE(test_get_model_config, MovementFixture)
 {
-	BOOST_CHECK_EQUAL(cfg_start_, movement_->getModelConfig(0.0) );
-	BOOST_CHECK_EQUAL(cfg_end_, movement_->getModelConfig(1.0) );	
+	BOOST_CHECK_EQUAL(*cfg_start_, *(movement_->getModelConfig(0.0) ) );
+	BOOST_CHECK_EQUAL(*cfg_end_, *(movement_->getModelConfig(1.0) ) );
+
+	ModelConfig expecetd_cfg = (*cfg_end_ - *cfg_start_) / 2;
+
+	BOOST_CHECK_EQUAL(expecetd_cfg, *(movement_->getModelConfig(0.5) ) );
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_linear_velocity_bound, MovementFixture)
@@ -1228,6 +1232,33 @@ BOOST_FIXTURE_TEST_CASE(test_get_motion_bound_for_end_cfg_6, LinkBoundFixture)
 
 	bound = link_bound_->getMotionBound(time, direction_, distance_from_center_);
 	BOOST_CHECK_EQUAL(expected_bound, bound);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_bounded_link_global_transform, LinkBoundFixture)
+{
+	link_bound_.reset(new LinkBound(model_, movement_, forearm_) );
+
+	Transform3f transform = link_bound_->getBoundedLinkGlobalTransform(0.0);
+	Transform3f expected_transform = elbow_joint_->getTransformToParent();
+	
+	BOOST_CHECK_EQUAL(expected_transform, transform);
+
+	transform = link_bound_->getBoundedLinkGlobalTransform(1.0);
+	
+	const JointConfig shoulder_joint_cfg = cfg_end_->getJointConfig(shoulder_joint_);
+	FCL_REAL shoulder_joint_value = shoulder_joint_cfg[0];
+
+	// rotation for PI/2 => boost::math::constants::pi<double>() / 2;
+	Matrix3f rotation_around_x(
+		1.0, 0.0, 0.0,
+		0.0, 0.0, -1.0,
+		0.0, 1.0, 0.0
+	);
+
+	expected_transform = elbow_joint_->getTransformToParent() * 
+		Transform3f(rotation_around_x, elbow_joint_->getAxis() * shoulder_joint_value);
+
+	BOOST_CHECK_EQUAL(expected_transform, transform);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

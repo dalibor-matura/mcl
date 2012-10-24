@@ -199,10 +199,7 @@ FCL_REAL LinkBound::getAngularBoundAccumulation() const
 
 Transform3f LinkBound::getBoundedLinkGlobalTransform(const FCL_REAL& time) const
 {
-	// TODO get correct interpolated ModelConfig
-	boost::shared_ptr<const ModelConfig> model_config(new ModelConfig(model_) );
-
-	return movement_->getGlobalTransform(bounded_link_, model_config);
+	return movement_->getGlobalTransform(bounded_link_, time);
 }
 
 boost::shared_ptr<const Link> LinkBound::getBoundedLink() const

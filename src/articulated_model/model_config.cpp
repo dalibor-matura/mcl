@@ -41,6 +41,7 @@
 
 #include <boost/assert.hpp>
 #include <boost/lambda/lambda.hpp>
+#include <boost/make_shared.hpp>
 
 namespace fcl
 {
@@ -48,6 +49,7 @@ namespace fcl
 ModelConfig::ModelConfig() {}
 
 ModelConfig::ModelConfig(const ModelConfig& model_cfg) :
+  model_(model_cfg.model_),
   joint_cfgs_map_(model_cfg.joint_cfgs_map_)
 {}
 
@@ -169,13 +171,13 @@ ModelConfig applyFunction(const ModelConfig& first, boost::function<T (T)> funct
 	for (it_first = cfg_map_first.begin(); it_first != cfg_map_first.end(); ++it_first)
 	{
 		const std::string& joint_name = it_first->first;
-		const JointConfig& first_cfg_ = it_first->second;
+		const JointConfig& first_cfg = it_first->second;
 
 		JointConfig& new_joint_cfg = new_model_config.getJointConfig(joint_name);
 
 		for (size_t i = 0; i < new_joint_cfg.getDim(); ++i)
 		{
-			new_joint_cfg[i] = function(first_cfg_[i]);
+			new_joint_cfg[i] = function(first_cfg[i]);
 		}
 	}
 
@@ -187,5 +189,22 @@ ModelConfig ModelConfig::operator/(const FCL_REAL& number) const
 	return applyFunction<FCL_REAL>(*this, (boost::lambda::_1 / number) );
 }
 
+boost::shared_ptr<ModelConfig> operator+(const boost::shared_ptr<const ModelConfig>& first,
+	const boost::shared_ptr<const ModelConfig>& second)
+{	
+	return boost::make_shared<ModelConfig>( (*first) + (*second) );
+}
+
+boost::shared_ptr<ModelConfig> operator-(const boost::shared_ptr<const ModelConfig>& first,
+	const boost::shared_ptr<const ModelConfig>& second)
+{
+	return boost::make_shared<ModelConfig>( (*first) - (*second) );
+}
+
+boost::shared_ptr<ModelConfig> operator/(const boost::shared_ptr<const ModelConfig>& model_cfg,
+	const FCL_REAL& number)
+{
+	return boost::make_shared<ModelConfig>( (*model_cfg) / number );
+}
 
 }

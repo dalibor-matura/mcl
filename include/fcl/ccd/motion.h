@@ -558,6 +558,8 @@ public:
     return mb_visitor.visit(*this);
   }
 
+  FCL_REAL getMotionBound(const Vec3f& direction, const FCL_REAL max_distance_from_joint_center = 0) const;
+
   /// @brief Get the rotation and translation in current step
   void getCurrentTransform(Matrix3f& R, Vec3f& T) const
   {
@@ -580,27 +582,19 @@ public:
     tf = tf_;
   }
 
-    void getTaylorModel(TMatrix3& tm, TVector3& tv) const
-    {
-        /*Matrix3f hat_angular_axis;
-        hat(hat_angular_axis, angular_axis);
+  void getTaylorModel(TMatrix3& tm, TVector3& tv) const
+  {     
+  }
 
-        TaylorModel cos_model(getTimeInterval());
-        generateTaylorModelForCosFunc(cos_model, angular_vel, 0);
-        TaylorModel sin_model(getTimeInterval());
-        generateTaylorModelForSinFunc(sin_model, angular_vel, 0);
+  const void setReferencePoint(const Vec3f& reference_point)
+  {
+    reference_point_ = reference_point;
+  }
 
-        TMatrix3 delta_R = hat_angular_axis * sin_model - hat_angular_axis * hat_angular_axis * (cos_model - 1) + Matrix3f(1, 0, 0, 0, 1, 0, 0, 0, 1);
-
-        TaylorModel a(getTimeInterval()), b(getTimeInterval()), c(getTimeInterval());
-        generateTaylorModelForLinearFunc(a, 0, linear_vel[0]);
-        generateTaylorModelForLinearFunc(b, 0, linear_vel[1]);
-        generateTaylorModelForLinearFunc(c, 0, linear_vel[2]);
-        TVector3 delta_T(a, b, c);
-
-        tm = delta_R * tf1.getRotation();
-        tv = tf1.transform(reference_p) + delta_T - delta_R * tf1.getQuatRotation().transform(reference_p);*/
-    }
+  const Vec3f& getReferencePoint() const
+  {
+    return reference_point_;
+  }
 
 private:
   // Non parametrized constructor is not allowed
@@ -615,14 +609,9 @@ private:
   /// @brief The transformation at current time t
   mutable FCL_REAL time_;
 
-    /// @brief Reference point for the motion (in the object's local frame)
-    Vec3f reference_p;
+  /// @brief Reference point for the motion (in the object's local frame)
+  Vec3f reference_point_;  
 
-public:
-    const Vec3f& getReferencePoint() const
-    {
-        return reference_p;
-    }
 };
 
 

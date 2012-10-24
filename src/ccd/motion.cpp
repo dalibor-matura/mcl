@@ -525,16 +525,71 @@ Quaternion3f InterpMotion::absoluteRotation(FCL_REAL dt) const
   return delta_t * tf1.getQuatRotation();
 }
 
+ArticularMotion::ArticularMotion(boost::shared_ptr<LinkBound> link_bound) :
+  link_bound_(link_bound),
+  reference_point_(Vec3f(0, 0, 0))
+{
+}
 
 bool ArticularMotion::integrate(double dt) const
 {
   if(dt > 1) dt = 1;
 
-  tf_ = link_bound_->getBoundedLinkGlobalTransform(dt);
-
   time_ = dt;
+  tf_ = link_bound_->getBoundedLinkGlobalTransform(dt); 
 
   return true;
+}
+
+FCL_REAL ArticularMotion::getMotionBound(const Vec3f& direction,
+  const FCL_REAL max_distance_from_joint_center) const
+{
+  return link_bound_->getMotionBound(time_, direction, max_distance_from_joint_center);
+}
+
+/// @brief Compute the motion bound for a bounding volume along a given direction n
+/// Notice that all bv parameters are in the local frame of the object, but n should be in the global frame (the reason is that the motion (t1, t2 and t) is in global frame)
+template<>
+FCL_REAL TBVMotionBoundVisitor<RSS>::visit(const ArticularMotion& motion) const
+{
+  const Vec3f& reference_point = motion.getReferencePoint();
+  
+  FCL_REAL proj_max = 0;
+  FCL_REAL tmp = 0;
+
+  proj_max = (bv.Tr - reference_point).sqrLength();
+  
+  tmp = (bv.Tr + bv.axis[0] * bv.l[0] - reference_point).sqrLength();
+  if(tmp > proj_max) proj_max = tmp;
+  tmp = (bv.Tr + bv.axis[1] * bv.l[1] - reference_point).sqrLength();
+  if(tmp > proj_max) proj_max = tmp;
+  tmp = (bv.Tr + bv.axis[0] * bv.l[0] + bv.axis[1] * bv.l[1] - reference_point).sqrLength();
+  if(tmp > proj_max) proj_max = tmp;
+
+  proj_max = std::sqrt(proj_max);
+
+  return motion.getMotionBound(n, proj_max);
+}
+
+/// @brief Compute the motion bound for a triangle along a given direction n
+/// Notice that the triangle is in the local frame of the object, but n should be in the global frame (the reason is that the motion (t1, t2 and t) is in global frame)
+FCL_REAL TriangleMotionBoundVisitor::visit(const ArticularMotion& motion) const
+{
+  const Vec3f& reference_point = motion.getReferencePoint();
+
+  FCL_REAL proj_max = 0;
+  FCL_REAL tmp = 0;
+
+  proj_max = (a - reference_point).sqrLength();
+
+  tmp = (b - reference_point).sqrLength();
+  if(tmp > proj_max) proj_max = tmp;
+  tmp = (c - reference_point).sqrLength();
+  if(tmp > proj_max) proj_max = tmp;
+
+  proj_max = std::sqrt(proj_max);
+
+  return motion.getMotionBound(n, proj_max);
 }
 
 }
