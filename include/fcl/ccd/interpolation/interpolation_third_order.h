@@ -34,41 +34,43 @@
 
 /** \author Dalibor Matura, Jia Pan */
 
-#include "fcl/ccd/interpolation/interpolation_factory.h"
-#include "fcl/ccd/interpolation/interpolation_linear.h"
-#include "fcl/ccd/interpolation/interpolation_third_order.h"
+#ifndef FCL_CCD_INTERPOLATION_THIRD_ORDER_H
+#define FCL_CCD_INTERPOLATION_THIRD_ORDER_H
 
-#include <boost/assert.hpp>
+#include "fcl/data_types.h"
+#include "fcl/ccd/interpolation/interpolation.h"
+
+#include <boost/shared_ptr.hpp>
 
 namespace fcl 
 {
 
-InterpolationFactory::InterpolationFactory()
+class InterpolationFactory;
+
+class InterpolationThirdOrder : public Interpolation
 {
-  InterpolationLinear::registerToFactory();
-  InterpolationThirdOrder::registerToFactory();
-}
+public:
+  InterpolationThirdOrder();
 
-InterpolationFactory& InterpolationFactory::instance()
-{
-  static InterpolationFactory instance;
+  InterpolationThirdOrder(FCL_REAL start_value, FCL_REAL end_value);
 
-  return instance;
-}
+  virtual FCL_REAL getValue(FCL_REAL time) const;
 
-void InterpolationFactory::registerClass(const InterpolationType type, const CreateFunction create_function)
-{
-  this->creation_map_[type] = create_function;
-}
+  virtual FCL_REAL getValueLowerBound() const;
+  virtual FCL_REAL getValueUpperBound() const;
 
-boost::shared_ptr<Interpolation> 
-InterpolationFactory::create(const InterpolationType type, const FCL_REAL start_value, const FCL_REAL end_value)
-{
-  std::map<InterpolationType, CreateFunction>::const_iterator it = creation_map_.find(type);
+  virtual InterpolationType getType() const;
 
-  BOOST_ASSERT_MSG((it != creation_map_.end()), "CreateFunction wasn't found.");
+  virtual FCL_REAL getMovementLengthBound(FCL_REAL time) const;
 
-  return (it->second)(start_value, end_value);  
-}
+  virtual FCL_REAL getVelocityBound(FCL_REAL time) const;
+
+public:
+  static boost::shared_ptr<Interpolation> create(FCL_REAL start_value, FCL_REAL end_value);
+
+  static void registerToFactory();
+};
 
 }
+
+#endif

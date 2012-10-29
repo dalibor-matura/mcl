@@ -40,6 +40,11 @@ public:
 		link_bound_.reset(new LinkBound(model_, movement_, finger_) );
 	}
 
+	void initMovement()
+	{
+		movement_.reset(new Movement(model_, cfg_start_, cfg_end_) );
+	}	
+
 	void initModel()
 	{
 		model_.reset(new Model() );
@@ -130,11 +135,6 @@ public:
 		cfg_end_->getJointConfig(elbow_joint_)[0] = boost::math::constants::pi<double>() / 2;
 		cfg_end_->getJointConfig(wrist_joint_)[0] = 4;
 		cfg_end_->getJointConfig(finger_joint_)[0] = 3;	
-	}	
-
-	void initMovement()
-	{
-		movement_.reset(new Movement(model_, cfg_start_, cfg_end_) );
 	}	
 
 protected:

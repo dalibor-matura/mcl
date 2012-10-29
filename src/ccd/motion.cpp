@@ -529,6 +529,7 @@ ArticularMotion::ArticularMotion(boost::shared_ptr<LinkBound> link_bound) :
   link_bound_(link_bound),
   reference_point_(Vec3f(0, 0, 0))
 {
+  integrate(0);
 }
 
 bool ArticularMotion::integrate(double dt) const

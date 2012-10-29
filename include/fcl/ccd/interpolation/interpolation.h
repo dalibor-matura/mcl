@@ -45,7 +45,7 @@ namespace fcl
 enum InterpolationType
 {
   LINEAR,
-  STANDARD
+  THIRD_ORDER
 };
 
 class Interpolation

@@ -34,41 +34,63 @@
 
 /** \author Dalibor Matura, Jia Pan */
 
-#include "fcl/ccd/interpolation/interpolation_factory.h"
-#include "fcl/ccd/interpolation/interpolation_linear.h"
 #include "fcl/ccd/interpolation/interpolation_third_order.h"
-
-#include <boost/assert.hpp>
+#include "fcl/ccd/interpolation/interpolation_factory.h"
 
 namespace fcl 
 {
 
-InterpolationFactory::InterpolationFactory()
+InterpolationType interpolation_third_order_type = THIRD_ORDER;
+
+InterpolationThirdOrder::InterpolationThirdOrder() : Interpolation(0.0, 1.0)
+{}
+
+InterpolationThirdOrder::InterpolationThirdOrder(FCL_REAL start_value, FCL_REAL end_value) : Interpolation(start_value, end_value)
+{}
+
+FCL_REAL InterpolationThirdOrder::getValue(FCL_REAL time) const
 {
-  InterpolationLinear::registerToFactory();
-  InterpolationThirdOrder::registerToFactory();
+  // TODO
+  return value_0_ + (value_1_ - value_0_) * time;
 }
 
-InterpolationFactory& InterpolationFactory::instance()
+FCL_REAL InterpolationThirdOrder::getValueLowerBound() const
 {
-  static InterpolationFactory instance;
-
-  return instance;
+  // TODO
+  return value_0_;
 }
 
-void InterpolationFactory::registerClass(const InterpolationType type, const CreateFunction create_function)
+FCL_REAL InterpolationThirdOrder::getValueUpperBound() const
 {
-  this->creation_map_[type] = create_function;
+  // TODO
+  return value_1_;
 }
 
-boost::shared_ptr<Interpolation> 
-InterpolationFactory::create(const InterpolationType type, const FCL_REAL start_value, const FCL_REAL end_value)
+InterpolationType InterpolationThirdOrder::getType() const
 {
-  std::map<InterpolationType, CreateFunction>::const_iterator it = creation_map_.find(type);
+  return interpolation_third_order_type;
+}
 
-  BOOST_ASSERT_MSG((it != creation_map_.end()), "CreateFunction wasn't found.");
+boost::shared_ptr<Interpolation> InterpolationThirdOrder::create(FCL_REAL start_value, FCL_REAL end_value)
+{
+  return boost::shared_ptr<Interpolation>(new InterpolationThirdOrder(start_value, end_value) );
+}
 
-  return (it->second)(start_value, end_value);  
+void InterpolationThirdOrder::registerToFactory()
+{
+  InterpolationFactory::instance().registerClass(interpolation_third_order_type, create);
+}
+
+FCL_REAL InterpolationThirdOrder::getMovementLengthBound(FCL_REAL time) const
+{
+  // TODO
+  return getValueUpperBound() - getValue(time);
+}
+
+FCL_REAL InterpolationThirdOrder::getVelocityBound(FCL_REAL time) const
+{
+  // TODO
+  return (value_1_ - value_0_);
 }
 
 }
