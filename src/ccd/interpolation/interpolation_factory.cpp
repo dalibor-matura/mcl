@@ -37,6 +37,7 @@
 #include "fcl/ccd/interpolation/interpolation_factory.h"
 #include "fcl/ccd/interpolation/interpolation_linear.h"
 #include "fcl/ccd/interpolation/interpolation_third_order.h"
+#include "fcl/ccd/interpolation/interpolation_data.h"
 
 #include <boost/assert.hpp>
 
@@ -62,13 +63,14 @@ void InterpolationFactory::registerClass(const InterpolationType type, const Cre
 }
 
 boost::shared_ptr<Interpolation> 
-InterpolationFactory::create(const InterpolationType type, const FCL_REAL start_value, const FCL_REAL end_value)
+InterpolationFactory::create(const boost::shared_ptr<const InterpolationData>& data,
+  const FCL_REAL& start_value, const FCL_REAL& end_value)
 {
-  std::map<InterpolationType, CreateFunction>::const_iterator it = creation_map_.find(type);
+  std::map<InterpolationType, CreateFunction>::const_iterator it = creation_map_.find(data->getType() );
 
-  BOOST_ASSERT_MSG((it != creation_map_.end()), "CreateFunction wasn't found.");
+  BOOST_ASSERT_MSG(it != creation_map_.end(), "CreateFunction wasn't found.");
 
-  return (it->second)(start_value, end_value);  
+  return (it->second)(data, start_value, end_value);  
 }
 
 }

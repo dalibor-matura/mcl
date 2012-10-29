@@ -51,14 +51,12 @@ enum InterpolationType
 class Interpolation
 {
 public:
-  Interpolation();
+  Interpolation(FCL_REAL start_value, FCL_REAL end_value);
 
   virtual ~Interpolation() {}
 
-  Interpolation(FCL_REAL start_value, FCL_REAL end_value);
-
-  void setStartValue(FCL_REAL start_value);
-  void setEndValue(FCL_REAL end_value);
+  const FCL_REAL& getStartValue() const;
+  const FCL_REAL& getEndValue() const;
 
   virtual FCL_REAL getValue(FCL_REAL time) const = 0;
 
@@ -79,9 +77,9 @@ public:
 
   virtual FCL_REAL getVelocityBound(FCL_REAL time) const = 0;
 
-protected:
-  FCL_REAL value_0_; // value at time = 0.0
-  FCL_REAL value_1_; // value at time = 1.0
+private:
+  FCL_REAL start_value_; // value at time = 0.0
+  FCL_REAL end_value_; // value at time = 1.0
 
 };
 

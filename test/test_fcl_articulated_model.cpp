@@ -870,9 +870,9 @@ BOOST_FIXTURE_TEST_CASE(test_get_num_joints, ModelFixture)
 	BOOST_CHECK_EQUAL(4, model_->getNumJoints() );
 }
 
-BOOST_FIXTURE_TEST_CASE(test_get_joint_interpolation_type, ModelFixture)
+BOOST_FIXTURE_TEST_CASE(test_get_joint_interpolation_data, ModelFixture)
 {
-	BOOST_CHECK_EQUAL(LINEAR , model_->getJointInterpolationType(shoulder_joint_name_) );
+	BOOST_CHECK_EQUAL(LINEAR , model_->getJointInterpolationData(shoulder_joint_name_)->getType() );
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_links, ModelFixture)

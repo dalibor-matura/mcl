@@ -45,13 +45,13 @@ void Movement::initJointsInterpolations()
 			"Joint type not supported yet");
 
 		const std::string& joint_name = joint->getName();
-		const InterpolationType joint_interpolation_type = model_->getJointInterpolationType(joint_name);
+		boost::shared_ptr<const InterpolationData> joint_interpolation_data = model_->getJointInterpolationData(joint_name);
 
 		const FCL_REAL joint_start_value = cfg_start_->getJointConfig(joint_name).getValue(0);
 		const FCL_REAL joint_end_value = cfg_end_->getJointConfig(joint_name).getValue(0);
 
-		joint_interpolation_[joint_name] =
-			InterpolationFactory::instance().create(joint_interpolation_type, joint_start_value, joint_end_value);
+		joint_interpolation_[joint_name] = InterpolationFactory::instance().create(
+			joint_interpolation_data, joint_start_value, joint_end_value);
 	}	
 }
 

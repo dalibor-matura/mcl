@@ -36,7 +36,9 @@
 
 #include "fcl/articulated_model/model.h"
 #include "fcl/articulated_model/model_config.h"
+
 #include <boost/assert.hpp>
+#include <boost/make_shared.hpp>
 
 namespace fcl
 {
@@ -69,17 +71,17 @@ boost::shared_ptr<Joint> Model::getJoint(const std::string& name) const
   return ptr;
 }
 
-InterpolationType Model::getJointInterpolationType(const std::string& name) const
+boost::shared_ptr<const InterpolationData> Model::getJointInterpolationData(const std::string& name) const
 {
-  InterpolationType interpolation_type;
+  boost::shared_ptr<const InterpolationData> interpolation_data;
 
-  std::map<std::string, InterpolationType>::const_iterator it = joints_interpolation_types_.find(name);
-  if(it != joints_interpolation_types_.end())
+  std::map<std::string, boost::shared_ptr<const InterpolationData> >::const_iterator it = joints_interpolation_data_.find(name);
+  if(it != joints_interpolation_data_.end())
   {
-    interpolation_type = it->second;; 
+    interpolation_data = it->second;; 
   }
 
-  return interpolation_type;
+  return interpolation_data;
 }
 
 std::map<std::string, boost::shared_ptr<Joint> > Model::getJointsMap() const
@@ -140,10 +142,16 @@ void Model::addLink(const boost::shared_ptr<Link>& link)
   links_[link->getName()] = link;
 }
 
-void Model::addJoint(const boost::shared_ptr<Joint>& joint,const InterpolationType& interpolation_type)
+void Model::addJoint(const boost::shared_ptr<Joint>& joint)
+{
+  addJoint(joint, boost::make_shared<const InterpolationLinearData>() );
+}
+
+void Model::addJoint(const boost::shared_ptr<Joint>& joint,
+  boost::shared_ptr<const InterpolationData> interpolation_data)
 {
   joints_[joint->getName()] = joint;
-  joints_interpolation_types_[joint->getName()] = interpolation_type; 
+  joints_interpolation_data_[joint->getName()] = interpolation_data; 
 }
 
 void Model::initRoot(const std::map<std::string, std::string>& link_parent_tree)

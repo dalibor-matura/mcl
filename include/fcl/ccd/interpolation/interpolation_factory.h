@@ -48,15 +48,20 @@
 namespace fcl 
 {
 
+class InterpolationData;
+
 class InterpolationFactory
 {	
 public:
-  typedef boost::function<boost::shared_ptr<Interpolation>(FCL_REAL, FCL_REAL)> CreateFunction;
+  typedef boost::function<boost::shared_ptr<Interpolation>(
+    const boost::shared_ptr<const InterpolationData>&, 
+    FCL_REAL, FCL_REAL)> CreateFunction;
 
 public:
   void registerClass(const InterpolationType type, const CreateFunction create_function);
 
-  boost::shared_ptr<Interpolation> create(const InterpolationType type, FCL_REAL start_value, FCL_REAL end_value);
+  boost::shared_ptr<Interpolation> create(const boost::shared_ptr<const InterpolationData>& data,
+    const FCL_REAL& start_value, const FCL_REAL& end_value);
 
 public:
   static InterpolationFactory& instance();

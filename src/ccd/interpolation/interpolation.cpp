@@ -39,32 +39,27 @@
 namespace fcl 
 {
 
-Interpolation::Interpolation() :
-  value_0_(0.0),
-  value_1_(1.0) 
-{}
-
 Interpolation::Interpolation(FCL_REAL start_value, FCL_REAL end_value) :
-  value_0_(start_value),
-  value_1_(end_value)
+  start_value_(start_value),
+  end_value_(end_value)
 {}
 
-void Interpolation::setStartValue(FCL_REAL start_value)
+const FCL_REAL& Interpolation::getStartValue() const
 {
-  value_0_ = start_value;
+  return start_value_;
 }
 
-void Interpolation::setEndValue(FCL_REAL end_value)
+const FCL_REAL& Interpolation::getEndValue() const
 {
-  value_1_ = end_value;
+  return end_value_;
 }
 
 bool Interpolation::operator == (const Interpolation& interpolation) const
 {
   return 
     (this->getType() == interpolation.getType()) &&
-    (this->value_0_ == interpolation.value_0_) &&
-    (this->value_1_ == interpolation.value_1_);
+    (this->start_value_ == interpolation.start_value_) &&
+    (this->end_value_ == interpolation.end_value_);
 }
 
 bool Interpolation::operator != (const Interpolation& interpolation) const
@@ -74,9 +69,9 @@ bool Interpolation::operator != (const Interpolation& interpolation) const
 
 FCL_REAL& Interpolation::getValue(FCL_REAL time, FCL_REAL& value) const
 {
-	value = getValue(time);
+  value = getValue(time);
 
-	return value;
+  return value;
 }
 
 }

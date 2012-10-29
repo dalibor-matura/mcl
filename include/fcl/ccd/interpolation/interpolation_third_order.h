@@ -40,35 +40,62 @@
 #include "fcl/data_types.h"
 #include "fcl/ccd/interpolation/interpolation.h"
 
+#include <vector>
+
 #include <boost/shared_ptr.hpp>
 
 namespace fcl 
 {
 
+class InterpolationData;
+class InterpolationThirdOrderData;
 class InterpolationFactory;
 
 class InterpolationThirdOrder : public Interpolation
 {
 public:
-  InterpolationThirdOrder();
+	InterpolationThirdOrder(const boost::shared_ptr<const InterpolationData>& data, 
+		FCL_REAL start_value, FCL_REAL end_value);
 
-  InterpolationThirdOrder(FCL_REAL start_value, FCL_REAL end_value);
+	virtual FCL_REAL getValue(FCL_REAL time) const;
 
-  virtual FCL_REAL getValue(FCL_REAL time) const;
+	virtual FCL_REAL getValueLowerBound() const;
+	virtual FCL_REAL getValueUpperBound() const;
 
-  virtual FCL_REAL getValueLowerBound() const;
-  virtual FCL_REAL getValueUpperBound() const;
+	virtual InterpolationType getType() const;
 
-  virtual InterpolationType getType() const;
+	virtual FCL_REAL getMovementLengthBound(FCL_REAL time) const;
 
-  virtual FCL_REAL getMovementLengthBound(FCL_REAL time) const;
-
-  virtual FCL_REAL getVelocityBound(FCL_REAL time) const;
+	virtual FCL_REAL getVelocityBound(FCL_REAL time) const;
 
 public:
-  static boost::shared_ptr<Interpolation> create(FCL_REAL start_value, FCL_REAL end_value);
+	static boost::shared_ptr<Interpolation> create(const boost::shared_ptr<const InterpolationData>& data,
+		FCL_REAL start_value, FCL_REAL end_value);
 
-  static void registerToFactory();
+	static void registerToFactory();
+
+private:
+	void init();
+
+	bool isValueGrowing() const;
+	void isValueGrowing(const bool& is_value_growing);	
+
+	void initAbsEntireDistance();
+	const FCL_REAL& getAbsEntireDistance() const;
+
+	void modifyInterpolationDataByDistance();	
+
+	void initTimes();
+	void initDistancesAndVelocities();
+
+private:
+	boost::shared_ptr<const InterpolationThirdOrderData> data_;
+
+	bool is_value_growing_;
+	FCL_REAL abs_entire_distance_;
+	std::vector<FCL_REAL> time_; // time points from t0 to t7
+	std::vector<FCL_REAL> distance_; // distance values in times t0, ..., t7
+	std::vector<FCL_REAL> velocity_; // velocity values in times t0, ..., t7
 };
 
 }

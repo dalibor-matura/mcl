@@ -36,31 +36,36 @@
 
 #include "fcl/ccd/interpolation/interpolation_linear.h"
 #include "fcl/ccd/interpolation/interpolation_factory.h"
+#include "fcl/ccd/interpolation/interpolation_data.h"
+
+#include <boost/assert.hpp>
 
 namespace fcl 
 {
 
 InterpolationType interpolation_linear_type = LINEAR;
 
-InterpolationLinear::InterpolationLinear() : Interpolation(0.0, 1.0)
-{}
-
-InterpolationLinear::InterpolationLinear(FCL_REAL start_value, FCL_REAL end_value) : Interpolation(start_value, end_value)
-{}
+InterpolationLinear::InterpolationLinear(const boost::shared_ptr<const InterpolationData>& data,
+	FCL_REAL start_value, FCL_REAL end_value) :
+	Interpolation(start_value, end_value),
+	data_(boost::static_pointer_cast<const InterpolationLinearData>(data) )
+{
+	BOOST_ASSERT_MSG(data->getType() == interpolation_linear_type, "Static cast is not safe.");
+}
 
 FCL_REAL InterpolationLinear::getValue(FCL_REAL time) const
 {
-  return value_0_ + (value_1_ - value_0_) * time;
+  return getStartValue() + (getEndValue() - getStartValue() ) * time;
 }
 
 FCL_REAL InterpolationLinear::getValueLowerBound() const
 {
-  return value_0_;
+  return getStartValue();
 }
 
 FCL_REAL InterpolationLinear::getValueUpperBound() const
 {
-  return value_1_;
+  return getEndValue();
 }
 
 InterpolationType InterpolationLinear::getType() const
@@ -68,9 +73,11 @@ InterpolationType InterpolationLinear::getType() const
   return interpolation_linear_type;
 }
 
-boost::shared_ptr<Interpolation> InterpolationLinear::create(FCL_REAL start_value, FCL_REAL end_value)
+boost::shared_ptr<Interpolation> InterpolationLinear::create(
+	const boost::shared_ptr<const InterpolationData>& data,
+	FCL_REAL start_value, FCL_REAL end_value)
 {
-  return boost::shared_ptr<Interpolation>(new InterpolationLinear(start_value, end_value) );
+  return boost::shared_ptr<Interpolation>(new InterpolationLinear(data, start_value, end_value) );
 }
 
 void InterpolationLinear::registerToFactory()
@@ -85,7 +92,7 @@ FCL_REAL InterpolationLinear::getMovementLengthBound(FCL_REAL time) const
 
 FCL_REAL InterpolationLinear::getVelocityBound(FCL_REAL time) const
 {
-  return (value_1_ - value_0_);
+  return (getEndValue() - getStartValue() );
 }
 
 }
