@@ -46,11 +46,11 @@ namespace fcl
 InterpolationType interpolation_linear_type = LINEAR;
 
 InterpolationLinear::InterpolationLinear(const boost::shared_ptr<const InterpolationData>& data,
-	FCL_REAL start_value, FCL_REAL end_value) :
-	Interpolation(start_value, end_value),
-	data_(boost::static_pointer_cast<const InterpolationLinearData>(data) )
+    FCL_REAL start_value, FCL_REAL end_value) :
+    Interpolation(start_value, end_value),
+    data_(boost::static_pointer_cast<const InterpolationLinearData>(data) )
 {
-	BOOST_ASSERT_MSG(data->getType() == interpolation_linear_type, "Static cast is not safe.");
+    BOOST_ASSERT_MSG(data->getType() == interpolation_linear_type, "Static cast is not safe.");
 }
 
 FCL_REAL InterpolationLinear::getValue(FCL_REAL time) const
@@ -60,12 +60,26 @@ FCL_REAL InterpolationLinear::getValue(FCL_REAL time) const
 
 FCL_REAL InterpolationLinear::getValueLowerBound() const
 {
-  return getStartValue();
+  if (isValueGrowing() )
+  {
+    return getStartValue();
+  }
+  else
+  {
+    return getEndValue();
+  }
 }
 
 FCL_REAL InterpolationLinear::getValueUpperBound() const
 {
-  return getEndValue();
+  if (isValueGrowing() )
+  {
+    return getEndValue();
+  }
+  else
+  {
+    return getStartValue();
+  }
 }
 
 InterpolationType InterpolationLinear::getType() const
@@ -74,8 +88,8 @@ InterpolationType InterpolationLinear::getType() const
 }
 
 boost::shared_ptr<Interpolation> InterpolationLinear::create(
-	const boost::shared_ptr<const InterpolationData>& data,
-	FCL_REAL start_value, FCL_REAL end_value)
+    const boost::shared_ptr<const InterpolationData>& data,
+    FCL_REAL start_value, FCL_REAL end_value)
 {
   return boost::shared_ptr<Interpolation>(new InterpolationLinear(data, start_value, end_value) );
 }
@@ -94,5 +108,11 @@ FCL_REAL InterpolationLinear::getVelocityBound(FCL_REAL time) const
 {
   return (getEndValue() - getStartValue() );
 }
+
+FCL_REAL InterpolationLinear::getTimeScale() const
+{
+    return 1.0;
+}
+
 
 }

@@ -20,7 +20,8 @@ Movement::Movement(boost::shared_ptr<const Model> model,
 	model_(model),
 	cfg_start_(cfg_start),
 	cfg_end_(cfg_end),
-	time_(0.0)
+	time_(0.0),
+	interpolations_max_time_scale_(0.0)
 {
 	init();
 }	
@@ -36,23 +37,73 @@ void Movement::initJointsInterpolations()
 	std::vector<boost::shared_ptr<const fcl::Joint> > joints = model_->getJoints();
 	std::vector<boost::shared_ptr<const fcl::Joint> >::iterator it;
 
+	std::map<std::string, boost::shared_ptr<Interpolation> > interpolations;
+	FCL_REAL maxTimeScale = 0.0;
+
 	for (it = joints.begin(); it != joints.end(); ++it)
 	{
 		boost::shared_ptr<const Joint>& joint = (*it);
 
-		// for NOW works just for JT_PRISMATIC, JT_REVOLUTE joint types
-		BOOST_ASSERT_MSG((joint->getJointType() == JT_PRISMATIC) || (joint->getJointType() == JT_REVOLUTE),
-			"Joint type not supported yet");
-
-		const std::string& joint_name = joint->getName();
-		boost::shared_ptr<const InterpolationData> joint_interpolation_data = model_->getJointInterpolationData(joint_name);
-
-		const FCL_REAL joint_start_value = cfg_start_->getJointConfig(joint_name).getValue(0);
-		const FCL_REAL joint_end_value = cfg_end_->getJointConfig(joint_name).getValue(0);
-
-		joint_interpolation_[joint_name] = InterpolationFactory::instance().create(
-			joint_interpolation_data, joint_start_value, joint_end_value);
+		addNewInterpolation(joint, interpolations);
 	}	
+
+	setInterpolationsWithMaxTimeScale(interpolations);	
+}
+
+void Movement::addNewInterpolation(const boost::shared_ptr<const Joint>& joint,
+	std::map<std::string, boost::shared_ptr<Interpolation> >& interpolations)
+{
+	// for NOW works just for JT_PRISMATIC, JT_REVOLUTE joint types
+	BOOST_ASSERT_MSG((joint->getJointType() == JT_PRISMATIC) || (joint->getJointType() == JT_REVOLUTE),
+		"Joint type not supported yet");
+
+	const std::string& joint_name = joint->getName();	
+	boost::shared_ptr<Interpolation> joint_interpolation = createInterpolation(joint_name);
+
+	interpolations[joint_name] = joint_interpolation;
+
+	chooseInterpolationMaxTimeScale(joint_interpolation);
+}
+
+boost::shared_ptr<Interpolation> Movement::createInterpolation(const std::string& joint_name) const
+{
+	boost::shared_ptr<const InterpolationData> joint_interpolation_data = 
+		model_->getJointInterpolationData(joint_name);
+
+	const FCL_REAL joint_start_value = cfg_start_->getJointConfig(joint_name).getValue(0);
+	const FCL_REAL joint_end_value = cfg_end_->getJointConfig(joint_name).getValue(0);
+
+	return InterpolationFactory::instance().create(
+		joint_interpolation_data, joint_start_value, joint_end_value);
+}
+
+void Movement::chooseInterpolationMaxTimeScale(const boost::shared_ptr<const Interpolation>& interpolation)
+{
+	if (interpolation->getTimeScale() > interpolations_max_time_scale_)
+	{
+		interpolations_max_time_scale_ = interpolation->getTimeScale();
+	}	
+}
+
+void Movement::setInterpolationsWithMaxTimeScale(
+	std::map<std::string, boost::shared_ptr<Interpolation> >& interpolations)
+{
+	std::map<std::string, boost::shared_ptr<Interpolation> >::iterator it;
+
+	for (it = interpolations.begin(); it != interpolations.end(); ++it)
+	{
+		const std::string& joint_name = it->first;
+		boost::shared_ptr<Interpolation>& joint_interp = it->second;
+
+		joint_interp->setMaxTimeScale(getInterpolationMaxTimeScale() );
+
+		joint_interpolation_[joint_name] = joint_interp;
+	}
+}
+
+FCL_REAL Movement::getInterpolationMaxTimeScale() const
+{
+	return interpolations_max_time_scale_;
 }
 
 void Movement::initChildParentDistanceBounds()

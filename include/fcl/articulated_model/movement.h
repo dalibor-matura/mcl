@@ -61,6 +61,17 @@ private:
 
 	void initJointsInterpolations();
 
+	void addNewInterpolation(const boost::shared_ptr<const Joint>& joint,
+		std::map<std::string, boost::shared_ptr<Interpolation> >& interpolations);
+
+	boost::shared_ptr<Interpolation> createInterpolation(const std::string& joint_name) const;
+
+	void chooseInterpolationMaxTimeScale(const boost::shared_ptr<const Interpolation>& interpolation);
+	FCL_REAL getInterpolationMaxTimeScale() const;	
+
+	void setInterpolationsWithMaxTimeScale(
+		std::map<std::string, boost::shared_ptr<Interpolation> >& interpolations);
+
 	void initChildParentDistanceBounds();
 
 	FCL_REAL calculateChildParentDistanceBound(const boost::shared_ptr<const Joint>& joint,
@@ -73,7 +84,7 @@ private:
 	const boost::shared_ptr<const Interpolation>& getInterpolation(const boost::shared_ptr<const Joint>& joint) const;	
 
 	bool isJointRevolute(const boost::shared_ptr<const Joint>& joint) const;
-	bool isJointTranslational(const boost::shared_ptr<const Joint>& joint) const;		
+	bool isJointTranslational(const boost::shared_ptr<const Joint>& joint) const;	
 
 private:
 	FCL_REAL time_;
@@ -81,6 +92,8 @@ private:
 	boost::shared_ptr<const Model> model_;
 	boost::shared_ptr<const ModelConfig> cfg_start_;
 	boost::shared_ptr<const ModelConfig> cfg_end_;
+
+	FCL_REAL interpolations_max_time_scale_;
 
 	std::map<std::string, boost::shared_ptr<const Interpolation> > joint_interpolation_;
 	std::map<std::string, FCL_REAL> child_parent_distance_bound_;

@@ -43,6 +43,7 @@
 #include <vector>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/function.hpp>
 
 namespace fcl 
 {
@@ -68,6 +69,20 @@ public:
 
 	virtual FCL_REAL getVelocityBound(FCL_REAL time) const;
 
+	virtual FCL_REAL getTimeScale() const;
+
+	/* below is only specific interface for this class */
+
+	FCL_REAL getTimePoint(const std::size_t index) const;
+	FCL_REAL getVelocityPoint(const std::size_t index) const;
+	FCL_REAL getDistancePoint(const std::size_t index) const;
+
+	const boost::shared_ptr<const InterpolationThirdOrderData>& getData() const;
+
+	std::size_t getTimeUpperBound(const FCL_REAL time) const;
+
+	FCL_REAL getEntireTime() const;
+
 public:
 	static boost::shared_ptr<Interpolation> create(const boost::shared_ptr<const InterpolationData>& data,
 		FCL_REAL start_value, FCL_REAL end_value);
@@ -75,27 +90,39 @@ public:
 	static void registerToFactory();
 
 private:
-	void init();
+	void init(const boost::shared_ptr<const InterpolationData>& data);	
 
-	bool isValueGrowing() const;
-	void isValueGrowing(const bool& is_value_growing);	
+	void initData(const boost::shared_ptr<const InterpolationData>& data);
+
+	const boost::shared_ptr<const InterpolationThirdOrderData> 
+		getThirdOrderInterpolationData(const boost::shared_ptr<const InterpolationData>& data);
+
+	void copyData(const boost::shared_ptr<const InterpolationThirdOrderData>& data);
 
 	void initAbsEntireDistance();
-	const FCL_REAL& getAbsEntireDistance() const;
+	FCL_REAL getAbsEntireDistance() const;
 
-	void modifyInterpolationDataByDistance();	
+	// must be called after Absolute Entire Distance is initialized
+	void correctInterpolationData();	
 
-	void initTimes();
-	void initDistancesAndVelocities();
+	void correctAccelerationByJerk();
+	void correctAccelerationByDistance();
+	void correctVelocityByDistance();
+
+	void initTimePoints();
+	void initDistanceAndVelocityPoints();	
+
+	FCL_REAL getDistance(const FCL_REAL time) const;
+	FCL_REAL getDirectionalDistance(const FCL_REAL distance) const;	
 
 private:
-	boost::shared_ptr<const InterpolationThirdOrderData> data_;
+	boost::shared_ptr<InterpolationThirdOrderData> data_;	
 
-	bool is_value_growing_;
 	FCL_REAL abs_entire_distance_;
-	std::vector<FCL_REAL> time_; // time points from t0 to t7
-	std::vector<FCL_REAL> distance_; // distance values in times t0, ..., t7
-	std::vector<FCL_REAL> velocity_; // velocity values in times t0, ..., t7
+
+	std::vector<FCL_REAL> time_point_; // time points from t0 to t7
+	std::vector<FCL_REAL> velocity_point_; // velocity values in times t0, ..., t7
+	std::vector<FCL_REAL> distance_point_; // distance values in times t0, ..., t7	
 };
 
 }

@@ -36,13 +36,29 @@
 
 #include "fcl/ccd/interpolation/interpolation.h"
 
+#include <boost/assert.hpp>
+
 namespace fcl 
 {
 
 Interpolation::Interpolation(FCL_REAL start_value, FCL_REAL end_value) :
   start_value_(start_value),
-  end_value_(end_value)
-{}
+  end_value_(end_value),
+  is_value_growing_(true),
+  max_time_scale_(1.0)
+{
+  init();
+}
+
+void Interpolation::init()
+{
+  initIsValueGrowing();
+}
+
+void Interpolation::initIsValueGrowing()
+{
+  isValueGrowing(getStartValue() <= getEndValue() );
+}
 
 const FCL_REAL& Interpolation::getStartValue() const
 {
@@ -72,6 +88,28 @@ FCL_REAL& Interpolation::getValue(FCL_REAL time, FCL_REAL& value) const
   value = getValue(time);
 
   return value;
+}
+
+bool Interpolation::isValueGrowing() const
+{
+    return is_value_growing_;
+}
+
+void Interpolation::isValueGrowing(const bool is_value_growing)
+{
+    is_value_growing_ = is_value_growing;
+}
+
+void Interpolation::setMaxTimeScale(FCL_REAL max_scale)
+{
+    BOOST_ASSERT_MSG(max_scale >= 0, "Max Time Scale must be positive value.");
+
+    max_time_scale_ = max_scale;
+}
+
+FCL_REAL Interpolation::getMaxTimeScale() const
+{
+    return max_time_scale_;
 }
 
 }

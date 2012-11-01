@@ -60,6 +60,7 @@ public:
 
   virtual FCL_REAL getValue(FCL_REAL time) const = 0;
 
+  /// @brief time value is from interval [0, 1]
   FCL_REAL& getValue(FCL_REAL time, FCL_REAL& value) const;
 
   /// @brief return the smallest value in time interval [0, 1]
@@ -77,10 +78,26 @@ public:
 
   virtual FCL_REAL getVelocityBound(FCL_REAL time) const = 0;
 
+  /// @brief return time scale ; time interval [0, 1] is scaled from interval [0, time scale]
+  virtual FCL_REAL getTimeScale() const = 0;
+
+  bool isValueGrowing() const;
+  void isValueGrowing(const bool is_value_growing);	
+
+  void setMaxTimeScale(FCL_REAL max_scale);
+  FCL_REAL getMaxTimeScale() const;
+
+private:
+  void init();
+
+  void initIsValueGrowing();
+
 private:
   FCL_REAL start_value_; // value at time = 0.0
   FCL_REAL end_value_; // value at time = 1.0
 
+  bool is_value_growing_;
+  FCL_REAL max_time_scale_;
 };
 
 

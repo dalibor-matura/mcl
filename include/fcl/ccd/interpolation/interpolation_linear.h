@@ -68,6 +68,8 @@ public:
 
   virtual FCL_REAL getVelocityBound(FCL_REAL time) const;
 
+  virtual FCL_REAL getTimeScale() const;
+
 public:
   static boost::shared_ptr<Interpolation> create(const boost::shared_ptr<const InterpolationData>& data,
 	  FCL_REAL start_value, FCL_REAL end_value);

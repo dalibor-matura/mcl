@@ -37,10 +37,14 @@
 #include "fcl/ccd/interpolation/interpolation_third_order.h"
 #include "fcl/ccd/interpolation/interpolation_factory.h"
 #include "fcl/ccd/interpolation/interpolation_data.h"
+#include "fcl/ccd/interpolation/third_order_distance.h"
+#include "fcl/ccd/interpolation/third_order_derivation.h"
 
 #include <cmath>
+#include <algorithm>
 
 #include <boost/assert.hpp>
+#include <boost/bind.hpp>
 
 namespace fcl 
 {
@@ -49,152 +53,316 @@ InterpolationType interpolation_third_order_type = THIRD_ORDER;
 
 InterpolationThirdOrder::InterpolationThirdOrder(const boost::shared_ptr<const InterpolationData>& data,
 	FCL_REAL start_value, FCL_REAL end_value): 
-	Interpolation(start_value, end_value),
-	data_(boost::static_pointer_cast<const InterpolationThirdOrderData>(data) ),
-	is_value_growing_(true),
+	Interpolation(start_value, end_value),	
 	abs_entire_distance_(0),
-	time_(std::vector<FCL_REAL>(8, 0) ),
-	distance_(std::vector<FCL_REAL>(8, 0) ),
-	velocity_(std::vector<FCL_REAL>(8, 0) )
+	time_point_(std::vector<FCL_REAL>(8, 0) ),
+	distance_point_(std::vector<FCL_REAL>(8, 0) ),
+	velocity_point_(std::vector<FCL_REAL>(8, 0) )
+{	
+	init(data);
+}
+
+void InterpolationThirdOrder::init(const boost::shared_ptr<const InterpolationData>& data)
+{
+	initData(data);	
+
+	initAbsEntireDistance();
+	correctInterpolationData();
+
+	initTimePoints();
+	initDistanceAndVelocityPoints();
+}
+
+void InterpolationThirdOrder::initData(const boost::shared_ptr<const InterpolationData>& data)
+{
+	const boost::shared_ptr<const InterpolationThirdOrderData> third_order_data = 
+		getThirdOrderInterpolationData(data);
+
+	copyData(third_order_data);
+}
+
+const boost::shared_ptr<const InterpolationThirdOrderData> 
+	InterpolationThirdOrder::getThirdOrderInterpolationData(const boost::shared_ptr<const InterpolationData>& data)
 {
 	BOOST_ASSERT_MSG(data->getType() == interpolation_third_order_type, "Static cast is not safe.");
 
-	init();
+	return boost::static_pointer_cast<const InterpolationThirdOrderData>(data);
+}
+
+void InterpolationThirdOrder::copyData(const boost::shared_ptr<const InterpolationThirdOrderData>& data)
+{
+	const InterpolationThirdOrderData& data_value = *(data.get() );
+
+	data_.reset(new InterpolationThirdOrderData(data_value) );
+}
+
+const boost::shared_ptr<const InterpolationThirdOrderData>& InterpolationThirdOrder::getData() const
+{
+	return data_;
+}
+
+void InterpolationThirdOrder::initAbsEntireDistance()
+{
+	abs_entire_distance_ = fabs(getEndValue() - getStartValue() );	
+}
+
+FCL_REAL InterpolationThirdOrder::getAbsEntireDistance() const
+{
+	return abs_entire_distance_;
+}
+
+void InterpolationThirdOrder::correctInterpolationData()
+{
+	if ( getAbsEntireDistance() == 0.0 )
+	{
+		return; // no need to change anything
+	}
+
+	correctAccelerationByJerk();
+	correctAccelerationByDistance();
+	correctVelocityByDistance();
+}
+
+void InterpolationThirdOrder::correctAccelerationByJerk()
+{
+	// When jerk is too small to reach maximum acceleration:
+	// maximum acceleration will be adjusted.
+
+	if (data_->getMaxJerk() < pow(data_->getMaxAcceleration(), 2) / data_->getMaxVelocity() )
+	{
+		FCL_REAL new_acceleration = sqrt(data_->getMaxVelocity() * data_->getMaxJerk() );
+
+		data_->setMaxAcceleration(new_acceleration);
+	}
+}
+
+void InterpolationThirdOrder::correctAccelerationByDistance()
+{
+	// When distance is too small to reach maximum acceleration:
+	// maximum acceleration will be adjusted.
+
+	if (getAbsEntireDistance() < 2 * pow(data_->getMaxAcceleration(), 3) / pow(data_->getMaxJerk(), 2) )
+	{
+		FCL_REAL new_acceleration = 
+			pow( (getAbsEntireDistance() * pow(data_->getMaxJerk(), 2) / 2), 1.0 / 3.0);
+
+		data_->setMaxAcceleration(new_acceleration);
+	} 
+}
+
+void InterpolationThirdOrder::correctVelocityByDistance()
+{
+	// When distance is too small to reach maximum velocity:
+	// maximum velocity will be adjusted.
+
+	if (getAbsEntireDistance() < data_->getMaxVelocity() * 
+		(data_->getMaxVelocity() / data_->getMaxAcceleration() + data_->getMaxAcceleration() / data_->getMaxJerk() ) )
+	{
+		FCL_REAL new_velocity = 
+			pow(data_->getMaxAcceleration(), 2) / (2 * data_->getMaxJerk() ) * 
+			(sqrt(1 + 4 * getAbsEntireDistance() * pow(data_->getMaxJerk(), 2) / 
+			pow(data_->getMaxAcceleration(), 3) ) -1);
+
+		data_->setMaxVelocity(new_velocity);
+	}
+}
+
+void InterpolationThirdOrder::initTimePoints()
+{	
+	// time zero
+	time_point_[0] = 0.0;
+	// time after first jerk == time needed to accelerate from 0 to "acceleration" + "t0
+	time_point_[1] = data_->getMaxAcceleration() / data_->getMaxJerk() + time_point_[0]; 
+	// time needed to accelerate from "v" at the end of "jerk" to the "velocity" + "t0"
+	time_point_[2] = data_->getMaxVelocity() / data_->getMaxAcceleration() + time_point_[0];
+	// time after second jerk
+	time_point_[3] = time_point_[2] + (time_point_[1] - time_point_[0]); 
+	// time needed to move the "distance" with "velocity"
+	time_point_[4] = getAbsEntireDistance() / data_->getMaxVelocity() + time_point_[0];
+	/* the rest is symmetric to the first half */
+	time_point_[5] = time_point_[4] + (time_point_[1] - time_point_[0]); 
+	time_point_[6] = time_point_[5] + (time_point_[2] - time_point_[1]);
+	time_point_[7] = time_point_[6] + (time_point_[1] - time_point_[0]);
+}
+
+void InterpolationThirdOrder::initDistanceAndVelocityPoints()
+{
+	FCL_REAL duration_0_1 = time_point_[1] - time_point_[0];
+	FCL_REAL duration_0_2 = time_point_[2] - time_point_[0];
+	FCL_REAL duration_3_4 = time_point_[4] - time_point_[3];
+	FCL_REAL duration_4_5 = time_point_[5] - time_point_[4];
+	FCL_REAL duration_5_6 = time_point_[6] - time_point_[5];
+
+	// velocity after t1 == velocity after first jerk finished
+	velocity_point_[1] = 0.5 * data_->getMaxJerk() * pow(duration_0_1, 2); 
+
+	velocity_point_[2] = data_->getMaxVelocity() - 0.5 * data_->getMaxJerk() * pow(duration_4_5, 2);
+
+	velocity_point_[3] = velocity_point_[2] - data_->getMaxAcceleration() * duration_5_6;
+
+	// distance after t1 == distance after first jerk finished
+	distance_point_[1] = -0.5 * data_->getMaxJerk() * pow(duration_0_1, 2) * time_point_[1] + 
+		(1 / 6) * data_->getMaxJerk() * pow(duration_0_1, 3);	
+
+	distance_point_[2] = 0.5 * data_->getMaxAcceleration() * pow(duration_0_2, 2) + 
+		0.5 * data_->getMaxJerk() * pow(duration_0_1, 2) * duration_0_2;
+
+	distance_point_[3] = data_->getMaxVelocity() * duration_3_4 + 
+		distance_point_[2];	
+
+	distance_point_[4] = data_->getMaxVelocity() * duration_4_5 - 
+		(1 / 6) * data_->getMaxJerk() * pow(duration_4_5, 3) + 
+		distance_point_[3];
+
+	distance_point_[5] = -0.5 * data_->getMaxAcceleration() * pow(duration_5_6, 2) +
+		velocity_point_[2] * duration_5_6 +
+		distance_point_[4];	
+}
+
+FCL_REAL InterpolationThirdOrder::getTimePoint(const std::size_t index) const
+{
+	BOOST_ASSERT_MSG(index < 8, "Index not in range.");
+
+	return time_point_[index];
+}
+
+FCL_REAL InterpolationThirdOrder::getVelocityPoint(const std::size_t index) const
+{
+	BOOST_ASSERT_MSG(index < 8, "Index not in range.");
+
+	return velocity_point_[index];
+}
+
+FCL_REAL InterpolationThirdOrder::getDistancePoint(const std::size_t index) const
+{
+	BOOST_ASSERT_MSG(index < 8, "Index not in range.");
+
+	return distance_point_[index];
+}
+
+FCL_REAL InterpolationThirdOrder::getEntireTime() const
+{
+	return getTimePoint(7);
+}
+
+std::size_t InterpolationThirdOrder::getTimeUpperBound(const FCL_REAL time) const
+{
+	BOOST_ASSERT_MSG(time >= 0 , "Time must be positive value.");
+
+	/*std::vector<FCL_REAL>::const_iterator it =
+		std::upper_bound(time_point_.begin(), time_point_.end(), time);
+
+	return it - time_point_.begin();*/
+
+	std::vector<FCL_REAL>::const_iterator it;
+
+	for (it = time_point_.begin(); it != time_point_.end(); ++it)
+	{
+		if (time <= *it)
+		{
+			break;
+		}
+	}
+
+	return it - time_point_.begin();
 }
 
 FCL_REAL InterpolationThirdOrder::getValue(FCL_REAL time) const
 {
-  // TODO
-  return getStartValue() + (getEndValue() - getStartValue() ) * time;
+	BOOST_ASSERT_MSG(time >= 0 && time <= 1, "Time is out of range [0, 1].");
+
+	time *= getMaxTimeScale();
+
+	return getStartValue() + getDirectionalDistance(getDistance(time) );
+}
+
+FCL_REAL InterpolationThirdOrder::getDistance(const FCL_REAL time) const
+{
+	static ThirdOrderDistance third_order_distance(*this);
+
+	BOOST_ASSERT_MSG(time >= 0, "Time must be positive value.");
+
+	if ( getAbsEntireDistance() == 0.0 )
+	{
+		return 0;
+	}
+
+	if (time >= getEntireTime() )
+	{
+		return getAbsEntireDistance();
+	}
+
+	return third_order_distance.getDistance(time);
+}
+
+FCL_REAL InterpolationThirdOrder::getDirectionalDistance(const FCL_REAL distance) const
+{
+	if (isValueGrowing() )
+	{
+		return distance;
+	}
+	else
+	{
+		return -(distance);
+	}
+}
+
+FCL_REAL InterpolationThirdOrder::getTimeScale() const
+{
+	return getEntireTime();
 }
 
 FCL_REAL InterpolationThirdOrder::getValueLowerBound() const
 {
-  // TODO
-  return getStartValue();
+	if (isValueGrowing() )
+	{
+		return getStartValue();
+	}
+	else
+	{
+		return getEndValue();
+	}	
 }
 
 FCL_REAL InterpolationThirdOrder::getValueUpperBound() const
 {
-  // TODO
-  return getEndValue();
+	if (isValueGrowing() )
+	{
+		return getEndValue();		
+	}
+	else
+	{
+		return getStartValue();
+	}	
 }
 
 InterpolationType InterpolationThirdOrder::getType() const
 {
-  return interpolation_third_order_type;
+	return interpolation_third_order_type;
 }
 
 boost::shared_ptr<Interpolation> InterpolationThirdOrder::create(
 	const boost::shared_ptr<const InterpolationData>& data,
 	FCL_REAL start_value, FCL_REAL end_value)
 {
-  return boost::shared_ptr<Interpolation>(new InterpolationThirdOrder(data, start_value, end_value) );
+	return boost::shared_ptr<Interpolation>(new InterpolationThirdOrder(data, start_value, end_value) );
 }
 
 void InterpolationThirdOrder::registerToFactory()
 {
-  InterpolationFactory::instance().registerClass(interpolation_third_order_type, create);
+	InterpolationFactory::instance().registerClass(interpolation_third_order_type, create);
 }
 
 FCL_REAL InterpolationThirdOrder::getMovementLengthBound(FCL_REAL time) const
 {
-  // TODO
-  return getValueUpperBound() - getValue(time);
+	return getValueUpperBound() - getValue(time);
 }
 
 FCL_REAL InterpolationThirdOrder::getVelocityBound(FCL_REAL time) const
 {
-  // TODO
-  return (getEndValue() - getStartValue() );
+	static ThirdOrderDerivation third_order_derivation(*this);
+
+	return third_order_derivation.getAbsoluteMaxDerivative(time);
 }
-
-void InterpolationThirdOrder::init()
-{
-	isValueGrowing(getStartValue() <= getEndValue() );
-
-	initTimes();
-	initDistancesAndVelocities();
-}
-
-bool InterpolationThirdOrder::isValueGrowing() const
-{
-	return is_value_growing_;
-}
-
-void InterpolationThirdOrder::isValueGrowing(const bool& is_value_growing)
-{
-	is_value_growing_ = is_value_growing;
-}
-
-void InterpolationThirdOrder::initAbsEntireDistance()
-{
-	abs_entire_distance_ = fabs(getEndValue() - getStartValue() );
-
-	modifyInterpolationDataByDistance();
-}
-
-void InterpolationThirdOrder::modifyInterpolationDataByDistance()
-{
-	// TODO: modify InterpolationThirdOrderData by new Absolute Entire Distance
-}
-
-const FCL_REAL& InterpolationThirdOrder::getAbsEntireDistance() const
-{
-	return abs_entire_distance_;
-}
-
-void InterpolationThirdOrder::initTimes()
-{	
-	// time zero
-	time_[0] = 0.0;
-	// time after first jerk == time needed to accelerate from 0 to "acceleration" + "t0
-	time_[1] = data_->getAcceleration() / data_->getJerk() + time_[0]; 
-	// time needed to accelerate from "v" at the end of "jerk" to the "velocity" + "t0"
-	time_[2] = data_->getVelocity() / data_->getAcceleration() + time_[0];
-	// time after second jerk
-	time_[3] = time_[2] + (time_[1] - time_[0]); 
-	// time needed to move the "distance" with "velocity"
-	time_[4] = getAbsEntireDistance() / data_->getVelocity() + time_[0];
-	/* the rest is symmetric to the first half */
-	time_[5] = time_[4] + (time_[1] - time_[0]); 
-	time_[6] = time_[5] + (time_[2] - time_[1]);
-	time_[7] = time_[6] + (time_[1] - time_[0]);
-}
-
-void InterpolationThirdOrder::initDistancesAndVelocities()
-{
-	FCL_REAL duration_0_1 = time_[1] - time_[0];
-	FCL_REAL duration_0_2 = time_[2] - time_[0];
-	FCL_REAL duration_3_4 = time_[4] - time_[3];
-	FCL_REAL duration_4_5 = time_[5] - time_[4];
-	FCL_REAL duration_5_6 = time_[6] - time_[5];
-
-	// velocity after t1 == velocity after first jerk finished
-	velocity_[1] = 0.5 * data_->getJerk() * pow(duration_0_1, 2); 
-
-	velocity_[2] = data_->getVelocity() - 0.5 * data_->getJerk() * pow(duration_4_5, 2);
-
-	velocity_[3] = velocity_[2] - data_->getAcceleration() * duration_5_6;
-
-	// distance after t1 == distance after first jerk finished
-	distance_[1] = -0.5 * data_->getJerk() * pow(duration_0_1, 2) * time_[1] + 
-		(1 / 6) * data_->getJerk() * pow(duration_0_1, 3);	
-
-	distance_[2] = 0.5 * data_->getAcceleration() * pow(duration_0_2, 2) + 
-		0.5 * data_->getJerk() * pow(duration_0_1, 2) * duration_0_2;
-
-	distance_[3] = data_->getVelocity() * duration_3_4 + 
-		distance_[2];	
-
-	distance_[4] = data_->getVelocity() * duration_4_5 - 
-		(1 / 6) * data_->getJerk() * pow(duration_4_5, 3) + 
-		distance_[3];
-
-	distance_[5] = -0.5 * data_->getAcceleration() * pow(duration_5_6, 2) +
-		velocity_[2] * duration_5_6 +
-		distance_[4];	
-}
-
 
 }

@@ -2,6 +2,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 #include <boost/math/constants/constants.hpp>
 #include <boost/filesystem.hpp>
 
@@ -11,6 +12,7 @@
 #include "fcl/articulated_model/model.h"
 #include "fcl/articulated_model/model_config.h"
 #include "fcl/articulated_model/link_bound.h"
+#include "fcl/ccd/interpolation/interpolation_data.h"
 
 #include "fcl/ccd/conservative_advancement.h"
 #include "fcl/ccd/motion.h"
@@ -39,7 +41,7 @@ public:
 		initGeneral();
 		initLinkBound();
 		initMotions();
-		initCollisionObjects();
+		initCollisionObjectsOnly();
 	}
 
 	~ArticularCollisionFixture()
@@ -75,22 +77,30 @@ public:
 	void initLinkBound()
 	{
 		initModel();
-		initConfigurations();
-		initMovement();
+		initConfigurationsOnly();
+		initMovementOnly();
 
 		link_bound_.reset(new LinkBound(model_, movement_, finger_) );
 	}
 
-	void initMovement()
+	void initMovementOnly()
 	{
 		movement_.reset(new Movement(model_, cfg_start_, cfg_end_) );
 	}	
 
 	void initModel()
 	{
-		model_.reset(new Model() );
+		initLinksOnly();
+		initJointsOnly();	
 
-		initLinks();
+		boost::shared_ptr<const InterpolationData> interpolation_data(new InterpolationLinearData() );
+
+		initModelOnly(interpolation_data);
+	}
+
+	void initModelOnly(boost::shared_ptr<const InterpolationData> interpolation_data)
+	{
+		model_.reset(new Model() );
 
 		model_->addLink(body_);
 		model_->addLink(arm_);
@@ -98,17 +108,15 @@ public:
 		model_->addLink(hand_);
 		model_->addLink(finger_);
 
-		initJoints();	
-
-		model_->addJoint(shoulder_joint_);
-		model_->addJoint(elbow_joint_);
-		model_->addJoint(wrist_joint_);
-		model_->addJoint(finger_joint_);
+		model_->addJoint(shoulder_joint_, interpolation_data);
+		model_->addJoint(elbow_joint_, interpolation_data);
+		model_->addJoint(wrist_joint_, interpolation_data);
+		model_->addJoint(finger_joint_, interpolation_data);
 
 		model_->initTree();
 	}
 
-	void initLinks()
+	void initLinksOnly()
 	{
 		body_name_ = "BODY";
 		arm_name_ = "ARM";
@@ -123,7 +131,7 @@ public:
 		finger_.reset(new Link(finger_name_) );		
 	}
 
-	void initJoints()
+	void initJointsOnly()
 	{
 		shoulder_joint_name_ = "SHOULDER";
 		elbow_joint_name_ = "ELBOW";
@@ -162,7 +170,7 @@ public:
 		finger_joint_.reset(new RevoluteJoint(hand_, finger_, transform, finger_joint_name_, axis) );		
 	}
 
-	void initConfigurations()
+	void initConfigurationsOnly()
 	{
 		cfg_start_.reset(new ModelConfig(model_) );
 		cfg_end_.reset(new ModelConfig(model_) );
@@ -173,7 +181,7 @@ public:
 		cfg_end_->getJointConfig(finger_joint_)[0] = 3;	
 	}	
 
-	void initCollisionObjects()
+	void initCollisionObjectsOnly()
 	{
 		std::vector<Vec3f> p1, p2;
 		std::vector<Triangle> t1, t2;
@@ -201,7 +209,7 @@ public:
 		cfg_start_ = cfg_start;
 		cfg_end_ = cfg_end;
 
-		initMovement();
+		initMovementOnly();
 
 		link_bound_.reset(new LinkBound(model_, movement_, finger_) );
 
@@ -326,6 +334,17 @@ protected:
 
 		// path is collision free
 		setNewConfigurations(cfg_start, cfg_end);
+	}
+
+	void setJointsInterpolation(boost::shared_ptr<const InterpolationData> interpolation_data)
+	{
+		initModelOnly(interpolation_data);
+		initConfigurationsOnly();
+		initMovementOnly();
+
+		link_bound_.reset(new LinkBound(model_, movement_, finger_) );
+
+		initArticularMotion();
 	}
 
 	int performContinuousCollision()
@@ -491,9 +510,42 @@ std::ostream& operator << (std::ostream& o, const ModelConfig& c)
 ////////////////////////////////////////////////////////////////////////////////
 BOOST_AUTO_TEST_SUITE(test_model_bound)
 
-BOOST_FIXTURE_TEST_CASE(test_articulated_collision, ArticularCollisionFixture)
+BOOST_FIXTURE_TEST_CASE(test_articulated_collision_with_linear_interpolation, ArticularCollisionFixture)
 {
 	int number_of_contacts = 0;
+
+	setJointsInterpolation(boost::make_shared<const InterpolationLinearData>() );
+
+	setConfigurations_1();
+	number_of_contacts = performContinuousCollision();
+	BOOST_CHECK_EQUAL(1, number_of_contacts);
+
+	setConfigurations_2();
+	number_of_contacts = performContinuousCollision();
+	BOOST_CHECK_EQUAL(1, number_of_contacts);
+
+	setConfigurations_3();
+	number_of_contacts = performContinuousCollision();
+	BOOST_CHECK_EQUAL(0, number_of_contacts);
+
+	setConfigurations_4();
+	number_of_contacts = performContinuousCollision();
+	BOOST_CHECK_EQUAL(0, number_of_contacts);
+
+	setConfigurations_5();
+	number_of_contacts = performContinuousCollision();
+	BOOST_CHECK_EQUAL(1, number_of_contacts);
+
+	setConfigurations_6();
+	number_of_contacts = performContinuousCollision();
+	BOOST_CHECK_EQUAL(0, number_of_contacts);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_articulated_collision_with_third_order_interpolation, ArticularCollisionFixture)
+{
+	int number_of_contacts = 0;
+
+	setJointsInterpolation(boost::make_shared<const InterpolationThirdOrderData>(10, 10, 10) );
 
 	setConfigurations_1();
 	number_of_contacts = performContinuousCollision();

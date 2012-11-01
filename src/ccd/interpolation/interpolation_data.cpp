@@ -27,17 +27,32 @@ InterpolationType InterpolationThirdOrderData::getType() const
 	return THIRD_ORDER;
 }
 
-const FCL_REAL& InterpolationThirdOrderData::getVelocity() const
+void InterpolationThirdOrderData::setMaxVelocity(const FCL_REAL& velocity)
+{
+	velocity_ = velocity;
+}
+
+const FCL_REAL& InterpolationThirdOrderData::getMaxVelocity() const
 {
 	return velocity_;
 }
 
-const FCL_REAL& InterpolationThirdOrderData::getAcceleration() const
+void InterpolationThirdOrderData::setMaxAcceleration(const FCL_REAL& acceleration)
+{
+	acceleration_ = acceleration;
+}
+
+const FCL_REAL& InterpolationThirdOrderData::getMaxAcceleration() const
 {
 	return acceleration_;
 }
 
-const FCL_REAL& InterpolationThirdOrderData::getJerk() const
+void InterpolationThirdOrderData::setMaxJerk(const FCL_REAL& jerk)
+{
+	jerk_ = jerk;
+}
+
+const FCL_REAL& InterpolationThirdOrderData::getMaxJerk() const
 {
 	return jerk_;
 }

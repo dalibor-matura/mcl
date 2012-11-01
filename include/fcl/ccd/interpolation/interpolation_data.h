@@ -36,9 +36,14 @@ public:
 
 	virtual InterpolationType getType() const;
 
-	const FCL_REAL& getVelocity() const;
-	const FCL_REAL& getAcceleration() const;
-	const FCL_REAL& getJerk() const;
+	void setMaxVelocity(const FCL_REAL& velocity);
+	const FCL_REAL& getMaxVelocity() const;
+
+	void setMaxAcceleration(const FCL_REAL& acceleration);
+	const FCL_REAL& getMaxAcceleration() const;
+	
+	void setMaxJerk(const FCL_REAL& jerk);
+	const FCL_REAL& getMaxJerk() const;
 
 private:
 	FCL_REAL velocity_;
