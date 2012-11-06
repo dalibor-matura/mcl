@@ -2,19 +2,22 @@
 #define FCL_CCD_INTERPOLATION_THIRD_ORDER_DISTANCE_H
 
 #include "fcl/data_types.h"
-#include "fcl/ccd/interpolation/interpolation_data.h"
-#include "fcl/ccd/interpolation/interpolation_third_order.h"
 
 #include <vector>
 
+#include <boost/shared_ptr.hpp>
 #include <boost/function.hpp>
 
 namespace fcl {
 
+class ThirdOrderControlPoints;
+class InterpolationThirdOrderData;
+
 class ThirdOrderDistance
 {
 public:
-	ThirdOrderDistance(const InterpolationThirdOrder& interpolation);
+	ThirdOrderDistance(const boost::shared_ptr<const InterpolationThirdOrderData>& data,
+		const boost::shared_ptr<const ThirdOrderControlPoints>& control_points);
 
 	FCL_REAL getDistance(const FCL_REAL time) const;
 private:
@@ -32,8 +35,8 @@ private:
 	FCL_REAL getDistance_6_7(const FCL_REAL time) const;
 
 private:
-	const InterpolationThirdOrder& interpolation_;
-	const boost::shared_ptr<const InterpolationThirdOrderData>& data_;
+	const boost::shared_ptr<const ThirdOrderControlPoints> points_;
+	const boost::shared_ptr<const InterpolationThirdOrderData> data_;
 
 	std::vector<boost::function<FCL_REAL(FCL_REAL)> > distance_functions_;
 };

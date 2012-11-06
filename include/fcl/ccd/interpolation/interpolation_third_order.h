@@ -51,6 +51,9 @@ namespace fcl
 class InterpolationData;
 class InterpolationThirdOrderData;
 class InterpolationFactory;
+class ThirdOrderControlPoints;
+class ThirdOrderDistance;
+class ThirdOrderDerivation;
 
 class InterpolationThirdOrder : public Interpolation
 {
@@ -70,18 +73,6 @@ public:
 	virtual FCL_REAL getVelocityBound(FCL_REAL time) const;
 
 	virtual FCL_REAL getTimeScale() const;
-
-	/* below is only specific interface for this class */
-
-	FCL_REAL getTimePoint(const std::size_t index) const;
-	FCL_REAL getVelocityPoint(const std::size_t index) const;
-	FCL_REAL getDistancePoint(const std::size_t index) const;
-
-	const boost::shared_ptr<const InterpolationThirdOrderData>& getData() const;
-
-	std::size_t getTimeUpperBound(const FCL_REAL time) const;
-
-	FCL_REAL getEntireTime() const;
 
 public:
 	static boost::shared_ptr<Interpolation> create(const boost::shared_ptr<const InterpolationData>& data,
@@ -103,26 +94,30 @@ private:
 	FCL_REAL getAbsEntireDistance() const;
 
 	// must be called after Absolute Entire Distance is initialized
-	void correctInterpolationData();	
+	void correctInterpolationData();		
 
 	void correctAccelerationByJerk();
 	void correctAccelerationByDistance();
 	void correctVelocityByDistance();
 
-	void initTimePoints();
-	void initDistanceAndVelocityPoints();	
+	// must be called after correctInterpolationData is called
+	void initControlPoints();
 
 	FCL_REAL getDistance(const FCL_REAL time) const;
 	FCL_REAL getDirectionalDistance(const FCL_REAL distance) const;	
 
+	// scales time to values used by third order interpolation calculations
+	FCL_REAL scaleTime(FCL_REAL& time) const;
+
 private:
-	boost::shared_ptr<InterpolationThirdOrderData> data_;	
+	boost::shared_ptr<InterpolationThirdOrderData> data_;
+
+	boost::shared_ptr<ThirdOrderControlPoints> third_order_control_points_;
+	boost::shared_ptr<ThirdOrderDistance> third_order_distance_;
+	boost::shared_ptr<ThirdOrderDerivation> third_order_derivation_;
 
 	FCL_REAL abs_entire_distance_;
 
-	std::vector<FCL_REAL> time_point_; // time points from t0 to t7
-	std::vector<FCL_REAL> velocity_point_; // velocity values in times t0, ..., t7
-	std::vector<FCL_REAL> distance_point_; // distance values in times t0, ..., t7	
 };
 
 }
