@@ -171,7 +171,7 @@ FCL_REAL InterpolationThirdOrder::getValue(FCL_REAL time) const
 {
 	BOOST_ASSERT_MSG(time >= 0 && time <= 1, "Time is out of range [0, 1].");
 
-	scaleTime(time);
+	scaleTimeIn(time);
 
 	return getStartValue() + getDirectionalDistance(getDistance(time) );
 }
@@ -255,7 +255,7 @@ FCL_REAL InterpolationThirdOrder::getMovementLengthBound(FCL_REAL time) const
 {
 	BOOST_ASSERT_MSG(time >= 0 && time <= 1, "Time is out of range [0, 1].");
 
-	scaleTime(time);
+	scaleTimeIn(time);
 
 	if (isValueGrowing() )
 	{
@@ -271,16 +271,25 @@ FCL_REAL InterpolationThirdOrder::getVelocityBound(FCL_REAL time) const
 {
 	BOOST_ASSERT_MSG(time >= 0 && time <= 1, "Time is out of range [0, 1].");
 
-	scaleTime(time);
+	scaleTimeIn(time);
 
-	return third_order_derivation_->getAbsoluteMaxDerivation(time);
+	FCL_REAL velocity_bound = third_order_derivation_->getAbsoluteMaxDerivation(time);
+
+	return scaleValueOut(velocity_bound);
 }
 
-FCL_REAL InterpolationThirdOrder::scaleTime(FCL_REAL& time) const
+FCL_REAL InterpolationThirdOrder::scaleTimeIn(FCL_REAL& time) const
 {
 	time *= getMaxTimeScale();
 
 	return time;
+}
+
+FCL_REAL InterpolationThirdOrder::scaleValueOut(FCL_REAL& value) const
+{
+	value *= getMaxTimeScale();
+
+	return value;
 }
 
 }

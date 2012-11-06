@@ -49,6 +49,11 @@ protected:
 		return time / time_scale_;
 	}
 
+	FCL_REAL postscaleValue(FCL_REAL value)
+	{
+		return value * time_scale_;
+	}
+
 protected:
 	boost::shared_ptr<ThirdOrderControlPoints> control_points_;
 	boost::shared_ptr<InterpolationThirdOrderData> data_;
@@ -73,9 +78,17 @@ FCL_REAL middle(FCL_REAL first, FCL_REAL second)
 	return first + (second - first) / 2.0;
 }
 
-void equalWithEpsilon(FCL_REAL first, FCL_REAL second)
+void equalWithEpsilon_9(FCL_REAL first, FCL_REAL second)
 {
-	static FCL_REAL epsilon = 0.000000001;
+	static FCL_REAL epsilon = 0.000000001; // 9 decimal places
+
+	FCL_REAL difference = fabs(second - first);
+	BOOST_CHECK_LT(difference, epsilon);
+}
+
+void equalWithEpsilon_8(FCL_REAL first, FCL_REAL second)
+{
+	static FCL_REAL epsilon = 0.00000001; // 8 decimal places
 
 	FCL_REAL difference = fabs(second - first);
 	BOOST_CHECK_LT(difference, epsilon);
@@ -134,66 +147,66 @@ BOOST_AUTO_TEST_SUITE(test_third_order_interpolation)
 
 BOOST_FIXTURE_TEST_CASE(test_getValue, ThirdOrderInterpolationFixture)
 {
-	equalWithEpsilon(0.0000040774, third_order_interpolation_->getValue(prescaleTime(0.0093426760) ) );
-	equalWithEpsilon(0.0200322916, third_order_interpolation_->getValue(prescaleTime(0.1588254922) ) );
-	equalWithEpsilon(0.0716644733, third_order_interpolation_->getValue(prescaleTime(0.2429095762) ) );
-	equalWithEpsilon(0.1465297097, third_order_interpolation_->getValue(prescaleTime(0.3083083083) ) );
-	equalWithEpsilon(0.1748187468, third_order_interpolation_->getValue(prescaleTime(0.3269936603) ) );
-	equalWithEpsilon(0.1902352803, third_order_interpolation_->getValue(prescaleTime(0.3363363363) ) );	
-	equalWithEpsilon(0.2065233958, third_order_interpolation_->getValue(prescaleTime(0.3456790123) ) );
-	equalWithEpsilon(0.3010568126, third_order_interpolation_->getValue(prescaleTime(0.3923923924) ) );
-	equalWithEpsilon(0.3682511340, third_order_interpolation_->getValue(prescaleTime(0.4204204204) ) );
-	equalWithEpsilon(0.3923949531, third_order_interpolation_->getValue(prescaleTime(0.4297630964) ) );
-	equalWithEpsilon(0.4174116281, third_order_interpolation_->getValue(prescaleTime(0.4391057724) ) );
-	equalWithEpsilon(0.4433011590, third_order_interpolation_->getValue(prescaleTime(0.4484484484) ) );
-	equalWithEpsilon(1.8428945017, third_order_interpolation_->getValue(prescaleTime(0.7660994328) ) );
-	equalWithEpsilon(3.4383504848, third_order_interpolation_->getValue(prescaleTime(0.9903236570) ) );
-	equalWithEpsilon(3.5939957489, third_order_interpolation_->getValue(prescaleTime(1.0090090090) ) );
-	equalWithEpsilon(4.4192410246, third_order_interpolation_->getValue(prescaleTime(1.1024357691) ) );
-	equalWithEpsilon(6.5999347525, third_order_interpolation_->getValue(prescaleTime(1.3266599933) ) );
-	equalWithEpsilon(6.6933600267, third_order_interpolation_->getValue(prescaleTime(1.3360026693) ) );
-	equalWithEpsilon(6.9736403070, third_order_interpolation_->getValue(prescaleTime(1.3640306974) ) );
-	equalWithEpsilon(26.6866866867, third_order_interpolation_->getValue(prescaleTime(3.3353353353) ) );
-	equalWithEpsilon(73.3066399733, third_order_interpolation_->getValue(prescaleTime(7.9973306640) ) );
-	equalWithEpsilon(73.4000652475, third_order_interpolation_->getValue(prescaleTime(8.0066733400) ) );
-	equalWithEpsilon(74.4212067191, third_order_interpolation_->getValue(prescaleTime(8.1094427761) ) );
-	equalWithEpsilon(76.4060042511, third_order_interpolation_->getValue(prescaleTime(8.3243243243) ) );
-	equalWithEpsilon(76.4842614831, third_order_interpolation_->getValue(prescaleTime(8.3336670003) ) );
-	equalWithEpsilon(76.7885764755, third_order_interpolation_->getValue(prescaleTime(8.3710377044) ) );
-	equalWithEpsilon(79.1025955329, third_order_interpolation_->getValue(prescaleTime(8.7540874208) ) );
-	equalWithEpsilon(79.8097647197, third_order_interpolation_->getValue(prescaleTime(8.9969969970) ) );
-	equalWithEpsilon(79.8251812532, third_order_interpolation_->getValue(prescaleTime(9.0063396730) ) );
-	equalWithEpsilon(79.9673807586, third_order_interpolation_->getValue(prescaleTime(9.1464798131) ) );
-	equalWithEpsilon(79.9991192805, third_order_interpolation_->getValue(prescaleTime(9.2772772773) ) );
-	equalWithEpsilon(79.9999959226, third_order_interpolation_->getValue(prescaleTime(9.3239906573) ) );
+	equalWithEpsilon_9(0.0000040774, third_order_interpolation_->getValue(prescaleTime(0.0093426760) ) );
+	equalWithEpsilon_9(0.0200322916, third_order_interpolation_->getValue(prescaleTime(0.1588254922) ) );
+	equalWithEpsilon_9(0.0716644733, third_order_interpolation_->getValue(prescaleTime(0.2429095762) ) );
+	equalWithEpsilon_9(0.1465297097, third_order_interpolation_->getValue(prescaleTime(0.3083083083) ) );
+	equalWithEpsilon_9(0.1748187468, third_order_interpolation_->getValue(prescaleTime(0.3269936603) ) );
+	equalWithEpsilon_9(0.1902352803, third_order_interpolation_->getValue(prescaleTime(0.3363363363) ) );	
+	equalWithEpsilon_9(0.2065233958, third_order_interpolation_->getValue(prescaleTime(0.3456790123) ) );
+	equalWithEpsilon_9(0.3010568126, third_order_interpolation_->getValue(prescaleTime(0.3923923924) ) );
+	equalWithEpsilon_9(0.3682511340, third_order_interpolation_->getValue(prescaleTime(0.4204204204) ) );
+	equalWithEpsilon_9(0.3923949531, third_order_interpolation_->getValue(prescaleTime(0.4297630964) ) );
+	equalWithEpsilon_9(0.4174116281, third_order_interpolation_->getValue(prescaleTime(0.4391057724) ) );
+	equalWithEpsilon_9(0.4433011590, third_order_interpolation_->getValue(prescaleTime(0.4484484484) ) );
+	equalWithEpsilon_9(1.8428945017, third_order_interpolation_->getValue(prescaleTime(0.7660994328) ) );
+	equalWithEpsilon_9(3.4383504848, third_order_interpolation_->getValue(prescaleTime(0.9903236570) ) );
+	equalWithEpsilon_9(3.5939957489, third_order_interpolation_->getValue(prescaleTime(1.0090090090) ) );
+	equalWithEpsilon_9(4.4192410246, third_order_interpolation_->getValue(prescaleTime(1.1024357691) ) );
+	equalWithEpsilon_9(6.5999347525, third_order_interpolation_->getValue(prescaleTime(1.3266599933) ) );
+	equalWithEpsilon_9(6.6933600267, third_order_interpolation_->getValue(prescaleTime(1.3360026693) ) );
+	equalWithEpsilon_9(6.9736403070, third_order_interpolation_->getValue(prescaleTime(1.3640306974) ) );
+	equalWithEpsilon_9(26.6866866867, third_order_interpolation_->getValue(prescaleTime(3.3353353353) ) );
+	equalWithEpsilon_9(73.3066399733, third_order_interpolation_->getValue(prescaleTime(7.9973306640) ) );
+	equalWithEpsilon_9(73.4000652475, third_order_interpolation_->getValue(prescaleTime(8.0066733400) ) );
+	equalWithEpsilon_9(74.4212067191, third_order_interpolation_->getValue(prescaleTime(8.1094427761) ) );
+	equalWithEpsilon_9(76.4060042511, third_order_interpolation_->getValue(prescaleTime(8.3243243243) ) );
+	equalWithEpsilon_9(76.4842614831, third_order_interpolation_->getValue(prescaleTime(8.3336670003) ) );
+	equalWithEpsilon_9(76.7885764755, third_order_interpolation_->getValue(prescaleTime(8.3710377044) ) );
+	equalWithEpsilon_9(79.1025955329, third_order_interpolation_->getValue(prescaleTime(8.7540874208) ) );
+	equalWithEpsilon_9(79.8097647197, third_order_interpolation_->getValue(prescaleTime(8.9969969970) ) );
+	equalWithEpsilon_9(79.8251812532, third_order_interpolation_->getValue(prescaleTime(9.0063396730) ) );
+	equalWithEpsilon_9(79.9673807586, third_order_interpolation_->getValue(prescaleTime(9.1464798131) ) );
+	equalWithEpsilon_9(79.9991192805, third_order_interpolation_->getValue(prescaleTime(9.2772772773) ) );
+	equalWithEpsilon_9(79.9999959226, third_order_interpolation_->getValue(prescaleTime(9.3239906573) ) );
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_velocity_bound, ThirdOrderInterpolationFixture)
 {
-	equalWithEpsilon(10, third_order_interpolation_->getVelocityBound(prescaleTime(0) ) );
+	equalWithEpsilon_8(postscaleValue(10), third_order_interpolation_->getVelocityBound(prescaleTime(0) ) );
 
-	equalWithEpsilon(10, third_order_interpolation_->getVelocityBound(prescaleTime(0.0093426760) ) );
-	equalWithEpsilon(10, third_order_interpolation_->getVelocityBound(prescaleTime(0.0653987321) ) );
-	equalWithEpsilon(10, third_order_interpolation_->getVelocityBound(prescaleTime(0.1214547881) ) );
-	equalWithEpsilon(10, third_order_interpolation_->getVelocityBound(prescaleTime(0.3269936603) ) );
-	equalWithEpsilon(10, third_order_interpolation_->getVelocityBound(prescaleTime(1.0183516850) ) );
-	equalWithEpsilon(10, third_order_interpolation_->getVelocityBound(prescaleTime(1.3360026693) ) );
-	equalWithEpsilon(10, third_order_interpolation_->getVelocityBound(prescaleTime(1.3453453453) ) );
-	equalWithEpsilon(10, third_order_interpolation_->getVelocityBound(prescaleTime(4.3163163163) ) );
-	equalWithEpsilon(10, third_order_interpolation_->getVelocityBound(prescaleTime(5) ) );
+	equalWithEpsilon_8(postscaleValue(10), third_order_interpolation_->getVelocityBound(prescaleTime(0.0093426760) ) );
+	equalWithEpsilon_8(postscaleValue(10), third_order_interpolation_->getVelocityBound(prescaleTime(0.0653987321) ) );
+	equalWithEpsilon_8(postscaleValue(10), third_order_interpolation_->getVelocityBound(prescaleTime(0.1214547881) ) );
+	equalWithEpsilon_8(postscaleValue(10), third_order_interpolation_->getVelocityBound(prescaleTime(0.3269936603) ) );
+	equalWithEpsilon_8(postscaleValue(10), third_order_interpolation_->getVelocityBound(prescaleTime(1.0183516850) ) );
+	equalWithEpsilon_8(postscaleValue(10), third_order_interpolation_->getVelocityBound(prescaleTime(1.3360026693) ) );
+	equalWithEpsilon_8(postscaleValue(10), third_order_interpolation_->getVelocityBound(prescaleTime(1.3453453453) ) );
+	equalWithEpsilon_8(postscaleValue(10), third_order_interpolation_->getVelocityBound(prescaleTime(4.3163163163) ) );
+	equalWithEpsilon_8(postscaleValue(10), third_order_interpolation_->getVelocityBound(prescaleTime(5) ) );
 
-	equalWithEpsilon(9.9993319980, third_order_interpolation_->getVelocityBound(prescaleTime(8.0066733400) ) );
-	equalWithEpsilon(9.9961523085, third_order_interpolation_->getVelocityBound(prescaleTime(8.0160160160) ) );
-	equalWithEpsilon(8.4222059898, third_order_interpolation_->getVelocityBound(prescaleTime(8.3243243243) ) );
-	equalWithEpsilon(8.3299966633, third_order_interpolation_->getVelocityBound(prescaleTime(8.3336670003) ) );
-	equalWithEpsilon(6.0877544211, third_order_interpolation_->getVelocityBound(prescaleTime(8.5578912246) ) );
-	equalWithEpsilon(1.6966966967, third_order_interpolation_->getVelocityBound(prescaleTime(8.9969969970) ) );
-	equalWithEpsilon(1.6038728084, third_order_interpolation_->getVelocityBound(prescaleTime(9.0063396730) ) );
-	equalWithEpsilon(1.5135322176, third_order_interpolation_->getVelocityBound(prescaleTime(9.0156823490) ) );
-	equalWithEpsilon(0.4726514970, third_order_interpolation_->getVelocityBound(prescaleTime(9.1558224892) ) );
-	equalWithEpsilon(0.0013092839, third_order_interpolation_->getVelocityBound(prescaleTime(9.3239906573) ) );
+	equalWithEpsilon_8(postscaleValue(9.9993319980), third_order_interpolation_->getVelocityBound(prescaleTime(8.0066733400) ) );
+	equalWithEpsilon_8(postscaleValue(9.9961523085), third_order_interpolation_->getVelocityBound(prescaleTime(8.0160160160) ) );
+	equalWithEpsilon_8(postscaleValue(8.4222059898), third_order_interpolation_->getVelocityBound(prescaleTime(8.3243243243) ) );
+	equalWithEpsilon_8(postscaleValue(8.3299966633), third_order_interpolation_->getVelocityBound(prescaleTime(8.3336670003) ) );
+	equalWithEpsilon_8(postscaleValue(6.0877544211), third_order_interpolation_->getVelocityBound(prescaleTime(8.5578912246) ) );
+	equalWithEpsilon_8(postscaleValue(1.6966966967), third_order_interpolation_->getVelocityBound(prescaleTime(8.9969969970) ) );
+	equalWithEpsilon_8(postscaleValue(1.6038728084), third_order_interpolation_->getVelocityBound(prescaleTime(9.0063396730) ) );
+	equalWithEpsilon_8(postscaleValue(1.5135322176), third_order_interpolation_->getVelocityBound(prescaleTime(9.0156823490) ) );
+	equalWithEpsilon_8(postscaleValue(0.4726514970), third_order_interpolation_->getVelocityBound(prescaleTime(9.1558224892) ) );
+	equalWithEpsilon_8(postscaleValue(0.0013092839), third_order_interpolation_->getVelocityBound(prescaleTime(9.3239906573) ) );
 
-	equalWithEpsilon(0, third_order_interpolation_->getVelocityBound(prescaleTime(
+	equalWithEpsilon_8(postscaleValue(0), third_order_interpolation_->getVelocityBound(prescaleTime(
 		third_order_interpolation_->getTimeScale() ) ) );
 }
 
@@ -203,68 +216,68 @@ BOOST_AUTO_TEST_SUITE(test_third_order_derivation)
 
 BOOST_FIXTURE_TEST_CASE(test_get_derivation, ThirdOrderInterpolationFixture)
 {
-	equalWithEpsilon(0, third_order_derivation_->getDerivation(0) );
+	equalWithEpsilon_9(0, third_order_derivation_->getDerivation(0) );
 
-	equalWithEpsilon(0.0013092839, third_order_derivation_->getDerivation(0.0093426760) );
-	equalWithEpsilon(0.0641549123, third_order_derivation_->getDerivation(0.0653987321) );
-	equalWithEpsilon(0.2212689834, third_order_derivation_->getDerivation(0.1214547881) );
-	equalWithEpsilon(1.6038728084, third_order_derivation_->getDerivation(0.3269936603) );
-	equalWithEpsilon(1.6966966967, third_order_derivation_->getDerivation(0.3363363363) );
-	equalWithEpsilon(1.7901234568, third_order_derivation_->getDerivation(0.3456790123) );
-	equalWithEpsilon(2.3506840174, third_order_derivation_->getDerivation(0.4017350684) );
-	equalWithEpsilon(8.3299966633, third_order_derivation_->getDerivation(0.9996663330) );
-	equalWithEpsilon(8.4222059898, third_order_derivation_->getDerivation(1.0090090090) );
-	equalWithEpsilon(8.5117984184, third_order_derivation_->getDerivation(1.0183516850) );
-	equalWithEpsilon(9.5414567053, third_order_derivation_->getDerivation(1.1584918252) );
-	equalWithEpsilon(9.9993319980, third_order_derivation_->getDerivation(1.3266599933) );
-	equalWithEpsilon(10, third_order_derivation_->getDerivation(1.3360026693) );
-	equalWithEpsilon(10, third_order_derivation_->getDerivation(1.3453453453) );
-	equalWithEpsilon(10, third_order_derivation_->getDerivation(4.3163163163) );
-	equalWithEpsilon(10, third_order_derivation_->getDerivation(7.9973306640) );
-	equalWithEpsilon(-9.9993319980, third_order_derivation_->getDerivation(8.0066733400) );
-	equalWithEpsilon(-9.9961523085, third_order_derivation_->getDerivation(8.0160160160) );
-	equalWithEpsilon(-8.4222059898, third_order_derivation_->getDerivation(8.3243243243) );
-	equalWithEpsilon(-8.3299966633, third_order_derivation_->getDerivation(8.3336670003) );
-	equalWithEpsilon(-6.0877544211, third_order_derivation_->getDerivation(8.5578912246) );
-	equalWithEpsilon(-1.6966966967, third_order_derivation_->getDerivation(8.9969969970) );
-	equalWithEpsilon(-1.6038728084, third_order_derivation_->getDerivation(9.0063396730) );
-	equalWithEpsilon(-1.5135322176, third_order_derivation_->getDerivation(9.0156823490) );
-	equalWithEpsilon(-0.4726514970, third_order_derivation_->getDerivation(9.1558224892) );
-	equalWithEpsilon(-0.0013092839, third_order_derivation_->getDerivation(9.3239906573) );
+	equalWithEpsilon_9(0.0013092839, third_order_derivation_->getDerivation(0.0093426760) );
+	equalWithEpsilon_9(0.0641549123, third_order_derivation_->getDerivation(0.0653987321) );
+	equalWithEpsilon_9(0.2212689834, third_order_derivation_->getDerivation(0.1214547881) );
+	equalWithEpsilon_9(1.6038728084, third_order_derivation_->getDerivation(0.3269936603) );
+	equalWithEpsilon_9(1.6966966967, third_order_derivation_->getDerivation(0.3363363363) );
+	equalWithEpsilon_9(1.7901234568, third_order_derivation_->getDerivation(0.3456790123) );
+	equalWithEpsilon_9(2.3506840174, third_order_derivation_->getDerivation(0.4017350684) );
+	equalWithEpsilon_9(8.3299966633, third_order_derivation_->getDerivation(0.9996663330) );
+	equalWithEpsilon_9(8.4222059898, third_order_derivation_->getDerivation(1.0090090090) );
+	equalWithEpsilon_9(8.5117984184, third_order_derivation_->getDerivation(1.0183516850) );
+	equalWithEpsilon_9(9.5414567053, third_order_derivation_->getDerivation(1.1584918252) );
+	equalWithEpsilon_9(9.9993319980, third_order_derivation_->getDerivation(1.3266599933) );
+	equalWithEpsilon_9(10, third_order_derivation_->getDerivation(1.3360026693) );
+	equalWithEpsilon_9(10, third_order_derivation_->getDerivation(1.3453453453) );
+	equalWithEpsilon_9(10, third_order_derivation_->getDerivation(4.3163163163) );
+	equalWithEpsilon_9(10, third_order_derivation_->getDerivation(7.9973306640) );
+	equalWithEpsilon_9(-9.9993319980, third_order_derivation_->getDerivation(8.0066733400) );
+	equalWithEpsilon_9(-9.9961523085, third_order_derivation_->getDerivation(8.0160160160) );
+	equalWithEpsilon_9(-8.4222059898, third_order_derivation_->getDerivation(8.3243243243) );
+	equalWithEpsilon_9(-8.3299966633, third_order_derivation_->getDerivation(8.3336670003) );
+	equalWithEpsilon_9(-6.0877544211, third_order_derivation_->getDerivation(8.5578912246) );
+	equalWithEpsilon_9(-1.6966966967, third_order_derivation_->getDerivation(8.9969969970) );
+	equalWithEpsilon_9(-1.6038728084, third_order_derivation_->getDerivation(9.0063396730) );
+	equalWithEpsilon_9(-1.5135322176, third_order_derivation_->getDerivation(9.0156823490) );
+	equalWithEpsilon_9(-0.4726514970, third_order_derivation_->getDerivation(9.1558224892) );
+	equalWithEpsilon_9(-0.0013092839, third_order_derivation_->getDerivation(9.3239906573) );
 
-	equalWithEpsilon(0, third_order_derivation_->getDerivation(third_order_interpolation_->getTimeScale() ) );
+	equalWithEpsilon_9(0, third_order_derivation_->getDerivation(third_order_interpolation_->getTimeScale() ) );
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_absolute_max_derivation, ThirdOrderInterpolationFixture)
 {
-	equalWithEpsilon(10, third_order_derivation_->getAbsoluteMaxDerivation(0) );
+	equalWithEpsilon_9(10, third_order_derivation_->getAbsoluteMaxDerivation(0) );
 
-	equalWithEpsilon(10, third_order_derivation_->getAbsoluteMaxDerivation(0.0093426760) );
-	equalWithEpsilon(10, third_order_derivation_->getAbsoluteMaxDerivation(0.0653987321) );
-	equalWithEpsilon(10, third_order_derivation_->getAbsoluteMaxDerivation(0.1214547881) );
-	equalWithEpsilon(10, third_order_derivation_->getAbsoluteMaxDerivation(0.3269936603) );
-	equalWithEpsilon(10, third_order_derivation_->getAbsoluteMaxDerivation(1.0183516850) );
-	equalWithEpsilon(10, third_order_derivation_->getAbsoluteMaxDerivation(1.3360026693) );
-	equalWithEpsilon(10, third_order_derivation_->getAbsoluteMaxDerivation(1.3453453453) );
-	equalWithEpsilon(10, third_order_derivation_->getAbsoluteMaxDerivation(4.3163163163) );
-	equalWithEpsilon(10, third_order_derivation_->getAbsoluteMaxDerivation(5) );
+	equalWithEpsilon_9(10, third_order_derivation_->getAbsoluteMaxDerivation(0.0093426760) );
+	equalWithEpsilon_9(10, third_order_derivation_->getAbsoluteMaxDerivation(0.0653987321) );
+	equalWithEpsilon_9(10, third_order_derivation_->getAbsoluteMaxDerivation(0.1214547881) );
+	equalWithEpsilon_9(10, third_order_derivation_->getAbsoluteMaxDerivation(0.3269936603) );
+	equalWithEpsilon_9(10, third_order_derivation_->getAbsoluteMaxDerivation(1.0183516850) );
+	equalWithEpsilon_9(10, third_order_derivation_->getAbsoluteMaxDerivation(1.3360026693) );
+	equalWithEpsilon_9(10, third_order_derivation_->getAbsoluteMaxDerivation(1.3453453453) );
+	equalWithEpsilon_9(10, third_order_derivation_->getAbsoluteMaxDerivation(4.3163163163) );
+	equalWithEpsilon_9(10, third_order_derivation_->getAbsoluteMaxDerivation(5) );
 
-	equalWithEpsilon(9.9993319980, third_order_derivation_->getAbsoluteMaxDerivation(8.0066733400) );
-	equalWithEpsilon(9.9961523085, third_order_derivation_->getAbsoluteMaxDerivation(8.0160160160) );
-	equalWithEpsilon(8.4222059898, third_order_derivation_->getAbsoluteMaxDerivation(8.3243243243) );
-	equalWithEpsilon(8.3299966633, third_order_derivation_->getAbsoluteMaxDerivation(8.3336670003) );
-	equalWithEpsilon(6.0877544211, third_order_derivation_->getAbsoluteMaxDerivation(8.5578912246) );
-	equalWithEpsilon(1.6966966967, third_order_derivation_->getAbsoluteMaxDerivation(8.9969969970) );
-	equalWithEpsilon(1.6038728084, third_order_derivation_->getAbsoluteMaxDerivation(9.0063396730) );
-	equalWithEpsilon(1.5135322176, third_order_derivation_->getAbsoluteMaxDerivation(9.0156823490) );
-	equalWithEpsilon(0.4726514970, third_order_derivation_->getAbsoluteMaxDerivation(9.1558224892) );
-	equalWithEpsilon(0.0013092839, third_order_derivation_->getAbsoluteMaxDerivation(9.3239906573) );
+	equalWithEpsilon_9(9.9993319980, third_order_derivation_->getAbsoluteMaxDerivation(8.0066733400) );
+	equalWithEpsilon_9(9.9961523085, third_order_derivation_->getAbsoluteMaxDerivation(8.0160160160) );
+	equalWithEpsilon_9(8.4222059898, third_order_derivation_->getAbsoluteMaxDerivation(8.3243243243) );
+	equalWithEpsilon_9(8.3299966633, third_order_derivation_->getAbsoluteMaxDerivation(8.3336670003) );
+	equalWithEpsilon_9(6.0877544211, third_order_derivation_->getAbsoluteMaxDerivation(8.5578912246) );
+	equalWithEpsilon_9(1.6966966967, third_order_derivation_->getAbsoluteMaxDerivation(8.9969969970) );
+	equalWithEpsilon_9(1.6038728084, third_order_derivation_->getAbsoluteMaxDerivation(9.0063396730) );
+	equalWithEpsilon_9(1.5135322176, third_order_derivation_->getAbsoluteMaxDerivation(9.0156823490) );
+	equalWithEpsilon_9(0.4726514970, third_order_derivation_->getAbsoluteMaxDerivation(9.1558224892) );
+	equalWithEpsilon_9(0.0013092839, third_order_derivation_->getAbsoluteMaxDerivation(9.3239906573) );
 
-	equalWithEpsilon(0, third_order_derivation_->getAbsoluteMaxDerivation(
+	equalWithEpsilon_9(0, third_order_derivation_->getAbsoluteMaxDerivation(
 		third_order_interpolation_->getTimeScale() ) );
-	equalWithEpsilon(0, third_order_derivation_->getAbsoluteMaxDerivation(
+	equalWithEpsilon_9(0, third_order_derivation_->getAbsoluteMaxDerivation(
 		third_order_interpolation_->getTimeScale() + 1 ) );
-	equalWithEpsilon(0, third_order_derivation_->getAbsoluteMaxDerivation(
+	equalWithEpsilon_9(0, third_order_derivation_->getAbsoluteMaxDerivation(
 		third_order_interpolation_->getTimeScale() + 10 ) );
 }
 

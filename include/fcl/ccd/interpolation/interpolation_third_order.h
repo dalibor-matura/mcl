@@ -106,8 +106,11 @@ private:
 	FCL_REAL getDistance(const FCL_REAL time) const;
 	FCL_REAL getDirectionalDistance(const FCL_REAL distance) const;	
 
-	// scales time to values used by third order interpolation calculations
-	FCL_REAL scaleTime(FCL_REAL& time) const;
+	// scales time to values used by third order interpolation calculations from input to local
+	FCL_REAL scaleTimeIn(FCL_REAL& time) const;
+
+	// scales time to values used by third order interpolation calculations from local to output
+	FCL_REAL scaleValueOut(FCL_REAL& value) const;
 
 private:
 	boost::shared_ptr<InterpolationThirdOrderData> data_;
