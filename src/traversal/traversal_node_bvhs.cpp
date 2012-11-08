@@ -678,6 +678,11 @@ void meshConservativeAdvancementOrientedNodeLeafTesting(int b1, int b2,
     last_tri_id2 = primitive_id2;
   }
 
+  if(d <= 0.000000001)
+  {
+    delta_t = 0.0;
+    return;
+  }
 
   /// n is the local frame of object 1, pointing from object 1 to object2
   Vec3f n = P2 - P1;
@@ -696,7 +701,6 @@ void meshConservativeAdvancementOrientedNodeLeafTesting(int b1, int b2,
   FCL_REAL cur_delta_t;
   if(bound <= d) cur_delta_t = 1;
   else cur_delta_t = d / bound;
-
   if(cur_delta_t < delta_t)
     delta_t = cur_delta_t;
 }
