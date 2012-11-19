@@ -1,4 +1,4 @@
-#define BOOST_TEST_MODULE "FCL_MODEL_BOUND"
+#define BOOST_TEST_MODULE "FCL_ARTICULATED_COLLISION"
 #include <boost/test/unit_test.hpp>
 
 #include <boost/shared_ptr.hpp>

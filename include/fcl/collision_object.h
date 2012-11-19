@@ -41,7 +41,11 @@
 #include "fcl/BV/AABB.h"
 #include "fcl/math/transform.h"
 #include "fcl/ccd/motion_base.h"
+#include "fcl/ccd/motion.h"
 #include <boost/shared_ptr.hpp>
+#include <boost/assert.hpp>
+
+#include <typeinfo>
 
 namespace fcl
 {
@@ -316,16 +320,19 @@ protected:
 };
 
 
-/// @brief the object for continuous collision or distance computation, contains the geometry and the motion information
+/// @brief the object for continuous collision or distance computation, contains the geometry and the motion_ information
 class ContinuousCollisionObject
 {
 public:
-  ContinuousCollisionObject(const boost::shared_ptr<CollisionGeometry>& cgeom_) : cgeom(cgeom_)
+  ContinuousCollisionObject(const boost::shared_ptr<CollisionGeometry>& cgeom_) : cgeom_(cgeom_)
   {
+    cgeom_->computeLocalAABB();
   }
 
-  ContinuousCollisionObject(const boost::shared_ptr<CollisionGeometry>& cgeom_, const boost::shared_ptr<MotionBase>& motion_) : cgeom(cgeom_), motion(motion_)
+  ContinuousCollisionObject(const boost::shared_ptr<CollisionGeometry>& cgeom_, const boost::shared_ptr<MotionBase>& motion_) : cgeom_(cgeom_), motion_(motion_)
   {
+    cgeom_->computeLocalAABB();
+    computeAABB();
   }
 
   ContinuousCollisionObject() {}
@@ -335,96 +342,131 @@ public:
   /// @brief get the type of the object
   OBJECT_TYPE getObjectType() const
   {
-    return cgeom->getObjectType();
+    return cgeom_->getObjectType();
   }
 
   /// @brief get the node type
   NODE_TYPE getNodeType() const
   {
-    return cgeom->getNodeType();
+    return cgeom_->getNodeType();
   }
 
   /// @brief get the AABB in the world space for the motion
   inline const AABB& getAABB() const
   {
-    return aabb;
+    return aabb_;
   }
 
   /// @brief compute the AABB in the world space for the motion
   inline void computeAABB()
   {
+    if (motion_->isArticular() )
+    {
+      computeArticularAABB();
+      return;
+    }
+
     IVector3 box;
     TMatrix3 R;
     TVector3 T;
-    motion->getTaylorModel(R, T);
+    motion_->getTaylorModel(R, T);
 
-    Vec3f p = cgeom->aabb_local.min_;
+    Vec3f p = cgeom_->aabb_local.min_;
     box = (R * p + T).getTightBound();
 
-    p[2] = cgeom->aabb_local.max_[2];
+    p[2] = cgeom_->aabb_local.max_[2];
     box = bound(box, (R * p + T).getTightBound());
 
-    p[1] = cgeom->aabb_local.max_[1];
-    p[2] = cgeom->aabb_local.min_[2];
+    p[1] = cgeom_->aabb_local.max_[1];
+    p[2] = cgeom_->aabb_local.min_[2];
     box = bound(box, (R * p + T).getTightBound());
 
-    p[2] = cgeom->aabb_local.max_[2];
+    p[2] = cgeom_->aabb_local.max_[2];
     box = bound(box, (R * p + T).getTightBound());
 
-    p[0] = cgeom->aabb_local.max_[0];
-    p[1] = cgeom->aabb_local.min_[1];
-    p[2] = cgeom->aabb_local.min_[2];
+    p[0] = cgeom_->aabb_local.max_[0];
+    p[1] = cgeom_->aabb_local.min_[1];
+    p[2] = cgeom_->aabb_local.min_[2];
     box = bound(box, (R * p + T).getTightBound());
 
-    p[2] = cgeom->aabb_local.max_[2];
+    p[2] = cgeom_->aabb_local.max_[2];
     box = bound(box, (R * p + T).getTightBound());
 
-    p[1] = cgeom->aabb_local.max_[1];
-    p[2] = cgeom->aabb_local.min_[2];
+    p[1] = cgeom_->aabb_local.max_[1];
+    p[2] = cgeom_->aabb_local.min_[2];
     box = bound(box, (R * p + T).getTightBound());
 
-    p[2] = cgeom->aabb_local.max_[2];
+    p[2] = cgeom_->aabb_local.max_[2];
     box = bound(box, (R * p + T).getTightBound());
 
-    aabb.min_ = box.getLow();
-    aabb.max_ = box.getHigh();
+    aabb_.min_ = box.getLow();
+    aabb_.max_ = box.getHigh();
+  }
+
+  inline void computeArticularAABB()
+  {
+    BOOST_ASSERT_MSG(typeid(motion_.get() ) == typeid(ArticularMotion), "Works just for ArticularMotion.");
+
+    boost::shared_ptr<ArticularMotion> articular_motion = 
+      boost::static_pointer_cast<ArticularMotion>(motion_);
+
+    static FCL_REAL square_root_of_three = 1.7320508075688772935274463415059;
+
+    FCL_REAL time = 0.0;
+    motion_->integrate(time);
+    
+    Vec3f translation;
+    motion_->getCurrentTranslation(translation);
+
+    FCL_REAL max_distance_from_geometry_center = 
+      (cgeom_->aabb_center - articular_motion->getReferencePoint() ).length() + 
+      square_root_of_three * cgeom_->aabb_radius;
+
+    FCL_REAL initial_motion_bound = 
+      articular_motion->getNonDirectionalMotionBound(max_distance_from_geometry_center);
+
+    Vec3f low = translation - initial_motion_bound;
+    Vec3f high = translation + initial_motion_bound;
+
+    aabb_.min_ = low;
+    aabb_.max_ = high;
   }
 
   /// @brief get user data in object
   void* getUserData() const
   {
-    return user_data;
+    return user_data_;
   }
 
   /// @brief set user data in object
   void setUserData(void* data)
   {
-    user_data = data;
+    user_data_ = data;
   }
 
-  /// @brief get motion from the object instance
+  /// @brief get motion_ from the object instance
   inline MotionBase* getMotion() const
   {
-    return motion.get();
+    return motion_.get();
   }
 
   /// @brief get geometry from the object instance
   inline const CollisionGeometry* getCollisionGeometry() const
   {
-    return cgeom.get();
+    return cgeom_.get();
   }
 
 protected:
 
-  boost::shared_ptr<CollisionGeometry> cgeom;
+  boost::shared_ptr<CollisionGeometry> cgeom_;
 
-  boost::shared_ptr<MotionBase> motion;
+  boost::shared_ptr<MotionBase> motion_;
 
-  /// @brief AABB in the global coordinate for the motion
-  mutable AABB aabb;
+  /// @brief AABB in the global coordinate for the motion_
+  mutable AABB aabb_;
 
   /// @brief pointer to user defined data specific to this object
-  void* user_data;
+  void* user_data_;
 };
 
 }

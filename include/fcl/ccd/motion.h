@@ -559,6 +559,7 @@ public:
   }
 
   FCL_REAL getMotionBound(const Vec3f& direction, const FCL_REAL max_distance_from_joint_center = 0) const;
+  FCL_REAL getNonDirectionalMotionBound(const FCL_REAL max_distance_from_joint_center = 0) const;
 
   /// @brief Get the rotation and translation in current step
   void getCurrentTransform(Matrix3f& R, Vec3f& T) const
@@ -584,6 +585,13 @@ public:
 
   void getTaylorModel(TMatrix3& tm, TVector3& tv) const
   {     
+    /*tm = TMatrix3(Matrix3f::getIdentity(), getTimeInterval() );
+
+    Vec3f translation;
+    getCurrentTranslation(translation);
+
+    tv = TVector3(translation, getTimeInterval() );
+    tv[0].remainder().setValue();*/
   }
 
   const void setReferencePoint(const Vec3f& reference_point)

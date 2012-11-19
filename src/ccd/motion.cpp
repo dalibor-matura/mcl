@@ -529,6 +529,8 @@ ArticularMotion::ArticularMotion(boost::shared_ptr<LinkBound> link_bound) :
   link_bound_(link_bound),
   reference_point_(Vec3f(0, 0, 0))
 {
+  isArticular(true);
+
   integrate(0);
 }
 
@@ -546,6 +548,12 @@ FCL_REAL ArticularMotion::getMotionBound(const Vec3f& direction,
   const FCL_REAL max_distance_from_joint_center) const
 {
   return link_bound_->getMotionBound(time_, direction, max_distance_from_joint_center);
+}
+
+FCL_REAL ArticularMotion::getNonDirectionalMotionBound(
+  const FCL_REAL max_distance_from_joint_center) const
+{
+  return link_bound_->getNonDirectionalMotionBound(time_, max_distance_from_joint_center);
 }
 
 /// @brief Compute the motion bound for a bounding volume along a given direction n

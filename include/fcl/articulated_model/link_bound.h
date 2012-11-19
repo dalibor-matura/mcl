@@ -30,6 +30,9 @@ public:
 	FCL_REAL getMotionBound(const FCL_REAL& time, const Vec3f& direction, 
 		const FCL_REAL max_distance_from_joint_center = 0);	
 
+	FCL_REAL getNonDirectionalMotionBound(const FCL_REAL& time, 
+		const FCL_REAL max_distance_from_joint_center = 0);	
+
 	Transform3f getBoundedLinkGlobalTransform(const FCL_REAL& time) const;
 
 	boost::shared_ptr<const Link> getBoundedLink() const;
@@ -57,6 +60,8 @@ private:
 
 	void setCurrentDirection(const Vec3f& direction);
 	Vec3f getCurrentDirection() const;
+
+	bool isCurrentDirectionValid() const;
 
 	void setCurrentTime(const FCL_REAL& time);
 	FCL_REAL getCurrentTime() const;

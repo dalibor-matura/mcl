@@ -103,7 +103,9 @@ protected:
 class MotionBase
 {
 public:
-  MotionBase() : time_interval_(boost::shared_ptr<TimeInterval>(new TimeInterval(0, 1)))
+  MotionBase() :
+    time_interval_(boost::shared_ptr<TimeInterval>(new TimeInterval(0, 1))),
+    is_articular_(false)
   {
   }
   
@@ -133,10 +135,23 @@ public:
   {
     return time_interval_;
   }
-protected:
 
+  bool isArticular() const
+  {
+    return is_articular_;
+  }
+
+protected:
+  void isArticular(bool is_articular)
+  {
+    is_articular_ = is_articular;
+  }
+
+protected:
   boost::shared_ptr<TimeInterval> time_interval_;
-  
+
+private:
+  bool is_articular_;
 };
 
 
