@@ -363,11 +363,9 @@ bool defaultContinuousCollisionFunction(ContinuousCollisionObject* o1, Continuou
   const CollisionRequest& request = cdata->request;
   CollisionResult& result = cdata->result;
 
-  if(cdata->done) return true;
+  if(cdata->done) return true;  
 
-  collide(o1, o2, request, result);
-
-  return cdata->done;
+  return collide(o1, o2, request, result) > 0;
 }
 
 bool defaultContinuousDistanceFunction(ContinuousCollisionObject* o1, ContinuousCollisionObject* o2, void* cdata_, FCL_REAL& dist)

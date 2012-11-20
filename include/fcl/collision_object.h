@@ -405,8 +405,6 @@ public:
 
   inline void computeArticularAABB()
   {
-    BOOST_ASSERT_MSG(typeid(motion_.get() ) == typeid(ArticularMotion), "Works just for ArticularMotion.");
-
     boost::shared_ptr<ArticularMotion> articular_motion = 
       boost::static_pointer_cast<ArticularMotion>(motion_);
 

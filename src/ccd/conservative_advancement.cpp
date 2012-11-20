@@ -129,6 +129,7 @@ int conservativeAdvancement(const CollisionGeometry* o1,
     if(node.delta_t <= node.t_err)
     {
       // std::cout << node.delta_t << " " << node.t_err << std::endl;
+      result.addContact(Contact(model1, model2, node.last_tri_id1, node.last_tri_id2) );
       break;
     }
 
