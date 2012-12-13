@@ -27,19 +27,12 @@ public:
 	boost::shared_ptr<const ModelConfig> getStartCfg() const;
 	boost::shared_ptr<const ModelConfig> getEndCfg() const;
 
-	Transform3f getGlobalTransform(const boost::shared_ptr<const Joint>& joint, const FCL_REAL& time) const;
-	Transform3f getGlobalTransform(const boost::shared_ptr<const Joint>& joint,
-		const boost::shared_ptr<const ModelConfig>& model_cfg) const;	
+	Transform3f getGlobalTransform(const boost::shared_ptr<const Joint>& joint, const FCL_REAL& time) const;		
 
 	Transform3f getGlobalTransform(const boost::shared_ptr<const Link>& link, const FCL_REAL& time) const;
-	Transform3f getGlobalTransform(const boost::shared_ptr<const Link>& link,
-		const boost::shared_ptr<const ModelConfig>& model_cfg) const;
 
 	boost::shared_ptr<ModelConfig> getModelConfig(const FCL_REAL& time) const;
-
-	// order of joints in returned vector is from last one to root joint
-	std::vector<boost::shared_ptr<const Joint> >
-		getJointsChainFromLastJoint(const boost::shared_ptr<const Joint>& last_joint) const;
+	void getModelConfig(const FCL_REAL& time, boost::shared_ptr<ModelConfig>& model_config) const;	
 
 	/* setCurrentTime must be called before any other method is called */
 
@@ -55,6 +48,8 @@ public:
 
 	FCL_REAL getChildParentDistanceBound(const boost::shared_ptr<const Joint>& joint,
 		const boost::shared_ptr<const Joint>& joint_parent) const;	
+
+	FCL_REAL getDuration() const;
 
 private:
 	void init();

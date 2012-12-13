@@ -64,9 +64,9 @@ void Link::setParentJoint(boost::shared_ptr<Joint> joint)
   parent_joint_ = joint;
 }
 
-void Link::addObject(boost::shared_ptr<CollisionObject> object)
+void Link::addGeometry(boost::shared_ptr<CollisionGeometry> geometry)
 {
-  objects_.push_back(object);
+  geometries_.push_back(geometry);
 }
 
 std::size_t Link::getNumChildJoints() const
@@ -74,9 +74,9 @@ std::size_t Link::getNumChildJoints() const
   return children_joints_.size();
 }
 
-std::size_t Link::getNumObjects() const
+std::size_t Link::getNumGeometries() const
 {
-  return objects_.size();
+  return geometries_.size();
 }
 
 std::vector<boost::shared_ptr<Joint> > Link::getChildJoints() const
@@ -92,7 +92,7 @@ boost::shared_ptr<Joint> Link::getParentJoint() const
 bool Link::operator==(const Link& link) const
 {
 	return name_ == link.name_ &&
-		objects_ == link.objects_ &&
+		geometries_ == link.geometries_ &&
 		children_joints_ == link.children_joints_ &&
 		parent_joint_ == parent_joint_;
 }

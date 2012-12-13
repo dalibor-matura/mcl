@@ -117,6 +117,11 @@ const Vec3f& Joint::getAxis() const
   return vec;
 }
 
+void Joint::setAxis(const Vec3f& axis)
+{
+	axis_ = axis;
+}
+
 bool Joint::operator==(const Joint& joint) const
 {
 	return name_ == joint.name_ &&
@@ -135,12 +140,18 @@ PrismaticJoint::PrismaticJoint(const boost::shared_ptr<Link>& link_parent, const
 							   const Transform3f& transform_to_parent,
 							   const std::string& name,
 							   const Vec3f& axis) :
-  Joint(link_parent, link_child, transform_to_parent, name),
-  axis_(axis)
+  Joint(link_parent, link_child, transform_to_parent, name)
 {
   BOOST_ASSERT_MSG(isNormalized(axis), "Axis is not normalized.");
 
+  setAxis(axis);
+
   type_ = JT_PRISMATIC;
+}
+
+PrismaticJoint::PrismaticJoint(const std::string& name) :
+	Joint(name)
+{
 }
 
 const Vec3f& PrismaticJoint::getAxis() const
@@ -165,12 +176,18 @@ RevoluteJoint::RevoluteJoint(const boost::shared_ptr<Link>& link_parent, const b
 							 const Transform3f& transform_to_parent,
 							 const std::string& name,
 							 const Vec3f& axis) :
-  Joint(link_parent, link_child, transform_to_parent, name),
-  axis_(axis)
+  Joint(link_parent, link_child, transform_to_parent, name)
 {
   BOOST_ASSERT_MSG(isNormalized(axis), "Axis is not normalized.");
 
+  setAxis(axis);
+
   type_ = JT_REVOLUTE;
+}
+
+RevoluteJoint::RevoluteJoint(const std::string& name) :
+Joint(name)
+{
 }
 
 const Vec3f& RevoluteJoint::getAxis() const

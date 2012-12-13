@@ -871,7 +871,7 @@ std::ostream& operator << (std::ostream& o, const ModelConfig& c)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-BOOST_AUTO_TEST_SUITE(test_broad_phase_continuous)
+BOOST_AUTO_TEST_SUITE(test_broad_phase_linear)
 
 BOOST_FIXTURE_TEST_CASE(test_broadphase_managers_linear_interpolation, ArticularCollisionFixture)
 {
@@ -935,5 +935,69 @@ BOOST_FIXTURE_TEST_CASE(test_correctnes_linear_interpolation, ArticularCollision
 	
 BOOST_AUTO_TEST_SUITE_END()
 ////////////////////////////////////////////////////////////////////////////////
+BOOST_AUTO_TEST_SUITE(test_broad_phase_third_order)
+
+BOOST_FIXTURE_TEST_CASE(test_broadphase_managers_third_order_interpolation, ArticularCollisionFixture)
+{
+	setJointsInterpolation(boost::make_shared<const InterpolationThirdOrderData>(10, 10, 10) );
+
+	std::cout << "CONFIGURATION 1" << std::endl;
+	setConfigurations_1();
+	BroadphaseContinuousCollisionManagerTest(1);
+
+	std::cout << "CONFIGURATION 2" << std::endl;
+	setConfigurations_2();
+	BroadphaseContinuousCollisionManagerTest(1);
+
+	std::cout << "CONFIGURATION 3" << std::endl;
+	setConfigurations_3();
+	BroadphaseContinuousCollisionManagerTest(0);
+
+	std::cout << "CONFIGURATION 4" << std::endl;
+	setConfigurations_4();
+	BroadphaseContinuousCollisionManagerTest(0);
+
+	std::cout << "CONFIGURATION 5" << std::endl;
+	setConfigurations_5();
+	BroadphaseContinuousCollisionManagerTest(1);
+
+	std::cout << "CONFIGURATION 6" << std::endl;
+	setConfigurations_6();
+	BroadphaseContinuousCollisionManagerTest(0);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_correctnes_third_order_interpolation, ArticularCollisionFixture)
+{
+	int number_of_contacts = 0;
+
+	setJointsInterpolation(boost::make_shared<const InterpolationThirdOrderData>(10, 10, 10) );
+
+	setConfigurations_1();
+	number_of_contacts = performGuardedCollision();
+	BOOST_CHECK_EQUAL(1, number_of_contacts);
+
+	setConfigurations_2();
+	number_of_contacts = performGuardedCollision();
+	BOOST_CHECK_EQUAL(1, number_of_contacts);
+
+	setConfigurations_3();
+	number_of_contacts = performGuardedCollision();
+	BOOST_CHECK_EQUAL(0, number_of_contacts);
+
+	setConfigurations_4();
+	number_of_contacts = performGuardedCollision();
+	BOOST_CHECK_EQUAL(0, number_of_contacts);
+
+	setConfigurations_5();
+	number_of_contacts = performGuardedCollision();
+	BOOST_CHECK_EQUAL(1, number_of_contacts);
+
+	setConfigurations_6();
+	number_of_contacts = performGuardedCollision();
+	BOOST_CHECK_EQUAL(0, number_of_contacts);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+	////////////////////////////////////////////////////////////////////////////////
 
 }

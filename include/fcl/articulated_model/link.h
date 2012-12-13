@@ -61,11 +61,11 @@ public:
   
   void setParentJoint(boost::shared_ptr<Joint> joint);
   
-  void addObject(boost::shared_ptr<CollisionObject> object);
+  void addGeometry(boost::shared_ptr<CollisionGeometry> geometry);
   
   std::size_t getNumChildJoints() const;
   
-  std::size_t getNumObjects() const;
+  std::size_t getNumGeometries() const;
 
   std::vector<boost::shared_ptr<Joint> > getChildJoints() const;
 
@@ -77,7 +77,7 @@ public:
 protected:
   std::string name_;
 
-  std::vector<boost::shared_ptr<CollisionObject> > objects_;
+  std::vector<boost::shared_ptr<CollisionGeometry> > geometries_;
 
   std::vector<boost::shared_ptr<Joint> > children_joints_;
 

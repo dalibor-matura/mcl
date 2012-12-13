@@ -87,6 +87,7 @@ public:
   void setTransformToParent(const Transform3f& t);
 
   virtual const Vec3f& getAxis() const;
+  void setAxis(const Vec3f& axis);
 
   bool operator==(const Joint& joint) const;
   bool operator!=(const Joint& joint) const;
@@ -101,6 +102,8 @@ protected:
   std::string name_;
 
   Transform3f transform_to_parent_;
+
+  Vec3f axis_;
 };
 
 
@@ -112,16 +115,15 @@ public:
                  const std::string& name,
                  const Vec3f& axis);
 
+  PrismaticJoint(const std::string& name);
+
   virtual ~PrismaticJoint() {}
 
   Transform3f getLocalTransform(const JointConfig& cfg) const;
 
   std::size_t getNumDofs() const;
 
-  const Vec3f& getAxis() const;
-
-protected:
-  Vec3f axis_;
+  const Vec3f& getAxis() const;  
 };
 
 class RevoluteJoint : public Joint
@@ -132,6 +134,8 @@ public:
                 const std::string& name,
                 const Vec3f& axis);
 
+  RevoluteJoint(const std::string& name);
+
   virtual ~RevoluteJoint() {}
 
   Transform3f getLocalTransform(const JointConfig& cfg) const;
@@ -139,9 +143,6 @@ public:
   std::size_t getNumDofs() const;
 
   const Vec3f& getAxis() const;
-
-protected:
-  Vec3f axis_;
 };
 
 

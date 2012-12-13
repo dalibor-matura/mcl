@@ -151,7 +151,14 @@ void Model::addJoint(const boost::shared_ptr<Joint>& joint,
   boost::shared_ptr<const InterpolationData> interpolation_data)
 {
   joints_[joint->getName()] = joint;
-  joints_interpolation_data_[joint->getName()] = interpolation_data; 
+
+  setJointInterpolationData(joint->getName(), interpolation_data); 
+}
+
+void Model::setJointInterpolationData(const std::string& name, 
+    boost::shared_ptr<const InterpolationData> interpolation_data)
+{
+  joints_interpolation_data_[name] = interpolation_data; 
 }
 
 void Model::initRoot(const std::map<std::string, std::string>& link_parent_tree)
@@ -238,6 +245,49 @@ boost::shared_ptr<Joint> Model::getJointParent(const boost::shared_ptr<const Joi
   }
 
   return parent;
+}
+
+std::vector<boost::shared_ptr<const Joint> >
+    Model::getJointsChainFromLastJoint(const boost::shared_ptr<const Joint>& last_joint) const
+{
+  std::vector<boost::shared_ptr<const Joint> > joints_chain;
+
+  boost::shared_ptr<const Joint> joint = last_joint;
+
+  while (joint.use_count() != 0)
+  {
+      joints_chain.push_back(joint);
+
+      joint = getJointParent(joint);
+  }
+
+  return joints_chain;
+}
+
+Transform3f Model::getGlobalTransform(const boost::shared_ptr<const Joint>& joint,
+    const boost::shared_ptr<const ModelConfig>& model_cfg) const
+{
+  std::vector<boost::shared_ptr<const Joint> > joints_chain = getJointsChainFromLastJoint(joint);
+  std::vector<boost::shared_ptr<const Joint> >::const_iterator it;
+
+  Transform3f global_transform;
+  global_transform.setIdentity();
+
+  for (it = joints_chain.begin(); it != joints_chain.end(); ++it)
+  {
+      const boost::shared_ptr<const Joint>& joint = (*it);
+      const JointConfig& joint_cfg = model_cfg->getJointConfig(joint);
+
+      global_transform *= joint->getLocalTransform(joint_cfg);
+  }
+
+  return global_transform;
+}
+
+Transform3f Model::getGlobalTransform(const boost::shared_ptr<const Link>& link,
+    const boost::shared_ptr<const ModelConfig>& model_cfg) const
+{
+  return getGlobalTransform(link->getParentJoint(), model_cfg);
 }
 
 }

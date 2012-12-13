@@ -11,6 +11,9 @@
 #include "fcl/articulated_model/model_config.h"
 #include "fcl/articulated_model/link_bound.h"
 
+#include "fcl/BV/BV.h"
+#include "fcl/BVH/BVH_model.h"
+
 namespace fcl {
 
 class InitFixture
@@ -585,19 +588,19 @@ BOOST_FIXTURE_TEST_CASE(test_set_get_parent_joint, LinkFixture)
 
 BOOST_FIXTURE_TEST_CASE(test_add_object_and_get_num_objects, LinkFixture)
 {
-	BOOST_CHECK_EQUAL(0, body_->getNumObjects() );
+	BOOST_CHECK_EQUAL(0, body_->getNumGeometries() );
 
-	boost::shared_ptr<CollisionObject> object_1(new CollisionObject() );
-	body_->addObject(object_1);
-	BOOST_CHECK_EQUAL(1, body_->getNumObjects() );
+	boost::shared_ptr<BVHModel<RSS> > object_1(new BVHModel<RSS>() );
+	body_->addGeometry(object_1);
+	BOOST_CHECK_EQUAL(1, body_->getNumGeometries() );
 
-	boost::shared_ptr<CollisionObject> object_2(new CollisionObject() );
-	body_->addObject(object_2);
-	BOOST_CHECK_EQUAL(2, body_->getNumObjects() );
+	boost::shared_ptr<BVHModel<RSS> > object_2(new BVHModel<RSS>() );
+	body_->addGeometry(object_2);
+	BOOST_CHECK_EQUAL(2, body_->getNumGeometries() );
 
-	boost::shared_ptr<CollisionObject> object_3(new CollisionObject() );
-	body_->addObject(object_3);
-	BOOST_CHECK_EQUAL(3, body_->getNumObjects() );
+	boost::shared_ptr<BVHModel<RSS> > object_3(new BVHModel<RSS>() );
+	body_->addGeometry(object_3);
+	BOOST_CHECK_EQUAL(3, body_->getNumGeometries() );
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_num_child_joints, LinkFixture)
@@ -910,6 +913,19 @@ BOOST_FIXTURE_TEST_CASE(test_get_joints_map, ModelFixture)
 	 BOOST_CHECK_EQUAL(finger_joint_, joints_map[finger_joint_name_]);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_get_joints_chain_from_last_joint, MovementFixture)
+{
+	std::vector<boost::shared_ptr<const Joint> > joints_chain = 
+		model_->getJointsChainFromLastJoint(finger_joint_);
+
+	std::vector<boost::shared_ptr<const Joint> >::const_iterator it;
+
+	BOOST_CHECK_EQUAL(finger_joint_, joints_chain[0]);
+	BOOST_CHECK_EQUAL(wrist_joint_, joints_chain[1]);
+	BOOST_CHECK_EQUAL(elbow_joint_, joints_chain[2]);
+	BOOST_CHECK_EQUAL(shoulder_joint_, joints_chain[3]);
+}
+
 BOOST_AUTO_TEST_SUITE_END()	
 ////////////////////////////////////////////////////////////////////////////////
 BOOST_AUTO_TEST_SUITE(test_model_config)
@@ -1013,27 +1029,14 @@ BOOST_AUTO_TEST_SUITE_END()
 ////////////////////////////////////////////////////////////////////////////////
 BOOST_AUTO_TEST_SUITE(test_movement)
 
-BOOST_FIXTURE_TEST_CASE(test_get_joints_chain_from_last_joint, MovementFixture)
-{
-	std::vector<boost::shared_ptr<const Joint> > joints_chain = 
-		movement_->getJointsChainFromLastJoint(finger_joint_);
-
-	std::vector<boost::shared_ptr<const Joint> >::const_iterator it;
-
-	BOOST_CHECK_EQUAL(finger_joint_, joints_chain[0]);
-	BOOST_CHECK_EQUAL(wrist_joint_, joints_chain[1]);
-	BOOST_CHECK_EQUAL(elbow_joint_, joints_chain[2]);
-	BOOST_CHECK_EQUAL(shoulder_joint_, joints_chain[3]);
-}
-
 BOOST_FIXTURE_TEST_CASE(test_get_global_transform, MovementFixture)
 {
-	Transform3f transform = movement_->getGlobalTransform(elbow_joint_, cfg_start_);
+	Transform3f transform = model_->getGlobalTransform(elbow_joint_, cfg_start_);
 	Transform3f expected_transform = elbow_joint_->getTransformToParent();
 	
 	BOOST_CHECK_EQUAL(expected_transform, transform);
 
-	transform = movement_->getGlobalTransform(elbow_joint_, cfg_end_);
+	transform = model_->getGlobalTransform(elbow_joint_, cfg_end_);
 	
 	const JointConfig shoulder_joint_cfg = cfg_end_->getJointConfig(shoulder_joint_);
 	FCL_REAL shoulder_joint_value = shoulder_joint_cfg[0];

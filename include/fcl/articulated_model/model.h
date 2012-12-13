@@ -50,6 +50,8 @@
 namespace fcl
 {
 
+class ModelConfig;
+
 class ModelParseError : public std::runtime_error
 {
 public:
@@ -70,6 +72,9 @@ public:
   void addJoint(const boost::shared_ptr<Joint>& joint);  
   void addJoint(const boost::shared_ptr<Joint>& joint, 
 	  boost::shared_ptr<const InterpolationData> interpolation_data);  
+
+  void setJointInterpolationData(const std::string& name, 
+	  boost::shared_ptr<const InterpolationData> interpolation_data);
 
   // must be called after links and joints are added
   void initTree();
@@ -93,6 +98,17 @@ public:
   std::map<std::string, boost::shared_ptr<Joint> > getJointsMap() const;
 
   boost::shared_ptr<Joint> getJointParent(const boost::shared_ptr<const Joint>& joint) const;  
+
+  // order of joints in returned vector is from last one to root joint
+  std::vector<boost::shared_ptr<const Joint> >
+	  getJointsChainFromLastJoint(const boost::shared_ptr<const Joint>& last_joint) const;
+
+  Transform3f getGlobalTransform(const boost::shared_ptr<const Joint>& joint,
+	  const boost::shared_ptr<const ModelConfig>& model_cfg) const;
+
+  Transform3f getGlobalTransform(const boost::shared_ptr<const Link>& link,
+	  const boost::shared_ptr<const ModelConfig>& model_cfg) const;
+
 protected:
   void initTree(std::map<std::string, std::string>& link_parent_tree);
   void initRoot(const std::map<std::string, std::string>& link_parent_tree);  

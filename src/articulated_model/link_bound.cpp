@@ -23,7 +23,7 @@ LinkBound::LinkBound(boost::shared_ptr<const Model> model, boost::shared_ptr<con
 
 void LinkBound::initJointsChain()
 {
-	joints_chain_ = movement_->getJointsChainFromLastJoint(getLastJoint() );
+	joints_chain_ = model_->getJointsChainFromLastJoint(getLastJoint() );
 }
 
 boost::shared_ptr<Joint> LinkBound::getLastJoint() const
