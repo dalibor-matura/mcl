@@ -46,6 +46,7 @@
 #include <boost/assert.hpp>
 
 #include <typeinfo>
+#include <set>
 
 namespace fcl
 {
@@ -99,6 +100,21 @@ public:
   /// @brief whether the object has some uncertainty
   inline bool isUncertain() const { return !isOccupied() && !isFree(); }
 
+  void addOuterGeometry(CollisionGeometry * geometry)
+  {
+    outer_geometries_.insert(geometry);
+  }
+
+  bool isOuterGeometry(const CollisionGeometry * geometry) const
+  {
+    return (outer_geometries_.find(geometry) != outer_geometries_.end() );
+  }
+
+  std::set<const CollisionGeometry*> getOuterGeometries()
+  {
+    return outer_geometries_;
+  }
+
   /// @brief AABB center in local coordinate
   Vec3f aabb_center;
 
@@ -119,6 +135,9 @@ public:
 
   /// @brief threshold for free (<= is free)
   FCL_REAL threshold_free;
+
+private:
+  std::set<const CollisionGeometry*> outer_geometries_;
 };
 
 /// @brief the object for collision or distance computation, contains the geometry and the transform information

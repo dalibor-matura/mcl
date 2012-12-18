@@ -370,6 +370,10 @@ public:
 
 	void initContinuousCollisonObjectsOnly()
 	{
+		// Set mutually outer geometries
+		model_environment_->addOuterGeometry(model_robot_.get() );
+		model_robot_->addOuterGeometry(model_environment_.get() );
+
 		continuous_collision_environment_.reset(
 			new ContinuousCollisionObject(model_environment_, interp_motion_) );
 

@@ -67,6 +67,8 @@ public:
   
   std::size_t getNumGeometries() const;
 
+  std::vector<boost::shared_ptr<CollisionGeometry> > getGeometries();
+
   std::vector<boost::shared_ptr<Joint> > getChildJoints() const;
 
   boost::shared_ptr<Joint> getParentJoint() const;

@@ -79,6 +79,11 @@ std::size_t Link::getNumGeometries() const
   return geometries_.size();
 }
 
+std::vector<boost::shared_ptr<CollisionGeometry> > Link::getGeometries()
+{
+	return geometries_;
+}
+
 std::vector<boost::shared_ptr<Joint> > Link::getChildJoints() const
 {
   return children_joints_;
