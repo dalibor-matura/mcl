@@ -124,6 +124,9 @@ public:
   std::size_t getNumDofs() const;
 
   const Vec3f& getAxis() const;  
+
+private:
+  void init();
 };
 
 class RevoluteJoint : public Joint
@@ -143,6 +146,9 @@ public:
   std::size_t getNumDofs() const;
 
   const Vec3f& getAxis() const;
+
+private:
+  void init();
 };
 
 
