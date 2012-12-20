@@ -48,7 +48,8 @@ void NaiveContinuesCollisionManager::collide(ContinuousCollisionObject* obj, voi
   {
     ContinuousCollisionObject* colision_object = (*it);
 
-    if(obj->getCollisionGeometry()->isOuterGeometry(colision_object->getCollisionGeometry() ) )
+    if(!obj->getCollisionGeometry()->useOuterGeometries() ||
+        obj->getCollisionGeometry()->isOuterGeometry(colision_object->getCollisionGeometry() ) )
     {
       if(callback(obj, colision_object, cdata))
         return;
@@ -66,7 +67,8 @@ void NaiveContinuesCollisionManager::distance(ContinuousCollisionObject* obj, vo
   {
     ContinuousCollisionObject* colision_object = (*it);
 
-    if(obj->getCollisionGeometry()->isOuterGeometry(colision_object->getCollisionGeometry() ) )
+    if(!obj->getCollisionGeometry()->useOuterGeometries() ||
+        obj->getCollisionGeometry()->isOuterGeometry(colision_object->getCollisionGeometry() ) )
     {
       if(obj->getAABB().distance(colision_object->getAABB()) < min_dist)
       {
@@ -87,7 +89,8 @@ void NaiveContinuesCollisionManager::collide(void* cdata, ContinuousCollisionCal
     std::list<ContinuousCollisionObject*>::const_iterator it2 = it1; it2++;
     for(; it2 != end; ++it2)
     {		
-      if( (*it1)->getCollisionGeometry()->isOuterGeometry( (*it2)->getCollisionGeometry() ) )
+      if(!(*it1)->getCollisionGeometry()->useOuterGeometries() ||
+          (*it1)->getCollisionGeometry()->isOuterGeometry( (*it2)->getCollisionGeometry() ) )
       {
         if((*it1)->getAABB().overlap((*it2)->getAABB()))
           if(callback(*it1, *it2, cdata))
@@ -107,7 +110,8 @@ void NaiveContinuesCollisionManager::distance(void* cdata, ContinuousDistanceCal
     std::list<ContinuousCollisionObject*>::const_iterator it2 = it1; it2++;
     for(; it2 != end; ++it2)
     {
-      if( (*it1)->getCollisionGeometry()->isOuterGeometry( (*it2)->getCollisionGeometry() ) )
+      if(!(*it1)->getCollisionGeometry()->useOuterGeometries() ||
+          (*it1)->getCollisionGeometry()->isOuterGeometry( (*it2)->getCollisionGeometry() ) )
       {
         if((*it1)->getAABB().distance((*it2)->getAABB()) < min_dist)
         {
@@ -135,7 +139,8 @@ void NaiveContinuesCollisionManager::collide(BroadPhaseContinuousCollisionManage
   {
     for(std::list<ContinuousCollisionObject*>::const_iterator it2 = other_manager->objs.begin(), end2 = other_manager->objs.end(); it2 != end2; ++it2)
     {
-      if( (*it1)->getCollisionGeometry()->isOuterGeometry( (*it2)->getCollisionGeometry() ) )
+      if(!(*it1)->getCollisionGeometry()->useOuterGeometries() ||
+		  (*it1)->getCollisionGeometry()->isOuterGeometry( (*it2)->getCollisionGeometry() ) )
       {
         if((*it1)->getAABB().overlap((*it2)->getAABB()))
           if(callback((*it1), (*it2), cdata))
@@ -162,7 +167,8 @@ void NaiveContinuesCollisionManager::distance(BroadPhaseContinuousCollisionManag
   {
     for(std::list<ContinuousCollisionObject*>::const_iterator it2 = other_manager->objs.begin(), end2 = other_manager->objs.end(); it2 != end2; ++it2)
     {
-      if( (*it1)->getCollisionGeometry()->isOuterGeometry( (*it2)->getCollisionGeometry() ) )
+      if(!(*it1)->getCollisionGeometry()->useOuterGeometries() ||
+		  (*it1)->getCollisionGeometry()->isOuterGeometry( (*it2)->getCollisionGeometry() ) )
       {
         if((*it1)->getAABB().distance((*it2)->getAABB()) < min_dist)
         {

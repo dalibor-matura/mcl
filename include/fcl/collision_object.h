@@ -64,7 +64,8 @@ class CollisionGeometry
 public:
   CollisionGeometry() : cost_density(1),
                         threshold_occupied(1),
-                        threshold_free(0)
+                        threshold_free(0),
+                        use_outer_geometries_(false)
   {
   }
 
@@ -102,6 +103,8 @@ public:
 
   void addOuterGeometry(CollisionGeometry * geometry)
   {
+    useOuterGeometries(true);
+
     outer_geometries_.insert(geometry);
   }
 
@@ -113,6 +116,16 @@ public:
   std::set<const CollisionGeometry*> getOuterGeometries()
   {
     return outer_geometries_;
+  }
+
+  bool useOuterGeometries() const
+  {
+    return use_outer_geometries_;
+  }
+
+  void useOuterGeometries(bool use)
+  {
+    use_outer_geometries_ = use;
   }
 
   /// @brief AABB center in local coordinate
@@ -135,6 +148,8 @@ public:
 
   /// @brief threshold for free (<= is free)
   FCL_REAL threshold_free;
+
+  bool use_outer_geometries_;
 
 private:
   std::set<const CollisionGeometry*> outer_geometries_;
@@ -290,9 +305,15 @@ public:
   }
 
   /// @brief get geometry from the object instance
-  const CollisionGeometry* getCollisionGeometry() const
+  inline const CollisionGeometry* getCollisionGeometry() const
   {
     return cgeom.get();
+  }
+
+  /// @brief get geometry shared pointer from the object instance
+  inline boost::shared_ptr<CollisionGeometry> getCollisionGeometrySharedPointer() const
+  {
+	  return cgeom;
   }
 
   /// @brief get object's cost density
@@ -471,6 +492,12 @@ public:
   inline const CollisionGeometry* getCollisionGeometry() const
   {
     return cgeom_.get();
+  }
+
+  /// @brief get geometry shared pointer from the object instance
+  inline boost::shared_ptr<CollisionGeometry> getCollisionGeometrySharedPointer() const
+  {
+	  return cgeom_;
   }
 
 protected:
