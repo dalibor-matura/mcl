@@ -149,7 +149,8 @@ std::size_t collide(const ContinuousCollisionObject* o1, const ContinuousCollisi
                     CollisionResult& result)
 {
   FCL_REAL toc;
-  return conservativeAdvancement<RSS, MeshConservativeAdvancementTraversalNodeRSS, MeshCollisionTraversalNodeRSS>(
+
+  int collisions_count  = conservativeAdvancement<RSS, MeshConservativeAdvancementTraversalNodeRSS, MeshCollisionTraversalNodeRSS>(
                                                                                                                   o1->getCollisionGeometry(),
                                                                                                                   o1->getMotion(),
                                                                                                                   o2->getCollisionGeometry(),
@@ -157,6 +158,9 @@ std::size_t collide(const ContinuousCollisionObject* o1, const ContinuousCollisi
                                                                                                                   request,
                                                                                                                   result,
                                                                                                                   toc);
+  result.setTimeOfContact(toc);
+
+  return collisions_count;
 }
 
 std::size_t collide(const CollisionGeometry* o1, const MotionBase* motion1,

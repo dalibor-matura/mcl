@@ -168,7 +168,7 @@ struct CollisionResult;
 /// @brief request to the collision algorithm
 struct CollisionRequest
 {
-  /// @brief The maximum number of contacts will return
+  /// @brief The maximum number of contacts_ will return
   size_t num_max_contacts;
 
   /// @brief whether the contact information (normal, penetration depth and contact position) will return
@@ -203,77 +203,88 @@ struct CollisionResult
 {
 private:
   /// @brief contact information
-  std::vector<Contact> contacts;
+  std::vector<Contact> contacts_;
 
   /// @brief cost sources
-  std::set<CostSource> cost_sources;
+  std::set<CostSource> cost_sources_;
+
+  FCL_REAL time_of_contact_;
 
 public:
   CollisionResult()
   {
   }
 
+  inline void setTimeOfContact(FCL_REAL time_of_contact)
+  {
+	  time_of_contact_ = time_of_contact;
+  }
+
+  inline FCL_REAL getTimeOfContact() const
+  {
+	  return time_of_contact_;
+  }
 
   /// @brief add one contact into result structure
   inline void addContact(const Contact& c) 
   {
-    contacts.push_back(c);
+    contacts_.push_back(c);
   }
 
   /// @brief add one cost source into result structure
   inline void addCostSource(const CostSource& c, std::size_t num_max_cost_sources)
   {
-    cost_sources.insert(c);
-    while (cost_sources.size() > num_max_cost_sources)
-      cost_sources.erase(--cost_sources.end());
+    cost_sources_.insert(c);
+    while (cost_sources_.size() > num_max_cost_sources)
+      cost_sources_.erase(--cost_sources_.end());
   }
 
   /// @brief return binary collision result
   bool isCollision() const
   {
-    return contacts.size() > 0;
+    return contacts_.size() > 0;
   }
 
-  /// @brief number of contacts found
+  /// @brief number of contacts_ found
   size_t numContacts() const
   {
-    return contacts.size();
+    return contacts_.size();
   }
 
   /// @brief number of cost sources found
   size_t numCostSources() const
   {
-    return cost_sources.size();
+    return cost_sources_.size();
   }
 
   /// @brief get the i-th contact calculated
   const Contact& getContact(size_t i) const
   {
-    if(i < contacts.size()) 
-      return contacts[i];
+    if(i < contacts_.size()) 
+      return contacts_[i];
     else
-      return contacts.back();
+      return contacts_.back();
   }
 
-  /// @brief get all the contacts
+  /// @brief get all the contacts_
   void getContacts(std::vector<Contact>& contacts_)
   {
-    contacts_.resize(contacts.size());
-    std::copy(contacts.begin(), contacts.end(), contacts_.begin());
+    contacts_.resize(contacts_.size());
+    std::copy(contacts_.begin(), contacts_.end(), contacts_.begin());
   }
 
   /// @brief get all the cost sources 
   void getCostSources(std::vector<CostSource>& cost_sources_)
   {
-    cost_sources_.resize(cost_sources.size());
-    std::copy(cost_sources.begin(), cost_sources.end(), cost_sources_.begin());
+    cost_sources_.resize(cost_sources_.size());
+    std::copy(cost_sources_.begin(), cost_sources_.end(), cost_sources_.begin());
   }
 
   /// @brief clear the results obtained
   void clear()
   {
-    contacts.clear();
-    cost_sources.clear();
+    contacts_.clear();
+    cost_sources_.clear();
   }
 };
 
