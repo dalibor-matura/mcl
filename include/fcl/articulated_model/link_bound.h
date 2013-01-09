@@ -73,7 +73,6 @@ private:
 private:		
 	Vec3f direction_;
 	FCL_REAL time_;
-	FCL_REAL max_distance_; // distance from center of last joint to the furthermost point of the collision object	
 
 	boost::shared_ptr<const Model> model_;
 	boost::shared_ptr<const Link> bounded_link_;

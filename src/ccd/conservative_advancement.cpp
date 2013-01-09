@@ -78,6 +78,10 @@ int conservativeAdvancement(const CollisionGeometry* o1,
   const BVHModel<BV>* model1 = static_cast<const BVHModel<BV>*>(o1);
   const BVHModel<BV>* model2 = static_cast<const BVHModel<BV>*>(o2);
 
+  // Start path from beginning
+  motion1->integrate(0.0);
+  motion2->integrate(0.0);
+
   Transform3f tf1, tf2;
   motion1->getCurrentTransform(tf1);
   motion2->getCurrentTransform(tf2);

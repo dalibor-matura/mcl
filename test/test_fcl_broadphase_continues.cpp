@@ -202,6 +202,24 @@ public:
 	void initArticularMotion()
 	{
 		articular_motion_.reset(new ArticularMotion(link_bound_) );
+
+		FCL_REAL max_side = 1300;
+
+		articular_motion_top_.reset(new ArticularMotion(link_bound_) );
+		articular_motion_bottom_.reset(new ArticularMotion(link_bound_) );
+		articular_motion_left_.reset(new ArticularMotion(link_bound_) );
+		articular_motion_right_.reset(new ArticularMotion(link_bound_) );
+		articular_motion_front_.reset(new ArticularMotion(link_bound_) );
+		articular_motion_behind_.reset(new ArticularMotion(link_bound_) );
+
+		// TODO: reference points must be rethought and implement somehow differently
+		// doesn't work as wanted
+		/*articular_motion_top_->setReferencePoint(Vec3f(0, max_side, 0) );
+		articular_motion_bottom_->setReferencePoint(Vec3f(0, -max_side, 0) );
+		articular_motion_left_->setReferencePoint(Vec3f(-max_side, 0, 0) );
+		articular_motion_right_->setReferencePoint(Vec3f(max_side, 0, 0) );
+		articular_motion_front_->setReferencePoint(Vec3f(0, 0, max_side) );
+		articular_motion_behind_->setReferencePoint(Vec3f(0, 0, -max_side) );	*/	
 	}
 
 	void initInterpMotion()
@@ -322,9 +340,16 @@ public:
 
 	void initCollisionObjectsOnly()
 	{
-		model_environment_.reset(new BVHModel<RSS>() );
-		model_robot_.reset(new BVHModel<RSS>() );
+		initCollisionObjectsHelper();
 
+		model_environment_ = createModel("env.obj");
+		model_robot_ = createModel("rob.obj");
+
+		model_robot_top_ = createModel("rob_top.obj");
+	}
+
+	void initCollisionObjectsHelper()
+	{
 		std::vector<Vec3f> p1, p2;
 		std::vector<Triangle> t1, t2;
 		boost::filesystem::path path(TEST_RESOURCES_DIR);
@@ -345,15 +370,27 @@ public:
 		model_robot_0_.beginModel();
 		model_robot_0_.addSubModel(p2, t2);
 		model_robot_0_.endModel();
+	}
 
-		model_environment_->beginModel();
-		model_environment_->addSubModel(p1, t1);
-		model_environment_->endModel();
+	boost::shared_ptr<BVHModel<RSS> > createModel(std::string object_name)
+	{
+		boost::shared_ptr<BVHModel<RSS>> model(new BVHModel<RSS>() );
 
-		model_robot_->beginModel();
-		model_robot_->addSubModel(p2, t2);
-		model_robot_->endModel();
-	}	
+		std::vector<Vec3f> p;
+		std::vector<Triangle> t;
+		boost::filesystem::path path(TEST_RESOURCES_DIR);
+
+		loadOBJFile((path / object_name).string().c_str(), p, t);
+
+		SplitMethodType split_method = SPLIT_METHOD_MEAN;
+		model->bv_splitter.reset(new BVSplitter<RSS>(split_method));
+
+		model->beginModel();
+		model->addSubModel(p, t);
+		model->endModel();
+
+		return model;
+	}
 
 	void initManagersList()
 	{
@@ -365,6 +402,13 @@ public:
 		managers_list_.addContinuousCollisionObject(continuous_collision_environment_);
 		managers_list_.addContinuousCollisionObject(continuous_collision_robot_);
 
+		managers_list_.addContinuousCollisionObject(continuous_collision_robot_top_);
+		/*managers_list_.addContinuousCollisionObject(continuous_collision_robot_bottom_);
+		managers_list_.addContinuousCollisionObject(continuous_collision_robot_left_);
+		managers_list_.addContinuousCollisionObject(continuous_collision_robot_right_);
+		managers_list_.addContinuousCollisionObject(continuous_collision_robot_front_);
+		managers_list_.addContinuousCollisionObject(continuous_collision_robot_behind_);*/
+
 		managers_list_.initAllManagers();	
 	}
 
@@ -372,13 +416,30 @@ public:
 	{
 		// Set mutually outer geometries
 		model_environment_->addOuterGeometry(model_robot_.get() );
-		model_robot_->addOuterGeometry(model_environment_.get() );
+		model_robot_->addOuterGeometry(model_environment_.get() );	
+
+		// There are 6 ContinuesCollisionObjects can collide with model_robot_
+		model_robot_->addOuterGeometry(model_robot_top_.get() );	
+		model_robot_top_->addOuterGeometry(model_robot_.get() );	
 
 		continuous_collision_environment_.reset(
 			new ContinuousCollisionObject(model_environment_, interp_motion_) );
 
 		continuous_collision_robot_.reset(
 			new ContinuousCollisionObject(model_robot_, articular_motion_) );
+
+		continuous_collision_robot_top_.reset(
+			new ContinuousCollisionObject(model_robot_top_, articular_motion_top_) );
+		continuous_collision_robot_bottom_.reset(
+			new ContinuousCollisionObject(model_robot_, articular_motion_bottom_) );
+		continuous_collision_robot_left_.reset(
+			new ContinuousCollisionObject(model_robot_, articular_motion_left_) );
+		continuous_collision_robot_right_.reset(
+			new ContinuousCollisionObject(model_robot_, articular_motion_right_) );
+		continuous_collision_robot_front_.reset(
+			new ContinuousCollisionObject(model_robot_, articular_motion_front_) );
+		continuous_collision_robot_behind_.reset(
+			new ContinuousCollisionObject(model_robot_, articular_motion_behind_) );
 	}
 
 	void setNewConfigurations(boost::shared_ptr<ModelConfig>& cfg_start,
@@ -718,6 +779,13 @@ private:
 
 protected:
 	boost::shared_ptr<ArticularMotion> articular_motion_;
+
+	boost::shared_ptr<ArticularMotion> articular_motion_top_;
+	boost::shared_ptr<ArticularMotion> articular_motion_bottom_;
+	boost::shared_ptr<ArticularMotion> articular_motion_left_;
+	boost::shared_ptr<ArticularMotion> articular_motion_right_;
+	boost::shared_ptr<ArticularMotion> articular_motion_front_;
+	boost::shared_ptr<ArticularMotion> articular_motion_behind_;
 	boost::shared_ptr<InterpMotion> interp_motion_;
 	boost::shared_ptr<LinkBound> link_bound_;
 	boost::shared_ptr<Model> model_;
@@ -766,8 +834,22 @@ protected:
 	boost::shared_ptr<BVHModel<RSS> > model_environment_;
 	boost::shared_ptr<BVHModel<RSS> > model_robot_;
 
+	boost::shared_ptr<BVHModel<RSS> > model_robot_top_;
+	boost::shared_ptr<BVHModel<RSS> > model_robot_bottom_;
+	boost::shared_ptr<BVHModel<RSS> > model_robot_left_;
+	boost::shared_ptr<BVHModel<RSS> > model_robot_right_;
+	boost::shared_ptr<BVHModel<RSS> > model_robot_front_;
+	boost::shared_ptr<BVHModel<RSS> > model_robot_behind_;
+
 	boost::shared_ptr<ContinuousCollisionObject> continuous_collision_environment_;
 	boost::shared_ptr<ContinuousCollisionObject> continuous_collision_robot_;
+
+	boost::shared_ptr<ContinuousCollisionObject> continuous_collision_robot_top_;
+	boost::shared_ptr<ContinuousCollisionObject> continuous_collision_robot_bottom_;
+	boost::shared_ptr<ContinuousCollisionObject> continuous_collision_robot_left_;
+	boost::shared_ptr<ContinuousCollisionObject> continuous_collision_robot_right_;
+	boost::shared_ptr<ContinuousCollisionObject> continuous_collision_robot_front_;
+	boost::shared_ptr<ContinuousCollisionObject> continuous_collision_robot_behind_;
 
 	ContinuesCollisionManagersList managers_list_;
 
