@@ -100,6 +100,12 @@ FCL_REAL ThirdOrderDerivation::getMirrorDerivation(FCL_REAL time) const
 {
 	time = points_->getEntireTime() - time;
 
+	// Correction for rounding problems. What can happen: points_->getEntireTime() >  2 * points_->getTimePoint(4)
+	if ( time > points_->getTimePoint(4) )
+	{
+		time = points_->getTimePoint(4);
+	}
+
 	return -derivation_functions_[points_->getTimeUpperBound(time)](time);
 }
 

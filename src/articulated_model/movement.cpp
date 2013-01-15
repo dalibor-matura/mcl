@@ -218,8 +218,6 @@ Vec3f Movement::getAngularVelocityBound(const boost::shared_ptr<const Joint>& jo
 FCL_REAL Movement::getAbsoluteAngularVelocityBound(const boost::shared_ptr<const Joint>& joint,
 	const FCL_REAL& time) const
 {
-	FCL_REAL velocity;
-
 	if (isJointRevolute(joint) )
 	{
 		return std::abs(getInterpolationVelocityBound(joint, time) );
@@ -228,8 +226,6 @@ FCL_REAL Movement::getAbsoluteAngularVelocityBound(const boost::shared_ptr<const
 	{
 		return 0.0;
 	}
-
-	return velocity;
 }
 
 bool Movement::isJointRevolute(const boost::shared_ptr<const Joint>& joint) const

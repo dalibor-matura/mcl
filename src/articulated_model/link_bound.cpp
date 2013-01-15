@@ -160,7 +160,7 @@ FCL_REAL LinkBound::getAccumulatedAngularBound(const boost::shared_ptr<const Joi
 	}
 	else
 	{
-		angular_bound = movement_->getAngularVelocityBound(joint, getCurrentTime() ).length();
+		angular_bound = movement_->getAbsoluteAngularVelocityBound(joint, getCurrentTime() );
 	}
 
 	addAngularBoundAccumulation(angular_bound);		

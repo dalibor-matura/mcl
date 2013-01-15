@@ -268,12 +268,12 @@ Transform3f Model::getGlobalTransform(const boost::shared_ptr<const Joint>& join
     const boost::shared_ptr<const ModelConfig>& model_cfg) const
 {
   std::vector<boost::shared_ptr<const Joint> > joints_chain = getJointsChainFromLastJoint(joint);
-  std::vector<boost::shared_ptr<const Joint> >::const_iterator it;
+  std::vector<boost::shared_ptr<const Joint> >::const_reverse_iterator it;
 
   Transform3f global_transform;
   global_transform.setIdentity();
 
-  for (it = joints_chain.begin(); it != joints_chain.end(); ++it)
+  for (it = joints_chain.rbegin(); it != joints_chain.rend(); ++it)
   {
       const boost::shared_ptr<const Joint>& joint = (*it);
       const JointConfig& joint_cfg = model_cfg->getJointConfig(joint);
