@@ -96,18 +96,9 @@ public:
 		elbow_wrist_vector_ = Vec3f(0, 4, 0);
 		wrist_finger_vector_ = Vec3f(0, 0, 7);
 
-		shoulder_elbow_matrix_ = Matrix3f(
-			0.0, 1.0, 0.0,
-			-1.0, 0.0, 0.0,
-			0.0, 0.0, 1.0
-		);
-		elbow_wrist_matrix_ = Matrix3f(
-		);
-		wrist_finger_matrix_ = Matrix3f(
-			0.0, 0.0, 1.0,
-			0.0, 1.0, 0.0,
-			-1.0, 0.0, 0.0
-		);
+		//shoulder_elbow_rotation_.fromAxisAngle(Vec3f(1.0, 0.0, 0.0), boost::math::constants::pi<double>() / 2);
+		//elbow_wrist_rotation_ ;
+		//wrist_finger_rotation_.fromAxisAngle(Vec3f(1.0, 0.0, 0.0), -boost::math::constants::pi<double>() / 2);
 
 		Vec3f axis;
 		Transform3f transform;
@@ -116,15 +107,15 @@ public:
 		axis = Vec3f(1.0, 0.0, 0.0);
 		shoulder_joint_.reset(new PrismaticJoint(body_, arm_, transform, shoulder_joint_name_, axis) );
 
-		transform = Transform3f(shoulder_elbow_matrix_, shoulder_elbow_vector_);
+		transform = Transform3f(shoulder_elbow_rotation_, shoulder_elbow_vector_);
 		axis = Vec3f(1.0, 0.0, 0.0);
 		elbow_joint_.reset(new RevoluteJoint(arm_, forearm_, transform, elbow_joint_name_, axis) );
 
-		transform = Transform3f(elbow_wrist_matrix_, elbow_wrist_vector_);
+		transform = Transform3f(elbow_wrist_rotation_, elbow_wrist_vector_);
 		axis = Vec3f(0.0, 1.0, 0.0);
 		wrist_joint_.reset(new PrismaticJoint(forearm_, hand_, transform, wrist_joint_name_, axis) );
 
-		transform = Transform3f(wrist_finger_matrix_, wrist_finger_vector_);
+		transform = Transform3f(wrist_finger_rotation_, wrist_finger_vector_);
 		axis = Vec3f(0.0, 1.0, 0.0);
 		finger_joint_.reset(new RevoluteJoint(hand_, finger_, transform, finger_joint_name_, axis) );		
 	}
@@ -136,8 +127,8 @@ public:
 
 		cfg_end_->getJointConfig(shoulder_joint_)[0] = 6;
 		cfg_end_->getJointConfig(elbow_joint_)[0] = boost::math::constants::pi<double>() / 2;
-		cfg_end_->getJointConfig(wrist_joint_)[0] = 4;
-		cfg_end_->getJointConfig(finger_joint_)[0] = 3;	
+		cfg_end_->getJointConfig(wrist_joint_)[0] = 40;
+		cfg_end_->getJointConfig(finger_joint_)[0] = boost::math::constants::pi<double>() / 2;	
 	}	
 
 protected:
@@ -163,9 +154,9 @@ protected:
 	Vec3f elbow_wrist_vector_;
 	Vec3f wrist_finger_vector_;
 
-	Matrix3f shoulder_elbow_matrix_;
-	Matrix3f elbow_wrist_matrix_;
-	Matrix3f wrist_finger_matrix_;
+	Quaternion3f shoulder_elbow_rotation_;
+	Quaternion3f elbow_wrist_rotation_;
+	Quaternion3f wrist_finger_rotation_;
 
 	boost::shared_ptr<Link> body_;
 	boost::shared_ptr<Link> arm_;
@@ -1031,27 +1022,65 @@ BOOST_AUTO_TEST_SUITE(test_movement)
 
 BOOST_FIXTURE_TEST_CASE(test_get_global_transform, MovementFixture)
 {
-	Transform3f transform = model_->getGlobalTransform(elbow_joint_, cfg_start_);
+	/*
+	Test Description:
+
+	There are 4 joints:
+	- shoulder_joint_ >> prismatic >> 6
+	- elbow_joint_ >> revolute >> boost::math::constants::pi<double>() / 2;
+	- wrist_joint_ >> prismatic >> 40
+	- finger_joint_ >> revolute >> boost::math::constants::pi<double>() / 2;
+
+	There are starting translations:
+	- shoulder_elbow_vector_
+	- elbow_wrist_vector_
+	- wrist_finger_vector_ 
+
+	There are starting rotations:
+	- shoulder_elbow_rotation_
+	- elbow_wrist_rotation_
+	- wrist_finger_rotation_
+	*/
+
+	/* CHECK START CONFIGURATION */
+	
 	Transform3f expected_transform = elbow_joint_->getTransformToParent();
+	Transform3f transform = model_->getGlobalTransform(elbow_joint_, cfg_start_);
 	
 	BOOST_CHECK_EQUAL(expected_transform, transform);
 
-	transform = model_->getGlobalTransform(elbow_joint_, cfg_end_);
-	
+	/* CHECK END CONFIGURATION */
+		
 	const JointConfig shoulder_joint_cfg = cfg_end_->getJointConfig(shoulder_joint_);
 	FCL_REAL shoulder_joint_value = shoulder_joint_cfg[0];
 
-	// rotation for PI/2 => boost::math::constants::pi<double>() / 2;
-	Matrix3f rotation_around_x(
-		1.0, 0.0, 0.0,
-		0.0, 0.0, -1.0,
-		0.0, 1.0, 0.0
-	);
+	Quaternion3f shoulder_rotation;
+	Vec3f shoulder_translate = shoulder_joint_->getAxis() * shoulder_joint_value;
+	Vec3f elbow_translate = shoulder_elbow_vector_;
 
-	expected_transform = elbow_joint_->getTransformToParent() * 
-		Transform3f(rotation_around_x, elbow_joint_->getAxis() * shoulder_joint_value);
+	Vec3f rotation_axis = Vec3f(1.0, 0.0, 0.0);
+	FCL_REAL angel = boost::math::constants::pi<double>() / 2;
+	Quaternion3f elbow_rotation;
+
+	elbow_rotation.fromAxisAngle(rotation_axis, angel);	
+
+	expected_transform = Transform3f(elbow_rotation * shoulder_rotation, shoulder_translate + elbow_translate);
+
+	transform = model_->getGlobalTransform(elbow_joint_, cfg_end_);
 
 	BOOST_CHECK_EQUAL(expected_transform, transform);
+
+	/* CHECK END CONFIGURATION FOR LAST JOINT */
+
+	// The whole GET GLOBAL TRANSFORM TEST would need better APPROCHE 
+	// and better understanding of the transformations' composition
+
+	/*Quaternion3f finger_rotation;
+	expected_transform = Transform3f(finger_rotation, Vec3f() );
+
+	transform = model_->getGlobalTransform(finger_joint_, cfg_end_);
+
+	BOOST_CHECK_EQUAL(expected_transform.getTranslation(), transform.getTranslation() );*/
 }
 
 BOOST_FIXTURE_TEST_CASE(test_get_model_config, MovementFixture)
