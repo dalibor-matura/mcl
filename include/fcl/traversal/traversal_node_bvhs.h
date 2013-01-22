@@ -72,25 +72,25 @@ public:
   }
 
   /// @brief Whether the BV node in the first BVH tree is leaf
-  bool isFirstNodeLeaf(int b) const
+  bool isFirstNodeLeaf(int bv_node_id) const
   {
-    return model1->getBV(b).isLeaf();
+    return model1->getBV(bv_node_id).isLeaf();
   }
 
   /// @brief Whether the BV node in the second BVH tree is leaf
-  bool isSecondNodeLeaf(int b) const
+  bool isSecondNodeLeaf(int bv_node_id) const
   {
-    return model2->getBV(b).isLeaf();
+    return model2->getBV(bv_node_id).isLeaf();
   }
 
   /// @brief Determine the traversal order, is the first BVTT subtree better
-  bool firstOverSecond(int b1, int b2) const
+  bool firstOverSecond(int bv_node1_id, int bv_node2_id) const
   {
-    FCL_REAL sz1 = model1->getBV(b1).bv.size();
-    FCL_REAL sz2 = model2->getBV(b2).bv.size();
+    FCL_REAL sz1 = model1->getBV(bv_node1_id).bv.size();
+    FCL_REAL sz2 = model2->getBV(bv_node2_id).bv.size();
 
-    bool l1 = model1->getBV(b1).isLeaf();
-    bool l2 = model2->getBV(b2).isLeaf();
+    bool l1 = model1->getBV(bv_node1_id).isLeaf();
+    bool l2 = model2->getBV(bv_node2_id).isLeaf();
 
     if(l2 || (!l1 && (sz1 > sz2)))
       return true;
@@ -98,34 +98,40 @@ public:
   }
 
   /// @brief Obtain the left child of BV node in the first BVH
-  int getFirstLeftChild(int b) const
+  int getFirstLeftChild(int bv_node_id) const
   {
-    return model1->getBV(b).leftChild();
+    return model1->getBV(bv_node_id).leftChild();
   }
 
   /// @brief Obtain the right child of BV node in the first BVH
-  int getFirstRightChild(int b) const
+  int getFirstRightChild(int bv_node_id) const
   {
-    return model1->getBV(b).rightChild();
+    return model1->getBV(bv_node_id).rightChild();
   }
 
   /// @brief Obtain the left child of BV node in the second BVH
-  int getSecondLeftChild(int b) const
+  int getSecondLeftChild(int bv_node_id) const
   {
-    return model2->getBV(b).leftChild();
+    return model2->getBV(bv_node_id).leftChild();
   }
 
   /// @brief Obtain the right child of BV node in the second BVH
-  int getSecondRightChild(int b) const
+  int getSecondRightChild(int bv_node_id) const
   {
-    return model2->getBV(b).rightChild();
+    return model2->getBV(bv_node_id).rightChild();
   }
 
   /// @brief BV culling test in one BVTT node
-  bool BVTesting(int b1, int b2) const
+  bool BVTesting(int bv_node1_id, int bv_node2_id) const
   {
     if(enable_statistics) num_bv_tests++;
-    return !model1->getBV(b1).overlap(model2->getBV(b2));
+    return !model1->getBV(bv_node1_id).overlap(model2->getBV(bv_node2_id));
+  }
+
+  /// @brief Distance of both BVHModel's tolerances together
+  FCL_REAL getToleranceDistance() const
+  {
+    return model1->getTolerance() + model2->getTolerance();
   }
   
   /// @brief The first BVH model
@@ -154,12 +160,12 @@ public:
   }
 
   /// @brief Intersection testing between leaves (two triangles)
-  void leafTesting(int b1, int b2) const
+  void leafTesting(int bv_node1_id, int bv_node2_id) const
   {
     if(this->enable_statistics) this->num_leaf_tests++;
 
-    const BVNode<BV>& node1 = this->model1->getBV(b1);
-    const BVNode<BV>& node2 = this->model2->getBV(b2);
+    const BVNode<BV>& node1 = this->model1->getBV(bv_node1_id);
+    const BVNode<BV>& node2 = this->model2->getBV(bv_node2_id);
 
     int primitive_id1 = node1.primitiveId();
     int primitive_id2 = node2.primitiveId();
@@ -203,7 +209,7 @@ public:
           is_intersect = true;
           
           if(this->request.num_max_contacts < n_contacts + this->result->numContacts())
-            n_contacts = (this->request.num_max_contacts >= this->result->numContacts()) ? (this->request.num_max_contacts - this->result->numContacts()) : 0;
+            n_contacts = (this->request.num_max_contacts > this->result->numContacts()) ? (this->request.num_max_contacts - this->result->numContacts()) : 0;
     
           for(unsigned int i = 0; i < n_contacts; ++i)
           {
@@ -252,13 +258,13 @@ class MeshCollisionTraversalNodeOBB : public MeshCollisionTraversalNode<OBB>
 public:
   MeshCollisionTraversalNodeOBB();
 
-  bool BVTesting(int b1, int b2) const;
+  bool BVTesting(int bv_node1_id, int bv_node2_id) const;
 
-  void leafTesting(int b1, int b2) const;
+  void leafTesting(int bv_node1_id, int bv_node2_id) const;
 
-  bool BVTesting(int b1, int b2, const Matrix3f& Rc, const Vec3f& Tc) const;
+  bool BVTesting(int bv_node1_id, int bv_node2_id, const Matrix3f& Rc, const Vec3f& Tc) const;
 
-  void leafTesting(int b1, int b2, const Matrix3f& Rc, const Vec3f& Tc) const;
+  void leafTesting(int bv_node1_id, int bv_node2_id, const Matrix3f& Rc, const Vec3f& Tc) const;
 
   Matrix3f R;
   Vec3f T;
@@ -269,13 +275,13 @@ class MeshCollisionTraversalNodeRSS : public MeshCollisionTraversalNode<RSS>
 public:
   MeshCollisionTraversalNodeRSS();
 
-  bool BVTesting(int b1, int b2) const;
+  bool BVTesting(int bv_node1_id, int bv_node2_id) const;
 
-  void leafTesting(int b1, int b2) const;
+  void leafTesting(int bv_node1_id, int bv_node2_id) const;
 
-  bool BVTesting(int b1, int b2, const Matrix3f& Rc, const Vec3f& Tc) const;
+  bool BVTesting(int bv_node1_id, int bv_node2_id, const Matrix3f& Rc, const Vec3f& Tc) const;
 
-  void leafTesting(int b1, int b2, const Matrix3f& Rc, const Vec3f& Tc) const;
+  void leafTesting(int bv_node1_id, int bv_node2_id, const Matrix3f& Rc, const Vec3f& Tc) const;
 
   Matrix3f R;
   Vec3f T;
@@ -286,9 +292,9 @@ class MeshCollisionTraversalNodekIOS : public MeshCollisionTraversalNode<kIOS>
 public:
   MeshCollisionTraversalNodekIOS();
  
-  bool BVTesting(int b1, int b2) const;
+  bool BVTesting(int bv_node1_id, int bv_node2_id) const;
 
-  void leafTesting(int b1, int b2) const;
+  void leafTesting(int bv_node1_id, int bv_node2_id) const;
 
   Matrix3f R;
   Vec3f T;
@@ -299,9 +305,9 @@ class MeshCollisionTraversalNodeOBBRSS : public MeshCollisionTraversalNode<OBBRS
 public:
   MeshCollisionTraversalNodeOBBRSS();
  
-  bool BVTesting(int b1, int b2) const;
+  bool BVTesting(int bv_node1_id, int bv_node2_id) const;
 
-  void leafTesting(int b1, int b2) const;
+  void leafTesting(int bv_node1_id, int bv_node2_id) const;
 
   Matrix3f R;
   Vec3f T;
@@ -343,12 +349,12 @@ public:
   }
 
   /// @brief Intersection testing between leaves (two triangles)
-  void leafTesting(int b1, int b2) const
+  void leafTesting(int bv_node1_id, int bv_node2_id) const
   {
     if(this->enable_statistics) this->num_leaf_tests++;
 
-    const BVNode<BV>& node1 = this->model1->getBV(b1);
-    const BVNode<BV>& node2 = this->model2->getBV(b2);
+    const BVNode<BV>& node1 = this->model1->getBV(bv_node1_id);
+    const BVNode<BV>& node2 = this->model2->getBV(bv_node2_id);
 
     FCL_REAL collision_time = 2;
     Vec3f collision_pos;
@@ -464,25 +470,25 @@ public:
   }
 
   /// @brief Whether the BV node in the first BVH tree is leaf
-  bool isFirstNodeLeaf(int b) const
+  bool isFirstNodeLeaf(int bv_node_id) const
   {
-    return model1->getBV(b).isLeaf();
+    return model1->getBV(bv_node_id).isLeaf();
   }
 
   /// @brief Whether the BV node in the second BVH tree is leaf
-  bool isSecondNodeLeaf(int b) const
+  bool isSecondNodeLeaf(int bv_node_id) const
   {
-    return model2->getBV(b).isLeaf();
+    return model2->getBV(bv_node_id).isLeaf();
   }
 
   /// @brief Determine the traversal order, is the first BVTT subtree better
-  bool firstOverSecond(int b1, int b2) const
+  bool firstOverSecond(int bv_node1_id, int bv_node2_id) const
   {
-    FCL_REAL sz1 = model1->getBV(b1).bv.size();
-    FCL_REAL sz2 = model2->getBV(b2).bv.size();
+    FCL_REAL sz1 = model1->getBV(bv_node1_id).bv.size();
+    FCL_REAL sz2 = model2->getBV(bv_node2_id).bv.size();
 
-    bool l1 = model1->getBV(b1).isLeaf();
-    bool l2 = model2->getBV(b2).isLeaf();
+    bool l1 = model1->getBV(bv_node1_id).isLeaf();
+    bool l2 = model2->getBV(bv_node2_id).isLeaf();
 
     if(l2 || (!l1 && (sz1 > sz2)))
       return true;
@@ -490,34 +496,40 @@ public:
   }
 
   /// @brief Obtain the left child of BV node in the first BVH
-  int getFirstLeftChild(int b) const
+  int getFirstLeftChild(int bv_node_id) const
   {
-    return model1->getBV(b).leftChild();
+    return model1->getBV(bv_node_id).leftChild();
   }
 
   /// @brief Obtain the right child of BV node in the first BVH
-  int getFirstRightChild(int b) const
+  int getFirstRightChild(int bv_node_id) const
   {
-    return model1->getBV(b).rightChild();
+    return model1->getBV(bv_node_id).rightChild();
   }
 
   /// @brief Obtain the left child of BV node in the second BVH
-  int getSecondLeftChild(int b) const
+  int getSecondLeftChild(int bv_node_id) const
   {
-    return model2->getBV(b).leftChild();
+    return model2->getBV(bv_node_id).leftChild();
   }
 
   /// @brief Obtain the right child of BV node in the second BVH
-  int getSecondRightChild(int b) const
+  int getSecondRightChild(int bv_node_id) const
   {
-    return model2->getBV(b).rightChild();
+    return model2->getBV(bv_node_id).rightChild();
   }
 
   /// @brief BV culling test in one BVTT node
-  FCL_REAL BVTesting(int b1, int b2) const
+  FCL_REAL BVTesting(int bv_node1_id, int bv_node2_id) const
   {
     if(enable_statistics) num_bv_tests++;
-    return model1->getBV(b1).distance(model2->getBV(b2));
+    return model1->getBV(bv_node1_id).distance(model2->getBV(bv_node2_id));
+  }
+
+  /// @brief Distance of both BVHModel's tolerances together
+  FCL_REAL getToleranceDistance() const
+  {
+    return model1->getTolerance() + model2->getTolerance();
   }
 
   /// @brief The first BVH model
@@ -549,12 +561,12 @@ public:
   }
 
   /// @brief Distance testing between leaves (two triangles)
-  void leafTesting(int b1, int b2) const
+  void leafTesting(int bv_node1_id, int bv_node2_id) const
   {
     if(this->enable_statistics) this->num_leaf_tests++;
 
-    const BVNode<BV>& node1 = this->model1->getBV(b1);
-    const BVNode<BV>& node2 = this->model2->getBV(b2);
+    const BVNode<BV>& node1 = this->model1->getBV(bv_node1_id);
+    const BVNode<BV>& node2 = this->model2->getBV(bv_node2_id);
 
     int primitive_id1 = node1.primitiveId();
     int primitive_id2 = node2.primitiveId();
@@ -615,9 +627,9 @@ public:
 
   void postprocess();
 
-  FCL_REAL BVTesting(int b1, int b2) const;
+  FCL_REAL BVTesting(int bv_node1_id, int bv_node2_id) const;
 
-  void leafTesting(int b1, int b2) const;
+  void leafTesting(int bv_node1_id, int bv_node2_id) const;
 
   Matrix3f R;
   Vec3f T;
@@ -633,9 +645,9 @@ public:
   
   void postprocess();
 
-  FCL_REAL BVTesting(int b1, int b2) const;
+  FCL_REAL BVTesting(int bv_node1_id, int bv_node2_id) const;
 
-  void leafTesting(int b1, int b2) const;
+  void leafTesting(int bv_node1_id, int bv_node2_id) const;
 
   Matrix3f R;
   Vec3f T;
@@ -650,9 +662,9 @@ public:
 
   void postprocess();
 
-  FCL_REAL BVTesting(int b1, int b2) const;
+  FCL_REAL BVTesting(int bv_node1_id, int bv_node2_id) const;
 
-  void leafTesting(int b1, int b2) const;
+  void leafTesting(int bv_node1_id, int bv_node2_id) const;
 
   Matrix3f R;
   Vec3f T;
@@ -689,24 +701,24 @@ public:
   }
 
   /// @brief BV culling test in one BVTT node
-  FCL_REAL BVTesting(int b1, int b2) const
+  FCL_REAL BVTesting(int bv_node1_id, int bv_node2_id) const
   {
     if(this->enable_statistics) this->num_bv_tests++;
     Vec3f P1, P2;
-    FCL_REAL d = this->model1->getBV(b1).distance(this->model2->getBV(b2), &P1, &P2);
+    FCL_REAL d = this->model1->getBV(bv_node1_id).distance(this->model2->getBV(bv_node2_id), &P1, &P2);
 
-    stack.push_back(ConservativeAdvancementStackData(P1, P2, b1, b2, d));
+    stack.push_back(ConservativeAdvancementStackData(P1, P2, bv_node1_id, bv_node2_id, d));
 
     return d;
   }
 
   /// @brief Conservative advancement testing between leaves (two triangles)
-  void leafTesting(int b1, int b2) const
+  void leafTesting(int bv_node1_id, int bv_node2_id) const
   {
     if(this->enable_statistics) this->num_leaf_tests++;
 
-    const BVNode<BV>& node1 = this->model1->getBV(b1);
-    const BVNode<BV>& node2 = this->model2->getBV(b2);
+    const BVNode<BV>& node1 = this->model1->getBV(bv_node1_id);
+    const BVNode<BV>& node2 = this->model2->getBV(bv_node2_id);
 
     int primitive_id1 = node1.primitiveId();
     int primitive_id2 = node2.primitiveId();
@@ -857,9 +869,9 @@ class MeshConservativeAdvancementTraversalNodeRSS : public MeshConservativeAdvan
 public:
   MeshConservativeAdvancementTraversalNodeRSS(FCL_REAL w_ = 1);
 
-  FCL_REAL BVTesting(int b1, int b2) const;
+  FCL_REAL BVTesting(int bv_node1_id, int bv_node2_id) const;
 
-  void leafTesting(int b1, int b2) const;
+  void leafTesting(int bv_node1_id, int bv_node2_id) const;
 
   bool canStop(FCL_REAL c) const;
 
@@ -872,9 +884,9 @@ class MeshConservativeAdvancementTraversalNodeOBBRSS : public MeshConservativeAd
 public:
   MeshConservativeAdvancementTraversalNodeOBBRSS(FCL_REAL w_ = 1);
 
-  FCL_REAL BVTesting(int b1, int b2) const;
+  FCL_REAL BVTesting(int bv_node1_id, int bv_node2_id) const;
 
-  void leafTesting(int b1, int b2) const;
+  void leafTesting(int bv_node1_id, int bv_node2_id) const;
 
   bool canStop(FCL_REAL c) const;
 

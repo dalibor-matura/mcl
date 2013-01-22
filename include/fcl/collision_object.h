@@ -65,7 +65,8 @@ public:
   CollisionGeometry() : cost_density(1),
                         threshold_occupied(1),
                         threshold_free(0),
-                        use_outer_geometries_(false)
+                        use_outer_geometries_(false),					
+						tolerance_(0.0)
   {
   }
 
@@ -128,6 +129,16 @@ public:
     use_outer_geometries_ = use;
   }
 
+  void setTolerance(const FCL_REAL tolerance)
+  {
+	  tolerance_ = tolerance;
+  }
+
+  FCL_REAL getTolerance() const
+  {
+	  return tolerance_;
+  }
+
   /// @brief AABB center in local coordinate
   Vec3f aabb_center;
 
@@ -153,6 +164,8 @@ public:
 
 private:
   std::set<const CollisionGeometry*> outer_geometries_;
+
+  FCL_REAL tolerance_;
 };
 
 /// @brief the object for collision or distance computation, contains the geometry and the transform information

@@ -20,6 +20,7 @@ configure_file("${TEST_RESOURCES_DIR}/config.h.in" "${TEST_RESOURCES_DIR}/config
 include_directories(.)
 
 add_fcl_test(test_fcl_collision test_fcl_collision.cpp test_fcl_utility.cpp)
+add_fcl_test(test_fcl_continuous_collision test_fcl_continuous_collision.cpp test_fcl_utility.cpp)
 add_fcl_test(test_fcl_distance test_fcl_distance.cpp test_fcl_utility.cpp)
 add_fcl_test(test_fcl_geometric_shapes test_fcl_geometric_shapes.cpp test_fcl_utility.cpp)
 add_fcl_test(test_fcl_broadphase test_fcl_broadphase.cpp test_fcl_utility.cpp)

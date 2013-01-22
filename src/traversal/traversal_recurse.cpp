@@ -39,80 +39,79 @@
 
 namespace fcl
 {
-void collisionRecurse(CollisionTraversalNodeBase* node, int b1, int b2, BVHFrontList* front_list)
+void collisionRecurse(CollisionTraversalNodeBase* node, int bv_node1_id, int bv_node2_id, BVHFrontList* front_list)
 {
-  bool l1 = node->isFirstNodeLeaf(b1);
-  bool l2 = node->isSecondNodeLeaf(b2);
+  bool is_first_node_leaf = node->isFirstNodeLeaf(bv_node1_id);
+  bool is_second_node_leaf = node->isSecondNodeLeaf(bv_node2_id);
 
-  if(l1 && l2)
+  if(is_first_node_leaf && is_second_node_leaf)
   {
-    updateFrontList(front_list, b1, b2);
+    updateFrontList(front_list, bv_node1_id, bv_node2_id);
 
-    if(node->BVTesting(b1, b2)) return;
+    if(node->BVTesting(bv_node1_id, bv_node2_id)) return;
 
-    node->leafTesting(b1, b2);
+    node->leafTesting(bv_node1_id, bv_node2_id);
     return;
   }
 
-  if(node->BVTesting(b1, b2))
+  if(node->BVTesting(bv_node1_id, bv_node2_id))
   {
-    updateFrontList(front_list, b1, b2);
+    updateFrontList(front_list, bv_node1_id, bv_node2_id);
     return;
   }
 
-  if(node->firstOverSecond(b1, b2))
+  if(node->firstOverSecond(bv_node1_id, bv_node2_id))
   {
-    int c1 = node->getFirstLeftChild(b1);
-    int c2 = node->getFirstRightChild(b1);
+    int left_child = node->getFirstLeftChild(bv_node1_id);    
+    collisionRecurse(node, left_child, bv_node2_id, front_list);
 
-    collisionRecurse(node, c1, b2, front_list);
-
-    // early stop is disabled is front_list is used
+    // early stop is disabled if front_list is used
     if(node->canStop() && !front_list) return;
 
-    collisionRecurse(node, c2, b2, front_list);
+    int right_child = node->getFirstRightChild(bv_node1_id);
+    collisionRecurse(node, right_child, bv_node2_id, front_list);
   }
   else
   {
-    int c1 = node->getSecondLeftChild(b2);
-    int c2 = node->getSecondRightChild(b2);
-
-    collisionRecurse(node, b1, c1, front_list);
+    int left_child = node->getSecondLeftChild(bv_node2_id); 
+    collisionRecurse(node, bv_node1_id, left_child, front_list);
 
     // early stop is disabled is front_list is used
     if(node->canStop() && !front_list) return;
 
-    collisionRecurse(node, b1, c2, front_list);
+    int right_child = node->getSecondRightChild(bv_node2_id);
+    collisionRecurse(node, bv_node1_id, right_child, front_list);
   }
 }
 
-void collisionRecurse(MeshCollisionTraversalNodeOBB* node, int b1, int b2, const Matrix3f& R, const Vec3f& T, BVHFrontList* front_list)
+void collisionRecurse(MeshCollisionTraversalNodeOBB* node, int bv_node1_id, int bv_node2_id, 
+  const Matrix3f& R, const Vec3f& T, BVHFrontList* front_list)
 {
-  bool l1 = node->isFirstNodeLeaf(b1);
-  bool l2 = node->isSecondNodeLeaf(b2);
+  bool is_first_node_leaf = node->isFirstNodeLeaf(bv_node1_id);
+  bool is_second_node_leaf = node->isSecondNodeLeaf(bv_node2_id);
 
-  if(l1 && l2)
+  if(is_first_node_leaf && is_second_node_leaf)
   {
-    updateFrontList(front_list, b1, b2);
+    updateFrontList(front_list, bv_node1_id, bv_node2_id);
 
-    if(node->BVTesting(b1, b2, R, T)) return;
+    if(node->BVTesting(bv_node1_id, bv_node2_id, R, T)) return;
 
-    node->leafTesting(b1, b2, R, T);
+    node->leafTesting(bv_node1_id, bv_node2_id, R, T);
     return;
   }
 
-  if(node->BVTesting(b1, b2, R, T))
+  if(node->BVTesting(bv_node1_id, bv_node2_id, R, T))
   {
-    updateFrontList(front_list, b1, b2);
+    updateFrontList(front_list, bv_node1_id, bv_node2_id);
     return;
   }
 
   Vec3f temp;
 
-  if(node->firstOverSecond(b1, b2))
+  if(node->firstOverSecond(bv_node1_id, bv_node2_id))
   {
-    int c1 = node->getFirstLeftChild(b1);
-    int c2 = node->getFirstRightChild(b1);
+    int c1 = node->getFirstLeftChild(bv_node1_id);
+    int c2 = node->getFirstRightChild(bv_node1_id);
 
     const OBB& bv1 = node->model1->getBV(c1).bv;
 
@@ -120,7 +119,7 @@ void collisionRecurse(MeshCollisionTraversalNodeOBB* node, int b1, int b2, const
     temp = T - bv1.To;
     Vec3f Tc(temp.dot(bv1.axis[0]), temp.dot(bv1.axis[1]), temp.dot(bv1.axis[2]));
 
-    collisionRecurse(node, c1, b2, Rc, Tc, front_list);
+    collisionRecurse(node, c1, bv_node2_id, Rc, Tc, front_list);
 
     // early stop is disabled is front_list is used
     if(node->canStop() && !front_list) return;
@@ -131,12 +130,12 @@ void collisionRecurse(MeshCollisionTraversalNodeOBB* node, int b1, int b2, const
     temp = T - bv2.To;
     Tc.setValue(temp.dot(bv2.axis[0]), temp.dot(bv2.axis[1]), temp.dot(bv2.axis[2]));
 
-    collisionRecurse(node, c2, b2, Rc, Tc, front_list);
+    collisionRecurse(node, c2, bv_node2_id, Rc, Tc, front_list);
   }
   else
   {
-    int c1 = node->getSecondLeftChild(b2);
-    int c2 = node->getSecondRightChild(b2);
+    int c1 = node->getSecondLeftChild(bv_node2_id);
+    int c2 = node->getSecondRightChild(bv_node2_id);
 
     const OBB& bv1 = node->model2->getBV(c1).bv;
     Matrix3f Rc;
@@ -148,7 +147,7 @@ void collisionRecurse(MeshCollisionTraversalNodeOBB* node, int b1, int b2, const
     Rc(0, 2) = temp[0]; Rc(1, 2) = temp[1]; Rc(2, 2) = temp[2];
     Vec3f Tc = R * bv1.To + T;
 
-    collisionRecurse(node, b1, c1, Rc, Tc, front_list);
+    collisionRecurse(node, bv_node1_id, c1, Rc, Tc, front_list);
 
     // early stop is disabled is front_list is used
     if(node->canStop() && !front_list) return;
@@ -162,11 +161,12 @@ void collisionRecurse(MeshCollisionTraversalNodeOBB* node, int b1, int b2, const
     Rc(0, 2) = temp[0]; Rc(1, 2) = temp[1]; Rc(2, 2) = temp[2];
     Tc = R * bv2.To + T;
 
-    collisionRecurse(node, b1, c2, Rc, Tc, front_list);
+    collisionRecurse(node, bv_node1_id, c2, Rc, Tc, front_list);
   }
 }
 
-void collisionRecurse(MeshCollisionTraversalNodeRSS* node, int b1, int b2, const Matrix3f& R, const Vec3f& T, BVHFrontList* front_list)
+void collisionRecurse(MeshCollisionTraversalNodeRSS* node, int bv_node1_id, int bv_node2_id, 
+  const Matrix3f& R, const Vec3f& T, BVHFrontList* front_list)
 {
 
 }
@@ -174,77 +174,78 @@ void collisionRecurse(MeshCollisionTraversalNodeRSS* node, int b1, int b2, const
 /** Recurse function for self collision
  * Make sure node is set correctly so that the first and second tree are the same
  */
-void selfCollisionRecurse(CollisionTraversalNodeBase* node, int b, BVHFrontList* front_list)
+void selfCollisionRecurse(CollisionTraversalNodeBase* node, int bv_node_id, BVHFrontList* front_list)
 {
-  bool l = node->isFirstNodeLeaf(b);
+  bool is_first_node_leaf = node->isFirstNodeLeaf(bv_node_id);
 
-  if(l) return;
+  if(is_first_node_leaf) return;
 
-  int c1 = node->getFirstLeftChild(b);
-  int c2 = node->getFirstRightChild(b);
+  int left_child = node->getFirstLeftChild(bv_node_id);
+  int right_child = node->getFirstRightChild(bv_node_id);
 
-  selfCollisionRecurse(node, c1, front_list);
+  selfCollisionRecurse(node, left_child, front_list);
   if(node->canStop() && !front_list) return;
 
-  selfCollisionRecurse(node, c2, front_list);
+  selfCollisionRecurse(node, right_child, front_list);
   if(node->canStop() && !front_list) return;
 
-  collisionRecurse(node, c1, c2, front_list);
+  collisionRecurse(node, left_child, right_child, front_list);
 }
 
-void distanceRecurse(DistanceTraversalNodeBase* node, int b1, int b2, BVHFrontList* front_list)
+void distanceRecurse(DistanceTraversalNodeBase* node, int bv_node1_id, int bv_node2_id, BVHFrontList* front_list)
 {
-  bool l1 = node->isFirstNodeLeaf(b1);
-  bool l2 = node->isSecondNodeLeaf(b2);
+  bool is_first_node_leaf = node->isFirstNodeLeaf(bv_node1_id);
+  bool is_second_node_leaf = node->isSecondNodeLeaf(bv_node2_id);
 
-  if(l1 && l2)
+  if(is_first_node_leaf && is_second_node_leaf)
   {
-    updateFrontList(front_list, b1, b2);
+    updateFrontList(front_list, bv_node1_id, bv_node2_id);
 
-    node->leafTesting(b1, b2);
+    node->leafTesting(bv_node1_id, bv_node2_id);
     return;
   }
 
+  // BVNodes distance pairs
   int a1, a2, c1, c2;
 
-  if(node->firstOverSecond(b1, b2))
+  if(node->firstOverSecond(bv_node1_id, bv_node2_id))
   {
-    a1 = node->getFirstLeftChild(b1);
-    a2 = b2;
-    c1 = node->getFirstRightChild(b1);
-    c2 = b2;
+    a1 = node->getFirstLeftChild(bv_node1_id);
+    a2 = bv_node2_id;
+    c1 = node->getFirstRightChild(bv_node1_id);
+    c2 = bv_node2_id;
   }
   else
   {
-    a1 = b1;
-    a2 = node->getSecondLeftChild(b2);
-    c1 = b1;
-    c2 = node->getSecondRightChild(b2);
+    a1 = bv_node1_id;
+    a2 = node->getSecondLeftChild(bv_node2_id);
+    c1 = bv_node1_id;
+    c2 = node->getSecondRightChild(bv_node2_id);
   }
 
-  FCL_REAL d1 = node->BVTesting(a1, a2);
-  FCL_REAL d2 = node->BVTesting(c1, c2);
+  FCL_REAL distance_a = node->BVTesting(a1, a2);
+  FCL_REAL distance_c = node->BVTesting(c1, c2);
 
-  if(d2 < d1)
+  if(distance_c < distance_a)
   {
-    if(!node->canStop(d2))
+    if(!node->canStop(distance_c))
       distanceRecurse(node, c1, c2, front_list);
     else
       updateFrontList(front_list, c1, c2);
 
-    if(!node->canStop(d1))
+    if(!node->canStop(distance_a))
       distanceRecurse(node, a1, a2, front_list);
     else
       updateFrontList(front_list, a1, a2);
   }
   else
   {
-    if(!node->canStop(d1))
+    if(!node->canStop(distance_a))
       distanceRecurse(node, a1, a2, front_list);
     else
       updateFrontList(front_list, a1, a2);
 
-    if(!node->canStop(d2))
+    if(!node->canStop(distance_c))
       distanceRecurse(node, c1, c2, front_list);
     else
       updateFrontList(front_list, c1, c2);
@@ -259,7 +260,8 @@ struct BVT
   FCL_REAL d;
 
   /** \brief bv indices for a pair of bvs in two models */
-  int b1, b2;
+  int bv_node1_id;
+  int bv_node2_id;
 };
 
 /** \brief Comparer between two BVT */
@@ -312,60 +314,60 @@ struct BVTQ
 };
 
 
-void distanceQueueRecurse(DistanceTraversalNodeBase* node, int b1, int b2, BVHFrontList* front_list, int qsize)
+void distanceQueueRecurse(DistanceTraversalNodeBase* node, int bv_node1_id, int bv_node2_id, BVHFrontList* front_list, int qsize)
 {
   BVTQ bvtq;
   bvtq.qsize = qsize;
 
   BVT min_test;
-  min_test.b1 = b1;
-  min_test.b2 = b2;
+  min_test.bv_node1_id = bv_node1_id;
+  min_test.bv_node2_id = bv_node2_id;
 
   while(1)
   {
-    bool l1 = node->isFirstNodeLeaf(min_test.b1);
-    bool l2 = node->isSecondNodeLeaf(min_test.b2);
+    bool l1 = node->isFirstNodeLeaf(min_test.bv_node1_id);
+    bool l2 = node->isSecondNodeLeaf(min_test.bv_node2_id);
 
     if(l1 && l2)
     {
-      updateFrontList(front_list, min_test.b1, min_test.b2);
+      updateFrontList(front_list, min_test.bv_node1_id, min_test.bv_node2_id);
 
-      node->leafTesting(min_test.b1, min_test.b2);
+      node->leafTesting(min_test.bv_node1_id, min_test.bv_node2_id);
     }
     else if(bvtq.full())
     {
       // queue should not get two more tests, recur
 
-      distanceQueueRecurse(node, min_test.b1, min_test.b2, front_list, qsize);
+      distanceQueueRecurse(node, min_test.bv_node1_id, min_test.bv_node2_id, front_list, qsize);
     }
     else
     {
       // queue capacity is not full yet
       BVT bvt1, bvt2;
 
-      if(node->firstOverSecond(min_test.b1, min_test.b2))
+      if(node->firstOverSecond(min_test.bv_node1_id, min_test.bv_node2_id))
       {
-        int c1 = node->getFirstLeftChild(min_test.b1);
-        int c2 = node->getFirstRightChild(min_test.b1);
-        bvt1.b1 = c1;
-        bvt1.b2 = min_test.b2;
-        bvt1.d = node->BVTesting(bvt1.b1, bvt1.b2);
+        int c1 = node->getFirstLeftChild(min_test.bv_node1_id);
+        int c2 = node->getFirstRightChild(min_test.bv_node1_id);
+        bvt1.bv_node1_id = c1;
+        bvt1.bv_node2_id = min_test.bv_node2_id;
+        bvt1.d = node->BVTesting(bvt1.bv_node1_id, bvt1.bv_node2_id);
 
-        bvt2.b1 = c2;
-        bvt2.b2 = min_test.b2;
-        bvt2.d = node->BVTesting(bvt2.b1, bvt2.b2);
+        bvt2.bv_node1_id = c2;
+        bvt2.bv_node2_id = min_test.bv_node2_id;
+        bvt2.d = node->BVTesting(bvt2.bv_node1_id, bvt2.bv_node2_id);
       }
       else
       {
-        int c1 = node->getSecondLeftChild(min_test.b2);
-        int c2 = node->getSecondRightChild(min_test.b2);
-        bvt1.b1 = min_test.b1;
-        bvt1.b2 = c1;
-        bvt1.d = node->BVTesting(bvt1.b1, bvt1.b2);
+        int c1 = node->getSecondLeftChild(min_test.bv_node2_id);
+        int c2 = node->getSecondRightChild(min_test.bv_node2_id);
+        bvt1.bv_node1_id = min_test.bv_node1_id;
+        bvt1.bv_node2_id = c1;
+        bvt1.d = node->BVTesting(bvt1.bv_node1_id, bvt1.bv_node2_id);
 
-        bvt2.b1 = min_test.b1;
-        bvt2.b2 = c2;
-        bvt2.d = node->BVTesting(bvt2.b1, bvt2.b2);
+        bvt2.bv_node1_id = min_test.bv_node1_id;
+        bvt2.bv_node2_id = c2;
+        bvt2.d = node->BVTesting(bvt2.bv_node1_id, bvt2.bv_node2_id);
       }
 
       bvtq.push(bvt1);
@@ -381,7 +383,7 @@ void distanceQueueRecurse(DistanceTraversalNodeBase* node, int b1, int b2, BVHFr
 
       if(node->canStop(min_test.d))
       {
-        updateFrontList(front_list, min_test.b1, min_test.b2);
+        updateFrontList(front_list, min_test.bv_node1_id, min_test.bv_node2_id);
         break;
       }
     }
@@ -394,37 +396,37 @@ void propagateBVHFrontListCollisionRecurse(CollisionTraversalNodeBase* node, BVH
   BVHFrontList append;
   for(front_iter = front_list->begin(); front_iter != front_list->end(); ++front_iter)
   {
-    int b1 = front_iter->left;
-    int b2 = front_iter->right;
-    bool l1 = node->isFirstNodeLeaf(b1);
-    bool l2 = node->isSecondNodeLeaf(b2);
+    int bv_node1_id = front_iter->left;
+    int bv_node2_id = front_iter->right;
+    bool l1 = node->isFirstNodeLeaf(bv_node1_id);
+    bool l2 = node->isSecondNodeLeaf(bv_node2_id);
 
     if(l1 & l2)
     {
       front_iter->valid = false; // the front node is no longer valid, in collideRecurse will add again.
-      collisionRecurse(node, b1, b2, &append);
+      collisionRecurse(node, bv_node1_id, bv_node2_id, &append);
     }
     else
     {
-      if(!node->BVTesting(b1, b2))
+      if(!node->BVTesting(bv_node1_id, bv_node2_id))
       {
         front_iter->valid = false;
 
-        if(node->firstOverSecond(b1, b2))
+        if(node->firstOverSecond(bv_node1_id, bv_node2_id))
         {
-          int c1 = node->getFirstLeftChild(b1);
-          int c2 = node->getFirstRightChild(b2);
+          int c1 = node->getFirstLeftChild(bv_node1_id);
+          int c2 = node->getFirstRightChild(bv_node2_id);
 
-          collisionRecurse(node, c1, b2, front_list);
-          collisionRecurse(node, c2, b2, front_list);
+          collisionRecurse(node, c1, bv_node2_id, front_list);
+          collisionRecurse(node, c2, bv_node2_id, front_list);
         }
         else
         {
-          int c1 = node->getSecondLeftChild(b2);
-          int c2 = node->getSecondRightChild(b2);
+          int c1 = node->getSecondLeftChild(bv_node2_id);
+          int c2 = node->getSecondRightChild(bv_node2_id);
 
-          collisionRecurse(node, b1, c1, front_list);
-          collisionRecurse(node, b1, c2, front_list);
+          collisionRecurse(node, bv_node1_id, c1, front_list);
+          collisionRecurse(node, bv_node1_id, c2, front_list);
         }
       }
     }

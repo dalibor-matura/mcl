@@ -54,26 +54,26 @@ public:
   
   virtual void postprocess() {}
 
-  /// @brief Whether b is a leaf node in the first BVH tree 
-  virtual bool isFirstNodeLeaf(int b) const;
+  /// @brief Whether bv_node_id is a leaf node in the first BVH tree 
+  virtual bool isFirstNodeLeaf(int bv_node_id) const;
 
-  /// @brief Whether b is a leaf node in the second BVH tree
-  virtual bool isSecondNodeLeaf(int b) const;
+  /// @brief Whether bv_node_id is a leaf node in the second BVH tree
+  virtual bool isSecondNodeLeaf(int bv_node_id) const;
 
   /// @brief Traverse the subtree of the node in the first tree first
-  virtual bool firstOverSecond(int b1, int b2) const;
+  virtual bool firstOverSecond(int bv_node1_id, int bv_node2_id) const;
 
-  /// @brief Get the left child of the node b in the first tree
-  virtual int getFirstLeftChild(int b) const;
+  /// @brief Get the left child of the node bv_node_id in the first tree
+  virtual int getFirstLeftChild(int bv_node_id) const;
 
-  /// @brief Get the right child of the node b in the first tree
-  virtual int getFirstRightChild(int b) const;
+  /// @brief Get the right child of the node bv_node_id in the first tree
+  virtual int getFirstRightChild(int bv_node_id) const;
 
-  /// @brief Get the left child of the node b in the second tree
-  virtual int getSecondLeftChild(int b) const;
+  /// @brief Get the left child of the node bv_node_id in the second tree
+  virtual int getSecondLeftChild(int bv_node_id) const;
 
-  /// @brief Get the right child of the node b in the second tree
-  virtual int getSecondRightChild(int b) const;
+  /// @brief Get the right child of the node bv_node_id in the second tree
+  virtual int getSecondRightChild(int bv_node_id) const;
 
   /// @brief Enable statistics (verbose mode)
   virtual void enableStatistics(bool enable) = 0;
@@ -93,11 +93,11 @@ public:
 
   virtual ~CollisionTraversalNodeBase();
 
-  /// @brief BV test between b1 and b2
-  virtual bool BVTesting(int b1, int b2) const;
+  /// @brief BV test between bv_node1_id and bv_node2_id
+  virtual bool BVTesting(int bv_node1_id, int bv_node2_id) const;
 
-  /// @brief Leaf test between node b1 and b2, if they are both leafs
-  virtual void leafTesting(int b1, int b2) const;
+  /// @brief Leaf test between node bv_node1_id and bv_node2_id, if they are both leafs
+  virtual void leafTesting(int bv_node1_id, int bv_node2_id) const;
 
   /// @brief Check whether the traversal can stop
   virtual bool canStop() const;
@@ -123,11 +123,11 @@ public:
 
   virtual ~DistanceTraversalNodeBase();
 
-  /// @brief BV test between b1 and b2
-  virtual FCL_REAL BVTesting(int b1, int b2) const;
+  /// @brief BV test between bv_node1_id and bv_node2_id
+  virtual FCL_REAL BVTesting(int bv_node1_id, int bv_node2_id) const;
 
-  /// @brief Leaf test between node b1 and b2, if they are both leafs
-  virtual void leafTesting(int b1, int b2) const;
+  /// @brief Leaf test between node bv_node1_id and bv_node2_id, if they are both leafs
+  virtual void leafTesting(int bv_node1_id, int bv_node2_id) const;
 
   /// @brief Check whether the traversal can stop
   virtual bool canStop(FCL_REAL c) const;

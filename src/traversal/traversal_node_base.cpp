@@ -45,51 +45,51 @@ TraversalNodeBase::~TraversalNodeBase()
 {
 }
 
-bool TraversalNodeBase::isFirstNodeLeaf(int b) const
+bool TraversalNodeBase::isFirstNodeLeaf(int bv_node_id) const
 {
   return true;
 }
 
-bool TraversalNodeBase::isSecondNodeLeaf(int b) const
+bool TraversalNodeBase::isSecondNodeLeaf(int bv_node_id) const
 {
   return true;
 }
 
-bool TraversalNodeBase::firstOverSecond(int b1, int b2) const
+bool TraversalNodeBase::firstOverSecond(int bv_node1_id, int bv_node2_id) const
 {
   return true;
 }
 
-int TraversalNodeBase::getFirstLeftChild(int b) const
+int TraversalNodeBase::getFirstLeftChild(int bv_node_id) const
 {
-  return b;
+  return bv_node_id;
 }
 
-int TraversalNodeBase::getFirstRightChild(int b) const
+int TraversalNodeBase::getFirstRightChild(int bv_node_id) const
 {
-  return b;
+  return bv_node_id;
 }
 
-int TraversalNodeBase::getSecondLeftChild(int b) const
+int TraversalNodeBase::getSecondLeftChild(int bv_node_id) const
 {
-  return b;
+  return bv_node_id;
 }
 
-int TraversalNodeBase::getSecondRightChild(int b) const
+int TraversalNodeBase::getSecondRightChild(int bv_node_id) const
 {
-  return b;
+  return bv_node_id;
 }
 
 CollisionTraversalNodeBase::~CollisionTraversalNodeBase()
 {
 }
 
-bool CollisionTraversalNodeBase::BVTesting(int b1, int b2) const
+bool CollisionTraversalNodeBase::BVTesting(int bv_node1_id, int bv_node2_id) const
 {
   return true;
 }
 
-void CollisionTraversalNodeBase::leafTesting(int b1, int b2) const
+void CollisionTraversalNodeBase::leafTesting(int bv_node1_id, int bv_node2_id) const
 {
 }
 
@@ -103,12 +103,12 @@ DistanceTraversalNodeBase::~DistanceTraversalNodeBase()
 {
 }
 
-FCL_REAL DistanceTraversalNodeBase::BVTesting(int b1, int b2) const
+FCL_REAL DistanceTraversalNodeBase::BVTesting(int bv_node1_id, int bv_node2_id) const
 {
   return std::numeric_limits<FCL_REAL>::max();
 }
 
-void DistanceTraversalNodeBase::leafTesting(int b1, int b2) const
+void DistanceTraversalNodeBase::leafTesting(int bv_node1_id, int bv_node2_id) const
 {
 }
 

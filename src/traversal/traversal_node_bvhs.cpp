@@ -43,7 +43,7 @@ namespace fcl
 namespace details
 {
 template<typename BV>
-static inline void meshCollisionOrientedNodeLeafTesting(int b1, int b2,
+static inline void meshCollisionOrientedNodeLeafTesting(int bv_node1_id, int bv_node2_id,
                                                         const BVHModel<BV>* model1, const BVHModel<BV>* model2,
                                                         Vec3f* vertices1, Vec3f* vertices2, 
                                                         Triangle* tri_indices1, Triangle* tri_indices2,
@@ -57,8 +57,8 @@ static inline void meshCollisionOrientedNodeLeafTesting(int b1, int b2,
 {
   if(enable_statistics) num_leaf_tests++;
 
-  const BVNode<BV>& node1 = model1->getBV(b1);
-  const BVNode<BV>& node2 = model2->getBV(b2);
+  const BVNode<BV>& node1 = model1->getBV(bv_node1_id);
+  const BVNode<BV>& node2 = model2->getBV(bv_node2_id);
 
   int primitive_id1 = node1.primitiveId();
   int primitive_id2 = node2.primitiveId();
@@ -134,7 +134,7 @@ static inline void meshCollisionOrientedNodeLeafTesting(int b1, int b2,
 
 
 template<typename BV>
-static inline void meshDistanceOrientedNodeLeafTesting(int b1, int b2,
+static inline void meshDistanceOrientedNodeLeafTesting(int bv_node1_id, int bv_node2_id,
                                                        const BVHModel<BV>* model1, const BVHModel<BV>* model2,
                                                        Vec3f* vertices1, Vec3f* vertices2, 
                                                        Triangle* tri_indices1, Triangle* tri_indices2,
@@ -146,8 +146,8 @@ static inline void meshDistanceOrientedNodeLeafTesting(int b1, int b2,
 {
   if(enable_statistics) num_leaf_tests++;
 
-  const BVNode<BV>& node1 = model1->getBV(b1);
-  const BVNode<BV>& node2 = model2->getBV(b2);
+  const BVNode<BV>& node1 = model1->getBV(bv_node1_id);
+  const BVNode<BV>& node2 = model2->getBV(bv_node2_id);
 
   int primitive_id1 = node1.primitiveId();
   int primitive_id2 = node2.primitiveId();
@@ -183,15 +183,15 @@ MeshCollisionTraversalNodeOBB::MeshCollisionTraversalNodeOBB() : MeshCollisionTr
   R.setIdentity();
 }
 
-bool MeshCollisionTraversalNodeOBB::BVTesting(int b1, int b2) const
+bool MeshCollisionTraversalNodeOBB::BVTesting(int bv_node1_id, int bv_node2_id) const
 {
   if(enable_statistics) num_bv_tests++;
-  return !overlap(R, T, model1->getBV(b1).bv, model2->getBV(b2).bv);
+  return !overlap(R, T, model1->getBV(bv_node1_id).bv, model2->getBV(bv_node2_id).bv);
 }
 
-void MeshCollisionTraversalNodeOBB::leafTesting(int b1, int b2) const
+void MeshCollisionTraversalNodeOBB::leafTesting(int bv_node1_id, int bv_node2_id) const
 {
-  details::meshCollisionOrientedNodeLeafTesting(b1, b2, model1, model2, vertices1, vertices2, 
+  details::meshCollisionOrientedNodeLeafTesting(bv_node1_id, bv_node2_id, model1, model2, vertices1, vertices2, 
                                                 tri_indices1, tri_indices2, 
                                                 R, T, 
                                                 tf1, tf2,
@@ -201,15 +201,15 @@ void MeshCollisionTraversalNodeOBB::leafTesting(int b1, int b2) const
 }
 
 
-bool MeshCollisionTraversalNodeOBB::BVTesting(int b1, int b2, const Matrix3f& Rc, const Vec3f& Tc) const
+bool MeshCollisionTraversalNodeOBB::BVTesting(int bv_node1_id, int bv_node2_id, const Matrix3f& Rc, const Vec3f& Tc) const
 {
   if(enable_statistics) num_bv_tests++;
-  return obbDisjoint(Rc, Tc, model1->getBV(b1).bv.extent, model2->getBV(b2).bv.extent);
+  return obbDisjoint(Rc, Tc, model1->getBV(bv_node1_id).bv.extent, model2->getBV(bv_node2_id).bv.extent);
 }
 
-void MeshCollisionTraversalNodeOBB::leafTesting(int b1, int b2, const Matrix3f& Rc, const Vec3f& Tc) const
+void MeshCollisionTraversalNodeOBB::leafTesting(int bv_node1_id, int bv_node2_id, const Matrix3f& Rc, const Vec3f& Tc) const
 {
-  details::meshCollisionOrientedNodeLeafTesting(b1, b2, model1, model2, vertices1, vertices2, 
+  details::meshCollisionOrientedNodeLeafTesting(bv_node1_id, bv_node2_id, model1, model2, vertices1, vertices2, 
                                                 tri_indices1, tri_indices2, 
                                                 R, T, 
                                                 tf1, tf2,
@@ -225,15 +225,15 @@ MeshCollisionTraversalNodeRSS::MeshCollisionTraversalNodeRSS() : MeshCollisionTr
   R.setIdentity();
 }
 
-bool MeshCollisionTraversalNodeRSS::BVTesting(int b1, int b2) const
+bool MeshCollisionTraversalNodeRSS::BVTesting(int bv_node1_id, int bv_node2_id) const
 {
   if(enable_statistics) num_bv_tests++;
-  return !overlap(R, T, model1->getBV(b1).bv, model2->getBV(b2).bv);
+  return !overlap(R, T, model1->getBV(bv_node1_id).bv, model2->getBV(bv_node2_id).bv);
 }
 
-void MeshCollisionTraversalNodeRSS::leafTesting(int b1, int b2) const
+void MeshCollisionTraversalNodeRSS::leafTesting(int bv_node1_id, int bv_node2_id) const
 {
-  details::meshCollisionOrientedNodeLeafTesting(b1, b2, model1, model2, vertices1, vertices2, 
+  details::meshCollisionOrientedNodeLeafTesting(bv_node1_id, bv_node2_id, model1, model2, vertices1, vertices2, 
                                                 tri_indices1, tri_indices2, 
                                                 R, T, 
                                                 tf1, tf2,
@@ -250,15 +250,15 @@ MeshCollisionTraversalNodekIOS::MeshCollisionTraversalNodekIOS() : MeshCollision
   R.setIdentity();
 }
 
-bool MeshCollisionTraversalNodekIOS::BVTesting(int b1, int b2) const
+bool MeshCollisionTraversalNodekIOS::BVTesting(int bv_node1_id, int bv_node2_id) const
 {
   if(enable_statistics) num_bv_tests++;
-  return !overlap(R, T, model1->getBV(b1).bv, model2->getBV(b2).bv);
+  return !overlap(R, T, model1->getBV(bv_node1_id).bv, model2->getBV(bv_node2_id).bv);
 }
 
-void MeshCollisionTraversalNodekIOS::leafTesting(int b1, int b2) const
+void MeshCollisionTraversalNodekIOS::leafTesting(int bv_node1_id, int bv_node2_id) const
 {
-  details::meshCollisionOrientedNodeLeafTesting(b1, b2, model1, model2, vertices1, vertices2, 
+  details::meshCollisionOrientedNodeLeafTesting(bv_node1_id, bv_node2_id, model1, model2, vertices1, vertices2, 
                                                 tri_indices1, tri_indices2, 
                                                 R, T, 
                                                 tf1, tf2,
@@ -274,15 +274,15 @@ MeshCollisionTraversalNodeOBBRSS::MeshCollisionTraversalNodeOBBRSS() : MeshColli
   R.setIdentity();
 }
 
-bool MeshCollisionTraversalNodeOBBRSS::BVTesting(int b1, int b2) const
+bool MeshCollisionTraversalNodeOBBRSS::BVTesting(int bv_node1_id, int bv_node2_id) const
 {
   if(enable_statistics) num_bv_tests++;
-  return !overlap(R, T, model1->getBV(b1).bv, model2->getBV(b2).bv);
+  return !overlap(R, T, model1->getBV(bv_node1_id).bv, model2->getBV(bv_node2_id).bv);
 }
 
-void MeshCollisionTraversalNodeOBBRSS::leafTesting(int b1, int b2) const
+void MeshCollisionTraversalNodeOBBRSS::leafTesting(int bv_node1_id, int bv_node2_id) const
 {
-  details::meshCollisionOrientedNodeLeafTesting(b1, b2, model1, model2, vertices1, vertices2, 
+  details::meshCollisionOrientedNodeLeafTesting(bv_node1_id, bv_node2_id, model1, model2, vertices1, vertices2, 
                                                 tri_indices1, tri_indices2, 
                                                 R, T, 
                                                 tf1, tf2,
@@ -358,15 +358,15 @@ void MeshDistanceTraversalNodeRSS::postprocess()
   details::distancePostprocessOrientedNode(model1, model2, tf1, request, *result);
 }
 
-FCL_REAL MeshDistanceTraversalNodeRSS::BVTesting(int b1, int b2) const
+FCL_REAL MeshDistanceTraversalNodeRSS::BVTesting(int bv_node1_id, int bv_node2_id) const
 {
   if(enable_statistics) num_bv_tests++;
-  return distance(R, T, model1->getBV(b1).bv, model2->getBV(b2).bv);
+  return distance(R, T, model1->getBV(bv_node1_id).bv, model2->getBV(bv_node2_id).bv);
 }
 
-void MeshDistanceTraversalNodeRSS::leafTesting(int b1, int b2) const
+void MeshDistanceTraversalNodeRSS::leafTesting(int bv_node1_id, int bv_node2_id) const
 {
-  details::meshDistanceOrientedNodeLeafTesting(b1, b2, model1, model2, vertices1, vertices2, tri_indices1, tri_indices2, 
+  details::meshDistanceOrientedNodeLeafTesting(bv_node1_id, bv_node2_id, model1, model2, vertices1, vertices2, tri_indices1, tri_indices2, 
                                                R, T, enable_statistics, num_leaf_tests, 
                                                request, *result);
 }
@@ -386,15 +386,15 @@ void MeshDistanceTraversalNodekIOS::postprocess()
   details::distancePostprocessOrientedNode(model1, model2, tf1, request, *result);
 }
 
-FCL_REAL MeshDistanceTraversalNodekIOS::BVTesting(int b1, int b2) const
+FCL_REAL MeshDistanceTraversalNodekIOS::BVTesting(int bv_node1_id, int bv_node2_id) const
 {
   if(enable_statistics) num_bv_tests++;
-  return distance(R, T, model1->getBV(b1).bv, model2->getBV(b2).bv);
+  return distance(R, T, model1->getBV(bv_node1_id).bv, model2->getBV(bv_node2_id).bv);
 }
 
-void MeshDistanceTraversalNodekIOS::leafTesting(int b1, int b2) const
+void MeshDistanceTraversalNodekIOS::leafTesting(int bv_node1_id, int bv_node2_id) const
 {
-  details::meshDistanceOrientedNodeLeafTesting(b1, b2, model1, model2, vertices1, vertices2, tri_indices1, tri_indices2, 
+  details::meshDistanceOrientedNodeLeafTesting(bv_node1_id, bv_node2_id, model1, model2, vertices1, vertices2, tri_indices1, tri_indices2, 
                                                R, T, enable_statistics, num_leaf_tests, 
                                                request, *result);
 }
@@ -414,15 +414,15 @@ void MeshDistanceTraversalNodeOBBRSS::postprocess()
   details::distancePostprocessOrientedNode(model1, model2, tf1, request, *result);
 }
 
-FCL_REAL MeshDistanceTraversalNodeOBBRSS::BVTesting(int b1, int b2) const
+FCL_REAL MeshDistanceTraversalNodeOBBRSS::BVTesting(int bv_node1_id, int bv_node2_id) const
 {
   if(enable_statistics) num_bv_tests++;
-  return distance(R, T, model1->getBV(b1).bv, model2->getBV(b2).bv);
+  return distance(R, T, model1->getBV(bv_node1_id).bv, model2->getBV(bv_node2_id).bv);
 }
 
-void MeshDistanceTraversalNodeOBBRSS::leafTesting(int b1, int b2) const
+void MeshDistanceTraversalNodeOBBRSS::leafTesting(int bv_node1_id, int bv_node2_id) const
 {
-  details::meshDistanceOrientedNodeLeafTesting(b1, b2, model1, model2, vertices1, vertices2, tri_indices1, tri_indices2, 
+  details::meshDistanceOrientedNodeLeafTesting(bv_node1_id, bv_node2_id, model1, model2, vertices1, vertices2, tri_indices1, tri_indices2, 
                                                R, T, enable_statistics, num_leaf_tests, 
                                                request, *result);
 }
@@ -553,7 +553,7 @@ namespace details
 {
 
 template<typename BV>
-bool meshConservativeAdvancementOrientedNodeCanStop(FCL_REAL c,
+bool meshConservativeAdvancementOrientedNodeCanStop(FCL_REAL distance,
                                                     FCL_REAL min_distance,
                                                     FCL_REAL abs_err, FCL_REAL rel_err, FCL_REAL w,
                                                     const BVHModel<BV>* model1, const BVHModel<BV>* model2,
@@ -561,14 +561,15 @@ bool meshConservativeAdvancementOrientedNodeCanStop(FCL_REAL c,
                                                     std::vector<ConservativeAdvancementStackData>& stack,
                                                     FCL_REAL& delta_t)
 {
-  if((c >= w * (min_distance - abs_err)) && (c * (1 + rel_err) >= w * min_distance))
+  if((distance >= w * (min_distance - abs_err)) && (distance * (1 + rel_err) >= w * min_distance))
   {
     const ConservativeAdvancementStackData& data = stack.back();
     FCL_REAL d = data.d;
     Vec3f n;
     int c1, c2;
 
-    if(d > c)
+    // Get the stack data for correct (present) distance pair. Remove from the stack just this stack data for correct (present) distance pair.
+    if(d > distance)
     {
       const ConservativeAdvancementStackData& data2 = stack[stack.size() - 2];
       d = data2.d;
@@ -584,7 +585,7 @@ bool meshConservativeAdvancementOrientedNodeCanStop(FCL_REAL c,
       c2 = data.c2;
     }
 
-    assert(c == d);
+    assert(distance == d);
 
     // n is in local frame of c1, so we need to turn n into the global frame
     Vec3f n_transformed =
@@ -603,8 +604,8 @@ bool meshConservativeAdvancementOrientedNodeCanStop(FCL_REAL c,
     FCL_REAL bound = bound1 + bound2;
 
     FCL_REAL cur_delta_t;
-    if(bound <= c) cur_delta_t = 1;
-    else cur_delta_t = c / bound;
+    if(bound <= distance) cur_delta_t = 1;
+    else cur_delta_t = distance / bound;
 
     if(cur_delta_t < delta_t)
       delta_t = cur_delta_t;
@@ -618,7 +619,8 @@ bool meshConservativeAdvancementOrientedNodeCanStop(FCL_REAL c,
     const ConservativeAdvancementStackData& data = stack.back();
     FCL_REAL d = data.d;
 
-    if(d > c)
+    // Remove from the stack just the stack data for correct (present) distance pair.
+    if(d > distance)
       stack[stack.size() - 2] = stack[stack.size() - 1];
 
     stack.pop_back();
@@ -628,7 +630,7 @@ bool meshConservativeAdvancementOrientedNodeCanStop(FCL_REAL c,
 }
 
 template<typename BV>
-void meshConservativeAdvancementOrientedNodeLeafTesting(int b1, int b2,
+void meshConservativeAdvancementOrientedNodeLeafTesting(int bv_node1_id, int bv_node2_id,
                                                         const BVHModel<BV>* model1, const BVHModel<BV>* model2,
                                                         const Triangle* tri_indices1, const Triangle* tri_indices2,
                                                         const Vec3f* vertices1, const Vec3f* vertices2,
@@ -639,12 +641,13 @@ void meshConservativeAdvancementOrientedNodeLeafTesting(int b1, int b2,
                                                         Vec3f& p1, Vec3f& p2,
                                                         int& last_tri_id1, int& last_tri_id2,
                                                         FCL_REAL& delta_t,
-                                                        int& num_leaf_tests)
+                                                        int& num_leaf_tests,
+                                                        const FCL_REAL tolerance = 0.0)
 {
   if(enable_statistics) num_leaf_tests++;
 
-  const BVNode<BV>& node1 = model1->getBV(b1);
-  const BVNode<BV>& node2 = model2->getBV(b2);
+  const BVNode<BV>& node1 = model1->getBV(bv_node1_id);
+  const BVNode<BV>& node2 = model2->getBV(bv_node2_id);
 
   int primitive_id1 = node1.primitiveId();
   int primitive_id2 = node2.primitiveId();
@@ -663,13 +666,16 @@ void meshConservativeAdvancementOrientedNodeLeafTesting(int b1, int b2,
   // nearest point pair
   Vec3f P1, P2;
 
-  FCL_REAL d = TriangleDistance::triDistance(t11, t12, t13, t21, t22, t23,
+  FCL_REAL distance = TriangleDistance::triDistance(t11, t12, t13, t21, t22, t23,
                                              R, T,
                                              P1, P2);
 
-  if(d < min_distance)
+  // Applies Tolerance Distance
+  distance -= tolerance;
+
+  if(distance < min_distance)
   {
-    min_distance = d;
+    min_distance = distance;
 
     p1 = P1;
     p2 = P2;
@@ -678,7 +684,7 @@ void meshConservativeAdvancementOrientedNodeLeafTesting(int b1, int b2,
     last_tri_id2 = primitive_id2;
   }
 
-  if(d <= 0.000000001)
+  if(distance <= 0.000000001)
   {
     delta_t = 0.0;
     return;
@@ -699,8 +705,8 @@ void meshConservativeAdvancementOrientedNodeLeafTesting(int b1, int b2,
   FCL_REAL bound = bound1 + bound2;
 
   FCL_REAL cur_delta_t;
-  if(bound <= d) cur_delta_t = 1;
-  else cur_delta_t = d / bound;
+  if(bound <= distance) cur_delta_t = 1;
+  else cur_delta_t = distance / bound;
   if(cur_delta_t < delta_t)
     delta_t = cur_delta_t;
 }
@@ -714,21 +720,24 @@ MeshConservativeAdvancementTraversalNodeRSS::MeshConservativeAdvancementTraversa
   R.setIdentity();
 }
 
-FCL_REAL MeshConservativeAdvancementTraversalNodeRSS::BVTesting(int b1, int b2) const
+FCL_REAL MeshConservativeAdvancementTraversalNodeRSS::BVTesting(int bv_node1_id, int bv_node2_id) const
 {
   if(enable_statistics) num_bv_tests++;
   Vec3f P1, P2;
-  FCL_REAL d = distance(R, T, model1->getBV(b1).bv, model2->getBV(b2).bv, &P1, &P2);
+  FCL_REAL bv_nodes_distance = distance(R, T, model1->getBV(bv_node1_id).bv, model2->getBV(bv_node2_id).bv, &P1, &P2);
+  
+  // Applies Tolerance Distance
+  bv_nodes_distance -= this->getToleranceDistance();
 
-  stack.push_back(ConservativeAdvancementStackData(P1, P2, b1, b2, d));
+  stack.push_back(ConservativeAdvancementStackData(P1, P2, bv_node1_id, bv_node2_id, bv_nodes_distance));
 
-  return d;
+  return bv_nodes_distance;
 }
 
 
-void MeshConservativeAdvancementTraversalNodeRSS::leafTesting(int b1, int b2) const
+void MeshConservativeAdvancementTraversalNodeRSS::leafTesting(int bv_node1_id, int bv_node2_id) const
 {
-  details::meshConservativeAdvancementOrientedNodeLeafTesting(b1, b2,
+  details::meshConservativeAdvancementOrientedNodeLeafTesting(bv_node1_id, bv_node2_id,
                                                               model1, model2,
                                                               tri_indices1, tri_indices2,
                                                               vertices1, vertices2,
@@ -739,7 +748,8 @@ void MeshConservativeAdvancementTraversalNodeRSS::leafTesting(int b1, int b2) co
                                                               p1, p2,
                                                               last_tri_id1, last_tri_id2,
                                                               delta_t,
-                                                              num_leaf_tests);
+                                                              num_leaf_tests,
+                                                              this->getToleranceDistance() );
 }
 
 bool MeshConservativeAdvancementTraversalNodeRSS::canStop(FCL_REAL c) const
@@ -762,21 +772,21 @@ MeshConservativeAdvancementTraversalNodeOBBRSS::MeshConservativeAdvancementTrave
   R.setIdentity();
 }
 
-FCL_REAL MeshConservativeAdvancementTraversalNodeOBBRSS::BVTesting(int b1, int b2) const
+FCL_REAL MeshConservativeAdvancementTraversalNodeOBBRSS::BVTesting(int bv_node1_id, int bv_node2_id) const
 {
   if(enable_statistics) num_bv_tests++;
   Vec3f P1, P2;
-  FCL_REAL d = distance(R, T, model1->getBV(b1).bv, model2->getBV(b2).bv, &P1, &P2);
+  FCL_REAL d = distance(R, T, model1->getBV(bv_node1_id).bv, model2->getBV(bv_node2_id).bv, &P1, &P2);
 
-  stack.push_back(ConservativeAdvancementStackData(P1, P2, b1, b2, d));
+  stack.push_back(ConservativeAdvancementStackData(P1, P2, bv_node1_id, bv_node2_id, d));
 
   return d;
 }
 
 
-void MeshConservativeAdvancementTraversalNodeOBBRSS::leafTesting(int b1, int b2) const
+void MeshConservativeAdvancementTraversalNodeOBBRSS::leafTesting(int bv_node1_id, int bv_node2_id) const
 {
-  details::meshConservativeAdvancementOrientedNodeLeafTesting(b1, b2,
+  details::meshConservativeAdvancementOrientedNodeLeafTesting(bv_node1_id, bv_node2_id,
                                                               model1, model2,
                                                               tri_indices1, tri_indices2,
                                                               vertices1, vertices2,
@@ -787,7 +797,8 @@ void MeshConservativeAdvancementTraversalNodeOBBRSS::leafTesting(int b1, int b2)
                                                               p1, p2,
                                                               last_tri_id1, last_tri_id2,
                                                               delta_t,
-                                                              num_leaf_tests);
+                                                              num_leaf_tests,
+                                                              this->getToleranceDistance() );
 }
 
 bool MeshConservativeAdvancementTraversalNodeOBBRSS::canStop(FCL_REAL c) const
