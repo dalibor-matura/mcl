@@ -140,7 +140,7 @@ public:
 		initConfigurationsOnly();
 		initMovementOnly();
 
-		link_bound_.reset(new LinkBound(model_, movement_, finger_) );
+		link_bound_.reset(new LinkBound(movement_, finger_) );
 	}
 
 	void initMovementOnly()
@@ -271,7 +271,7 @@ public:
 
 		initMovementOnly();
 
-		link_bound_.reset(new LinkBound(model_, movement_, finger_) );
+		link_bound_.reset(new LinkBound(movement_, finger_) );
 
 		initArticularMotion();
 	}
@@ -427,7 +427,7 @@ protected:
 		initConfigurationsOnly();
 		initMovementOnly();
 
-		link_bound_.reset(new LinkBound(model_, movement_, finger_) );
+		link_bound_.reset(new LinkBound(movement_, finger_) );
 
 		initArticularMotion();
 	}

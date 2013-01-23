@@ -23,8 +23,7 @@ class JointBoundInfo;
 class LinkBound 
 {
 public:
-	LinkBound(boost::shared_ptr<const Model> model, boost::shared_ptr<const Movement> movement,
-		boost::shared_ptr<const Link> bounded_link);
+	LinkBound(boost::shared_ptr<const Movement> movement, boost::shared_ptr<const Link> bounded_link);
 
 	// direction must be normalized
 	FCL_REAL getMotionBound(const FCL_REAL& time, const Vec3f& direction, 

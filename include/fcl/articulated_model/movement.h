@@ -51,6 +51,8 @@ public:
 
 	FCL_REAL getDuration() const;
 
+	boost::shared_ptr<const Model> getModel() const;
+
 private:
 	void init();
 

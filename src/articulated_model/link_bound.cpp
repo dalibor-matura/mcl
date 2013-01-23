@@ -12,9 +12,8 @@
 namespace fcl 
 {
 
-LinkBound::LinkBound(boost::shared_ptr<const Model> model, boost::shared_ptr<const Movement> movement,
-	boost::shared_ptr<const Link> bounded_link) :
-	model_(model),
+LinkBound::LinkBound(boost::shared_ptr<const Movement> movement, boost::shared_ptr<const Link> bounded_link) :
+	model_(movement->getModel() ),
 	movement_(movement),
 	bounded_link_(bounded_link)
 {	

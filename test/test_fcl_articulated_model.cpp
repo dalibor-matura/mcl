@@ -40,7 +40,7 @@ public:
 		initConfigurations();
 		initMovement();
 
-		link_bound_.reset(new LinkBound(model_, movement_, finger_) );
+		link_bound_.reset(new LinkBound(movement_, finger_) );
 	}
 
 	void initMovement()
@@ -326,13 +326,13 @@ protected:
 	// bounded link = body_
 	void setEndCfgLinkBody()
 	{
-		link_bound_.reset(new LinkBound(model_, movement_, body_) );		
+		link_bound_.reset(new LinkBound(movement_, body_) );		
 	}
 
 	// bounded link = arm_
 	void setEndCfgLinkArm()
 	{
-		link_bound_.reset(new LinkBound(model_, movement_, arm_) );		
+		link_bound_.reset(new LinkBound(movement_, arm_) );		
 	}
 
 	// one rotation
@@ -347,7 +347,7 @@ protected:
 
 		initMovement();
 
-		link_bound_.reset(new LinkBound(model_, movement_, finger_) );		
+		link_bound_.reset(new LinkBound(movement_, finger_) );		
 	}
 
 	// two rotations
@@ -366,7 +366,7 @@ protected:
 
 		initMovement();
 
-		link_bound_.reset(new LinkBound(model_, movement_, finger_) );		
+		link_bound_.reset(new LinkBound(movement_, finger_) );		
 	}
 
 	// one linear movement
@@ -381,7 +381,7 @@ protected:
 
 		initMovement();
 
-		link_bound_.reset(new LinkBound(model_, movement_, finger_) );		
+		link_bound_.reset(new LinkBound(movement_, finger_) );		
 	}
 
 	// two linear movements
@@ -397,7 +397,7 @@ protected:
 
 		initMovement();
 
-		link_bound_.reset(new LinkBound(model_, movement_, finger_) );		
+		link_bound_.reset(new LinkBound(movement_, finger_) );		
 	}
 
 	// one rotation + one linear movement
@@ -413,7 +413,7 @@ protected:
 
 		initMovement();
 
-		link_bound_.reset(new LinkBound(model_, movement_, finger_) );		
+		link_bound_.reset(new LinkBound(movement_, finger_) );		
 	}
 
 	// two rotations + transform to parent
@@ -435,7 +435,7 @@ protected:
 
 		initMovement();
 
-		link_bound_.reset(new LinkBound(model_, movement_, finger_) );		
+		link_bound_.reset(new LinkBound(movement_, finger_) );		
 	}
 
 protected:
@@ -1268,7 +1268,7 @@ BOOST_FIXTURE_TEST_CASE(test_get_motion_bound_for_end_cfg_6, LinkBoundFixture)
 
 BOOST_FIXTURE_TEST_CASE(test_get_bounded_link_global_transform, LinkBoundFixture)
 {
-	link_bound_.reset(new LinkBound(model_, movement_, forearm_) );
+	link_bound_.reset(new LinkBound(movement_, forearm_) );
 
 	Transform3f transform = link_bound_->getBoundedLinkGlobalTransform(0.0);
 	Transform3f expected_transform = elbow_joint_->getTransformToParent();

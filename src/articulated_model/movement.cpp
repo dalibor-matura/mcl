@@ -331,4 +331,9 @@ FCL_REAL Movement::getDuration() const
 	return interpolations_max_time_scale_;
 }
 
+boost::shared_ptr<const Model> Movement::getModel() const
+{
+	return model_;
+}
+
 }
