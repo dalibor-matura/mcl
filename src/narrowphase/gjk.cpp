@@ -358,6 +358,7 @@ GJK::Status GJK::evaluate(const MinkowskiDiff& shape_, const Vec3f& guess)
 
     // reduce simplex and decide the extend direction
     FCL_REAL weights[4];
+    std::fill_n(weights, 4, 0.0);
     size_t mask = 0; // decide the simplex vertices that compose the minimal distance
     switch(curr_simplex.rank)
     {

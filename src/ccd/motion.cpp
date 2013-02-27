@@ -115,7 +115,8 @@ FCL_REAL TriangleMotionBoundVisitor::visit(const SplineMotion& motion) const
 }
 
 SplineMotion::SplineMotion(const Vec3f& Td0, const Vec3f& Td1, const Vec3f& Td2, const Vec3f& Td3,
-                           const Vec3f& Rd0, const Vec3f& Rd1, const Vec3f& Rd2, const Vec3f& Rd3)
+                           const Vec3f& Rd0, const Vec3f& Rd1, const Vec3f& Rd2, const Vec3f& Rd3) :
+  tf_t(0.0)
 {
   Td[0] = Td0;
   Td[1] = Td1;
@@ -527,7 +528,8 @@ Quaternion3f InterpMotion::absoluteRotation(FCL_REAL dt) const
 
 ArticularMotion::ArticularMotion(boost::shared_ptr<LinkBound> link_bound) :
   link_bound_(link_bound),
-  reference_point_(Vec3f(0, 0, 0))
+  reference_point_(Vec3f(0, 0, 0) ),
+  time_(0.0)
 {
   isArticular(true);
 

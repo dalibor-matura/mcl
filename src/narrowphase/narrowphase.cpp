@@ -2112,7 +2112,8 @@ bool conePlaneIntersect(const Cone& s1, const Transform3f& tf1,
         Vec3f q;
             
         FCL_REAL p_d[2];
-        FCL_REAL q_d;
+		std::fill_n(p_d, 2, 0.0);
+        FCL_REAL q_d = 0.0;
 
         if(n_positive == 2)
         {            

@@ -57,6 +57,7 @@ Joint::Joint(const boost::shared_ptr<Link>& link_parent, const boost::shared_ptr
 			 const std::string& name) :
   link_parent_(link_parent), link_child_(link_child),
   transform_to_parent_(transform_to_parent),
+  type_(JT_UNKNOWN),
   name_(name)
 {}
 

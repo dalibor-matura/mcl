@@ -42,13 +42,25 @@
 namespace fcl
 {
 
-IntervalTreeNode::IntervalTreeNode(){}
+IntervalTreeNode::IntervalTreeNode() :
+  stored_interval(NULL),
+  key(0.0),
+  high(0.0),
+  max_high(0.0),
+  red(false),
+  left(NULL),
+  right(NULL),
+  parent(NULL) {}
 
 IntervalTreeNode::IntervalTreeNode(SimpleInterval* new_interval) :
   stored_interval (new_interval),
   key(new_interval->low),
   high(new_interval->high),
-  max_high(high) {}
+  max_high(high),
+  red(false),
+  left(NULL),
+  right(NULL),
+  parent(NULL) {}
 
 IntervalTreeNode::~IntervalTreeNode() {}
 
@@ -67,7 +79,8 @@ public:
 };
 
 
-IntervalTree::IntervalTree()
+IntervalTree::IntervalTree() :
+  current_parent(0)
 {
   nil = new IntervalTreeNode;
   nil->left = nil->right = nil->parent = nil;

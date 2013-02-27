@@ -107,6 +107,7 @@ void InterpolationThirdOrder::correctInterpolationData()
 {
 	if ( getAbsEntireDistance() == 0.0 )
 	{
+
 		return; // no need to change anything
 	}
 

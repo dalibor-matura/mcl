@@ -211,7 +211,8 @@ private:
   FCL_REAL time_of_contact_;
 
 public:
-  CollisionResult()
+  CollisionResult() :
+	  time_of_contact_(0.0)
   {
   }
 

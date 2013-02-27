@@ -213,11 +213,11 @@ class ScrewMotion : public MotionBase
 {
 public:
   /// @brief Default transformations are all identities
-  ScrewMotion()
+  ScrewMotion() :
+    angular_vel(0)
   {
     // Default angular velocity is zero
-    axis.setValue(1, 0, 0);
-    angular_vel = 0;
+    axis.setValue(1, 0, 0);    
 
     // Default reference point is local zero point
 
@@ -229,7 +229,8 @@ public:
   ScrewMotion(const Matrix3f& R1, const Vec3f& T1,
               const Matrix3f& R2, const Vec3f& T2) : tf1(R1, T1),
                                                      tf2(R2, T2),
-                                                     tf(tf1)
+                                                     tf(tf1),
+                                                     angular_vel(0)
   {
     computeScrewParameter();
   }
@@ -606,7 +607,8 @@ public:
 
 private:
   // Non parametrized constructor is not allowed
-  ArticularMotion() {};
+  ArticularMotion() :
+    time_(0.0) {};
 
 private:
   boost::shared_ptr<LinkBound> link_bound_;
