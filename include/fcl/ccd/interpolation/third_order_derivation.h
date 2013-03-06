@@ -21,13 +21,15 @@ public:
 
 	FCL_REAL getDerivation(FCL_REAL time) const;
 
-	FCL_REAL getAbsoluteMaxDerivation(FCL_REAL time) const;
+	FCL_REAL getAbsoluteMaxDerivation(FCL_REAL start_time) const;
+	FCL_REAL getAbsoluteMaxDerivation(FCL_REAL start_time, FCL_REAL end_time) const;
 private:
 	void init();
 
 	std::size_t getTimeUpperBound(const FCL_REAL time) const;
 
 	void initDerivationCalculation();
+
 
 	FCL_REAL getDerivation_t0_t0(FCL_REAL time) const;
 	// first jerk

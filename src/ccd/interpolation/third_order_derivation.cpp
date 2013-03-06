@@ -44,10 +44,6 @@ FCL_REAL ThirdOrderDerivation::getDerivation_t0_t0(FCL_REAL time) const
 // first jerk
 FCL_REAL ThirdOrderDerivation::getDerivation_t0_t1(FCL_REAL time) const
 {
-	/*return data_->getMaxJerk() * 
-		(3.0 * pow(time,2) - 6.0 * points_->getTimePoint(0) * time + 
-		3.0 * pow(points_->getTimePoint(0),2) ) / 6.0;*/
-
 	return 0.5 * data_->getMaxJerk() * pow(time - points_->getTimePoint(0), 2) +
 		points_->getVelocityPoint(0);
 }
@@ -62,11 +58,6 @@ FCL_REAL ThirdOrderDerivation::getDerivation_t1_t2(FCL_REAL time) const
 // second jerk
 FCL_REAL ThirdOrderDerivation::getDerivation_t2_t3(FCL_REAL time) const
 {
-	/*return data_->getMaxAcceleration() * (time - points_->getTimePoint(1) ) - 
-		data_->getMaxJerk() * (3 * time - 2 * points_->getTimePoint(2) * time +
-		pow(points_->getTimePoint(2),2) ) / 3 + 
-		data_->getMaxJerk() * pow(points_->getTimePoint(1) - points_->getTimePoint(0),2);*/
-
 	return data_->getMaxAcceleration() * (time - points_->getTimePoint(1) ) - 
 		0.5 * data_->getMaxJerk() * pow(time - points_->getTimePoint(2), 2) +
 		points_->getVelocityPoint(1);
@@ -80,7 +71,7 @@ FCL_REAL ThirdOrderDerivation::getDerivation_t3_t4(FCL_REAL time) const
 
 FCL_REAL ThirdOrderDerivation::getDerivation(FCL_REAL time) const
 {
-	BOOST_ASSERT_MSG(time >= 0, "Time is negative value.");
+	BOOST_ASSERT(time >= 0.0);
 
 	if (time >=  points_->getEntireTime() )
 	{
@@ -109,16 +100,42 @@ FCL_REAL ThirdOrderDerivation::getMirrorDerivation(FCL_REAL time) const
 	return -derivation_functions_[points_->getTimeUpperBound(time)](time);
 }
 
-FCL_REAL ThirdOrderDerivation::getAbsoluteMaxDerivation(FCL_REAL time) const
+FCL_REAL ThirdOrderDerivation::getAbsoluteMaxDerivation(FCL_REAL start_time) const
 {
-	FCL_REAL half_of_entire_time = points_->getEntireTime() / 2;
+	BOOST_ASSERT(start_time >= 0.0);
 
-	if (time <= half_of_entire_time)
+	FCL_REAL half_of_entire_time = points_->getEntireTime() / 2.0;
+
+	if (start_time > half_of_entire_time)
+	{
+		return fabs(getDerivation(start_time) );
+	}	
+	else
 	{
 		return fabs(getDerivation(half_of_entire_time) );
 	}
+}
 
-	return fabs(getDerivation(time) );
+FCL_REAL ThirdOrderDerivation::getAbsoluteMaxDerivation(FCL_REAL start_time, FCL_REAL end_time) const
+{
+	BOOST_ASSERT(start_time >= 0.0);
+	BOOST_ASSERT(start_time <= end_time);
+
+	FCL_REAL half_of_entire_time = points_->getEntireTime() / 2.0;
+
+	if (start_time > half_of_entire_time)
+	{
+		return fabs(getDerivation(start_time) );
+	}	
+
+	if (end_time >= half_of_entire_time)
+	{
+		return fabs(getDerivation(half_of_entire_time) );
+	}		
+	else
+	{
+		return fabs(getDerivation(end_time) );
+	}	
 }
 
 }

@@ -79,7 +79,8 @@ public:
   virtual FCL_REAL getMovementLengthBound(FCL_REAL time) const = 0;
 
   /// @brief time value is from interval [0, 1]
-  virtual FCL_REAL getVelocityBound(FCL_REAL time) const = 0;
+  virtual FCL_REAL getVelocityBound(FCL_REAL start_time) const = 0;
+  virtual FCL_REAL getVelocityBound(FCL_REAL start_time, FCL_REAL end_time) const = 0;
 
   /// @brief return time scale ; time interval [0, 1] is scaled from interval [0, time scale]
   virtual FCL_REAL getTimeScale() const = 0;

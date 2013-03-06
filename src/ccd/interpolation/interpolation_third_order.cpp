@@ -81,7 +81,7 @@ void InterpolationThirdOrder::initData(const boost::shared_ptr<const Interpolati
 const boost::shared_ptr<const InterpolationThirdOrderData> 
 	InterpolationThirdOrder::getThirdOrderInterpolationData(const boost::shared_ptr<const InterpolationData>& data)
 {
-	BOOST_ASSERT_MSG(data->getType() == interpolation_third_order_type, "Static cast is not safe.");
+	BOOST_ASSERT(data->getType() == interpolation_third_order_type && "Static cast is not safe.");
 
 	return boost::static_pointer_cast<const InterpolationThirdOrderData>(data);
 }
@@ -170,7 +170,7 @@ void InterpolationThirdOrder::initControlPoints()
 
 FCL_REAL InterpolationThirdOrder::getValue(FCL_REAL time) const
 {
-	BOOST_ASSERT_MSG(time >= 0 && time <= 1, "Time is out of range [0, 1].");
+	BOOST_ASSERT(time >= 0 && time <= 1 && "Time is out of range [0, 1].");
 
 	scaleTimeIn(time);
 
@@ -179,7 +179,7 @@ FCL_REAL InterpolationThirdOrder::getValue(FCL_REAL time) const
 
 FCL_REAL InterpolationThirdOrder::getDistance(const FCL_REAL time) const
 {
-	BOOST_ASSERT_MSG(time >= 0, "Time must be positive value.");
+	BOOST_ASSERT(time >= 0 && "Time must be positive value.");
 
 	if ( getAbsEntireDistance() == 0.0 )
 	{
@@ -254,7 +254,7 @@ void InterpolationThirdOrder::registerToFactory()
 
 FCL_REAL InterpolationThirdOrder::getMovementLengthBound(FCL_REAL time) const
 {
-	BOOST_ASSERT_MSG(time >= 0 && time <= 1, "Time is out of range [0, 1].");
+	BOOST_ASSERT(time >= 0 && time <= 1 && "Time is out of range [0, 1].");
 
 	scaleTimeIn(time);
 
@@ -268,13 +268,28 @@ FCL_REAL InterpolationThirdOrder::getMovementLengthBound(FCL_REAL time) const
 	}
 }
 
-FCL_REAL InterpolationThirdOrder::getVelocityBound(FCL_REAL time) const
+FCL_REAL InterpolationThirdOrder::getVelocityBound(FCL_REAL start_time) const
 {
-	BOOST_ASSERT_MSG(time >= 0 && time <= 1, "Time is out of range [0, 1].");
+	BOOST_ASSERT(start_time >= 0.0);
+	BOOST_ASSERT(start_time <= 1.0);
 
-	scaleTimeIn(time);
+	scaleTimeIn(start_time);
 
-	FCL_REAL velocity_bound = third_order_derivation_->getAbsoluteMaxDerivation(time);
+	FCL_REAL velocity_bound = third_order_derivation_->getAbsoluteMaxDerivation(start_time);
+
+	return scaleValueOut(velocity_bound);
+}
+
+FCL_REAL InterpolationThirdOrder::getVelocityBound(FCL_REAL start_time, FCL_REAL end_time) const
+{
+	BOOST_ASSERT(start_time >= 0.0);
+	BOOST_ASSERT(start_time <= end_time);
+	BOOST_ASSERT(end_time <= 1.0);
+
+	scaleTimeIn(start_time);
+	scaleTimeIn(end_time);
+
+	FCL_REAL velocity_bound = third_order_derivation_->getAbsoluteMaxDerivation(start_time, end_time);
 
 	return scaleValueOut(velocity_bound);
 }
