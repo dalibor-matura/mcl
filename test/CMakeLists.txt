@@ -2,10 +2,11 @@ macro(add_fcl_test test_name)
   add_executable(${ARGV})
   target_link_libraries(${test_name}
     fcl
-    ${Boost_SYSTEM_LIBRARY}
-    ${Boost_THREAD_LIBRARY}
-    ${Boost_DATE_TIME_LIBRARY}
-    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+    ${Boost_SYSTEM_LIBRARY_RELATIVE_PATHS}
+    ${Boost_THREAD_LIBRARY_RELATIVE_PATHS}
+    ${Boost_DATE_TIME_LIBRARY_RELATIVE_PATHS}
+    ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY_RELATIVE_PATHS})
+	  
   add_test(${test_name} ${EXECUTABLE_OUTPUT_PATH}/${test_name})
 endmacro(add_fcl_test)
 
@@ -31,6 +32,7 @@ add_fcl_test(test_fcl_articulated_model test_fcl_articulated_model.cpp)
 add_fcl_test(test_fcl_articulated_collision test_fcl_articulated_collision.cpp test_fcl_utility.cpp)
 add_fcl_test(test_fcl_interpolation test_fcl_interpolation.cpp)
 add_fcl_test(test_fcl_broadphase_continues test_fcl_broadphase_continues.cpp test_fcl_utility.cpp)
+add_fcl_test(test_fcl_conservative_advancemen test_fcl_conservative_advancement.cpp test_fcl_utility.cpp)
 
 if (FCL_HAVE_OCTOMAP)
   add_fcl_test(test_fcl_octomap test_fcl_octomap.cpp test_fcl_utility.cpp)

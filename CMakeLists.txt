@@ -13,6 +13,8 @@ include(FCLVersion)
 
 option(FCL_STATIC_LIBRARY "Whether the FCL library should be static rather than shared" OFF)
 
+option(FCL_64 "Whether the FCL library should be 64 bit" OFF)
+
 # Whether to enable SSE
 option(FCL_USE_SSE "Whether FCL should SSE instructions" ON)
 set(FCL_HAVE_SSE 0)
@@ -51,7 +53,14 @@ else()
 endif()
 
 find_package(Boost COMPONENTS thread date_time filesystem system unit_test_framework REQUIRED)
+
+if(FCL_64)
+	set(Boost_LIBRARYDIR "${Boost_LIBRARY_DIRS}/x64")
+	set(Boost_LIBRARY_DIRS "${Boost_LIBRARY_DIRS}/x64")
+endif()
+
 include_directories(${Boost_INCLUDE_DIR})
+link_directories(${Boost_LIBRARYDIR})
 
 if(MSVC OR MSVC90 OR MSVC10)
     add_definitions(-DBOOST_ALL_NO_LIB)
@@ -78,6 +87,39 @@ if(NOT CCD_FOUND)
 endif()
 include_directories(${CCD_INCLUDE_DIRS})
 link_directories(${CCD_LIBRARY_DIRS})
+
+#-------------------------------------------------------------------------------
+
+#
+# FCL's and Tests' common functions and variables
+#
+
+function(_FCL_CREATE_RELATIVE_PATHS _OUTPUT_LIBRARY _INPUT_LIBRARY)
+  get_filename_component(
+    _LIBRARY_RELATIVE_RELEASE
+	"${${_INPUT_LIBRARY}_RELEASE}"
+	NAME
+  )
+  
+  get_filename_component(
+    _LIBRARY_RELATIVE_DEBUG
+	"${${_INPUT_LIBRARY}_DEBUG}"
+	NAME
+  )  
+  
+  set(${_OUTPUT_LIBRARY} "optimized;${_LIBRARY_RELATIVE_RELEASE};debug;${_LIBRARY_RELATIVE_DEBUG}" PARENT_SCOPE)
+  
+  # message(STATUS "_LIBRARY_RELATIVE_RELEASE = ${_LIBRARY_RELATIVE_RELEASE}")
+  # message(STATUS "_LIBRARY_RELATIVE_DEBUG = ${_LIBRARY_RELATIVE_DEBUG}")
+  # message(STATUS "_OUTPUT_LIBRARY = ${${_OUTPUT_LIBRARY}}")
+endfunction()
+
+_FCL_CREATE_RELATIVE_PATHS(Boost_SYSTEM_LIBRARY_RELATIVE_PATHS Boost_SYSTEM_LIBRARY)
+_FCL_CREATE_RELATIVE_PATHS(Boost_THREAD_LIBRARY_RELATIVE_PATHS Boost_THREAD_LIBRARY)
+_FCL_CREATE_RELATIVE_PATHS(Boost_DATE_TIME_LIBRARY_RELATIVE_PATHS Boost_DATE_TIME_LIBRARY)
+_FCL_CREATE_RELATIVE_PATHS(Boost_UNIT_TEST_FRAMEWORK_LIBRARY_RELATIVE_PATHS Boost_UNIT_TEST_FRAMEWORK_LIBRARY)
+
+#-------------------------------------------------------------------------------
 
 add_subdirectory(include/fcl)
 add_subdirectory(src)
