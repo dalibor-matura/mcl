@@ -125,6 +125,22 @@ struct CollisionData
   bool done;
 };
 
+struct ContinuousCollisionData
+{
+  ContinuousCollisionData()
+  {
+      done = false;
+  }
+
+  /// @brief Collision request
+  ContinuousCollisionRequest request;
+  
+  /// @brief Collision result
+  ContinuousCollisionResult result;
+  
+  /// @brief Whether the collision iteration can stop
+  bool done;
+};
 
 /// @brief Distance data stores the distance request and the result given by distance algorithm. 
 struct DistanceData

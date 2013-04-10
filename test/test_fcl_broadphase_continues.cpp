@@ -154,7 +154,7 @@ private:
 
 	void collision(boost::shared_ptr<BroadPhaseContinuousCollisionManager>& manager, int expected_contacts = 1)
 	{
-		CollisionData collision_data;	
+		ContinuousCollisionData collision_data;	
 		collision_data.request.num_max_contacts = 1;
 
 		manager->collide(&collision_data, defaultContinuousCollisionFunction);
@@ -631,13 +631,15 @@ protected:
 		return collision_result_info.getNumberOfContact();
 	}
 
-	int performGuardedCollision(FCL_REAL density_ratio = 1.0)
+	int performGuardedCollision(FCL_REAL density_ratio = 1.0, FCL_REAL default_epsilon = -1.0)
 	{
 		CollisionResultInfo discrete_result_info = performDenseDiscreteCollision(density_ratio);
 		CollisionResultInfo continues_result_info = performContinuousCollision();		
 
 		FCL_REAL epsilon = 
 			std::max(continues_result_info.getErrorMargin(), discrete_result_info.getErrorMargin() );
+
+		epsilon = std::max(default_epsilon, epsilon);
 
 		std::cout << "Continues number of contacts: " << continues_result_info.getNumberOfContact() <<
 			" Discrete number of contacts: " << discrete_result_info.getNumberOfContact() << std::endl;
@@ -1011,7 +1013,7 @@ BOOST_FIXTURE_TEST_CASE(test_correctnes_linear_interpolation, ArticularCollision
 	BOOST_CHECK_EQUAL(0, number_of_contacts);
 
 	setConfigurations_5();
-	number_of_contacts = performGuardedCollision();
+	number_of_contacts = performGuardedCollision(1.0, 0.001);
 	BOOST_CHECK_EQUAL(1, number_of_contacts);
 
 	setConfigurations_6();

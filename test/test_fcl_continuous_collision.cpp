@@ -40,7 +40,7 @@ public:
 
 	bool testCollision()
 	{
-		CollisionData collision_data;	
+		ContinuousCollisionData collision_data;	
 		collision_data.request.num_max_contacts = 1;
 
 		return defaultContinuousCollisionFunction(static_ccd_object_.get(), moving_ccd_object_.get(), &collision_data);

@@ -446,13 +446,15 @@ protected:
 		return collision_result_info.getNumberOfContact();
 	}
 
-	int performGuardedCollision(FCL_REAL density_ratio = 1.0)
+	int performGuardedCollision(FCL_REAL density_ratio = 1.0, FCL_REAL default_epsilon = -1.0)
 	{
 		CollisionResultInfo discrete_result_info = performDenseDiscreteCollision(density_ratio);
 		CollisionResultInfo continues_result_info = performContinuousCollision();		
 
 		FCL_REAL epsilon = 
 			std::max(continues_result_info.getErrorMargin(), discrete_result_info.getErrorMargin() );
+
+		epsilon = std::max(default_epsilon, epsilon);
 
 		std::cout << "Continues number of contacts: " << continues_result_info.getNumberOfContact() <<
 			" Discrete number of contacts: " << discrete_result_info.getNumberOfContact() << std::endl;
@@ -742,65 +744,6 @@ std::ostream& operator << (std::ostream& o, const ModelConfig& c)
 ////////////////////////////////////////////////////////////////////////////////
 BOOST_AUTO_TEST_SUITE(test_model_bound)
 
-//BOOST_FIXTURE_TEST_CASE(test_dense_discrete_collision, ArticularCollisionFixture)
-//{
-//	int number_of_contacts = 0;
-//
-//	// test for LINEAR INTERPOLATION
-//	setJointsInterpolation(boost::make_shared<const InterpolationLinearData>() );
-//
-//	setConfigurations_1();
-//	number_of_contacts = performSimpleDenseDiscreteCollision();
-//	BOOST_CHECK_EQUAL(1, number_of_contacts);
-//
-//	setConfigurations_2();
-//	number_of_contacts = performSimpleDenseDiscreteCollision();
-//	BOOST_CHECK_EQUAL(1, number_of_contacts);
-//
-//	setConfigurations_3();
-//	number_of_contacts = performSimpleDenseDiscreteCollision();
-//	BOOST_CHECK_EQUAL(0, number_of_contacts);
-//
-//	setConfigurations_4();
-//	number_of_contacts = performSimpleDenseDiscreteCollision();
-//	BOOST_CHECK_EQUAL(0, number_of_contacts);
-//
-//	setConfigurations_5();
-//	number_of_contacts = performSimpleDenseDiscreteCollision();
-//	BOOST_CHECK_EQUAL(1, number_of_contacts);
-//
-//	setConfigurations_6();
-//	number_of_contacts = performSimpleDenseDiscreteCollision();
-//	BOOST_CHECK_EQUAL(0, number_of_contacts);
-//
-//	// test for THIRD ORDER INTERPOLATION
-//	setJointsInterpolation(boost::make_shared<const InterpolationThirdOrderData>(10, 10, 10) );
-//
-//	setConfigurations_1();
-//	number_of_contacts = performSimpleDenseDiscreteCollision();
-//	BOOST_CHECK_EQUAL(1, number_of_contacts);
-//
-//	setConfigurations_2();
-//	number_of_contacts = performSimpleDenseDiscreteCollision();
-//	BOOST_CHECK_EQUAL(1, number_of_contacts);
-//
-//	setConfigurations_3();
-//	number_of_contacts = performSimpleDenseDiscreteCollision();
-//	BOOST_CHECK_EQUAL(0, number_of_contacts);
-//
-//	setConfigurations_4();
-//	number_of_contacts = performSimpleDenseDiscreteCollision();
-//	BOOST_CHECK_EQUAL(0, number_of_contacts);
-//
-//	setConfigurations_5();
-//	number_of_contacts = performSimpleDenseDiscreteCollision();
-//	BOOST_CHECK_EQUAL(1, number_of_contacts);
-//
-//	setConfigurations_6();
-//	number_of_contacts = performSimpleDenseDiscreteCollision();
-//	BOOST_CHECK_EQUAL(0, number_of_contacts);
-//}
-
 BOOST_FIXTURE_TEST_CASE(test_time_of_contact_continues, ArticularCollisionFixture)
 {
 	setJointsInterpolation(boost::make_shared<const InterpolationLinearData>() );
@@ -856,7 +799,7 @@ BOOST_FIXTURE_TEST_CASE(test_articulated_collision_with_linear_interpolation, Ar
 	BOOST_CHECK_EQUAL(0, number_of_contacts);
 
 	setConfigurations_5();
-	number_of_contacts = performGuardedCollision();
+	number_of_contacts = performGuardedCollision(1.0, 0.001);
 	BOOST_CHECK_EQUAL(1, number_of_contacts);
 
 	setConfigurations_6();
