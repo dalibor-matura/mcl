@@ -163,7 +163,7 @@ struct morton_functor<boost::dynamic_bitset<> >
     FCL_REAL x = (point[0] - base[0]) * inv[0];
     FCL_REAL y = (point[1] - base[1]) * inv[1];
     FCL_REAL z = (point[2] - base[2]) * inv[2];
-    int start_bit = bit_num * 3 - 1;
+    int start_bit = (int)bit_num * 3 - 1;
     boost::dynamic_bitset<> bits(bit_num * 3);
 
     x *= 2;

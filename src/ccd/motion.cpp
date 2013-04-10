@@ -37,6 +37,9 @@
 
 #include "fcl/ccd/motion.h"
 
+#include "fcl/articulated_model/link_bound.h"
+#include "fcl/articulated_model/joint.h"
+
 namespace fcl
 {
 
@@ -529,6 +532,7 @@ Quaternion3f InterpMotion::absoluteRotation(FCL_REAL dt) const
 ArticularMotion::ArticularMotion(boost::shared_ptr<LinkBound> link_bound) :
   link_bound_(link_bound),
   reference_point_(Vec3f(0, 0, 0) ),
+  //reference_point_(link_bound->getLastJoint()->getTransformToParent().getTranslation() ),
   time_(0.0)
 {
   isArticular(true);
@@ -563,7 +567,7 @@ FCL_REAL ArticularMotion::getNonDirectionalMotionBound(
 template<>
 FCL_REAL TBVMotionBoundVisitor<RSS>::visit(const ArticularMotion& motion) const
 {
-  const Vec3f& reference_point = motion.getReferencePoint();
+  Vec3f reference_point = motion.getReferencePoint();
   
   FCL_REAL proj_max = 0;
   FCL_REAL tmp = 0;
@@ -586,7 +590,7 @@ FCL_REAL TBVMotionBoundVisitor<RSS>::visit(const ArticularMotion& motion) const
 /// Notice that the triangle is in the local frame of the object, but n should be in the global frame (the reason is that the motion (t1, t2 and t) is in global frame)
 FCL_REAL TriangleMotionBoundVisitor::visit(const ArticularMotion& motion) const
 {
-  const Vec3f& reference_point = motion.getReferencePoint();
+  Vec3f reference_point = motion.getReferencePoint();
 
   FCL_REAL proj_max = 0;
   FCL_REAL tmp = 0;

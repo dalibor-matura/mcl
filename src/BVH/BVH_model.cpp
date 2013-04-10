@@ -248,7 +248,7 @@ int BVHModel<BV>::addSubModel(const std::vector<Vec3f>& ps)
     return BVH_ERR_BUILD_OUT_OF_SEQUENCE;
   }
 
-  int num_vertices_to_add = ps.size();
+  int num_vertices_to_add = static_cast<int>(ps.size() );
 
   if(num_vertices + num_vertices_to_add - 1 >= num_vertices_allocated)
   {
@@ -283,7 +283,7 @@ int BVHModel<BV>::addSubModel(const std::vector<Vec3f>& ps, const std::vector<Tr
     return BVH_ERR_BUILD_OUT_OF_SEQUENCE;
   }
 
-  int num_vertices_to_add = ps.size();
+  int num_vertices_to_add = static_cast<int>(ps.size() );
 
   if(num_vertices + num_vertices_to_add - 1 >= num_vertices_allocated)
   {
@@ -309,7 +309,7 @@ int BVHModel<BV>::addSubModel(const std::vector<Vec3f>& ps, const std::vector<Tr
   }
 
 
-  int num_tris_to_add = ts.size();
+  int num_tris_to_add = static_cast<int>(ts.size() );
 
   if(num_tris + num_tris_to_add - 1 >= num_tris_allocated)
   {
@@ -689,7 +689,7 @@ int BVHModel<BV>::recursiveBuildTree(int bv_id, int first_primitive, int num_pri
 
   if(num_primitives == 1)
   {
-    bvnode->first_child = -((*cur_primitive_indices) + 1);
+    bvnode->first_child = -static_cast<int>( ( (*cur_primitive_indices) + 1) );
   }
   else
   {

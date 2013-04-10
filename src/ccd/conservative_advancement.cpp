@@ -35,144 +35,54 @@
 /** \author Jia Pan */
 
 #include "fcl/ccd/conservative_advancement.h"
-#include "fcl/ccd/motion.h"
-#include "fcl/collision_node.h"
-#include "fcl/traversal/traversal_node_bvhs.h"
-#include "fcl/traversal/traversal_node_setup.h"
-#include "fcl/traversal/traversal_recurse.h"
-#include "fcl/collision.h"
 
+#include <boost/make_shared.hpp>
 
 namespace fcl
-
 {
 
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
 int conservativeAdvancement(const CollisionGeometry* o1,
-                            const MotionBase* motion1,
-                            const CollisionGeometry* o2,
-                            const MotionBase* motion2,
-                            const CollisionRequest& request,
-                            CollisionResult& result,
-                            FCL_REAL& toc)
+							const MotionBase* motion1,
+							const CollisionGeometry* o2,
+							const MotionBase* motion2,
+							const CollisionRequest& request,
+							CollisionResult& result,
+							FCL_REAL& toc)
 {
-  if(request.num_max_contacts == 0)
-  {
-    std::cerr << "Warning: should stop early as num_max_contact is " << request.num_max_contacts << " !" << std::endl;
-    return 0;
-  }
+	typedef ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode> ConservativeAdvancementType;
 
-  const OBJECT_TYPE object_type1 = o1->getObjectType();
-  const NODE_TYPE node_type1 = o1->getNodeType();
+	boost::shared_ptr<ConservativeAdvancementType> advancement = 
+		boost::make_shared<ConservativeAdvancementType>(o1, motion1, o2, motion2);
 
-  const OBJECT_TYPE object_type2 = o2->getObjectType();
-  const NODE_TYPE node_type2 = o2->getNodeType();
+	ContinuousCollisionRequest continuous_request;
+	ContinuousCollisionResult continuous_result;
 
-  if(object_type1 != OT_BVH || object_type2 != OT_BVH)
-    return 0;
+	continuous_request.assign(request);
+	advancement->collide(continuous_request, continuous_result);
+	result = continuous_result;
 
-  if(node_type1 != BV_RSS || node_type2 != BV_RSS)
-    return 0;
+	toc = continuous_result.getTimeOfContact();
 
-
-  const BVHModel<BV>* model1 = static_cast<const BVHModel<BV>*>(o1);
-  const BVHModel<BV>* model2 = static_cast<const BVHModel<BV>*>(o2);
-
-  // Start path from beginning
-  motion1->integrate(0.0);
-  motion2->integrate(0.0);
-
-  Transform3f tf1, tf2;
-  motion1->getCurrentTransform(tf1);
-  motion2->getCurrentTransform(tf2);
-
-  // whether the first start configuration is in collision
-  CollisionNode cnode;
-  if(!initialize(cnode, *model1, tf1, *model2, tf2, request, result))
-    std::cout << "initialize error" << std::endl;
-
-  relativeTransform(tf1.getRotation(), tf1.getTranslation(), tf2.getRotation(), tf2.getTranslation(), cnode.R, cnode.T);
-
-  cnode.enable_statistics = false;
-  cnode.request = request;
-
-  collide(&cnode);
-
-  int b = result.numContacts();
-
-  if(b > 0)
-  {
-    toc = 0;
-    // std::cout << "zero collide" << std::endl;
-    return b;
-  }
-  
-  ConservativeAdvancementNode node;
-
-  initialize(node, *model1, tf1, *model2, tf2);
-
-  node.motion1 = motion1;
-  node.motion2 = motion2;
-
-  do
-  {
-    Matrix3f R1_t, R2_t;
-    Vec3f T1_t, T2_t;
-
-    node.motion1->getCurrentTransform(R1_t, T1_t);
-    node.motion2->getCurrentTransform(R2_t, T2_t);
-
-    // compute the transformation from 1 to 2
-    relativeTransform(R1_t, T1_t, R2_t, T2_t, node.R, node.T);
-
-    node.delta_t = 1;
-    node.min_distance = std::numeric_limits<FCL_REAL>::max();
-
-    distanceRecurse(&node, 0, 0, NULL);
-
-    if(node.delta_t <= node.t_err)
-    {
-      // std::cout << node.delta_t << " " << node.t_err << std::endl;
-      result.addContact(Contact(model1, model2, node.last_tri_id1, node.last_tri_id2) );
-      break;
-    }
-
-    node.toc += node.delta_t;
-    if(node.toc > 1)
-    {
-      node.toc = 1;
-      break;
-    }
-
-    node.motion1->integrate(node.toc);
-    node.motion2->integrate(node.toc);
-  }
-  while(1);
-
-  toc = node.toc;
-
-  if(node.toc < 1)
-    return 1;
-
-  return 0;
+	return result.numContacts();
 }
 
 
 template
 int conservativeAdvancement<RSS, MeshConservativeAdvancementTraversalNodeRSS, MeshCollisionTraversalNodeRSS>(const CollisionGeometry* o1,
-                                                                                                             const MotionBase* motion1,
-                                                                                                             const CollisionGeometry* o2,
-                                                                                                             const MotionBase* motion2,
-                                                                                                             const CollisionRequest& request,
-                                                                                                             CollisionResult& result,
-                                                                                                             FCL_REAL& toc);
+																											 const MotionBase* motion1,
+																											 const CollisionGeometry* o2,
+																											 const MotionBase* motion2,
+																											 const CollisionRequest& request,
+																											 CollisionResult& result,
+																											 FCL_REAL& toc);
 
 template int conservativeAdvancement<OBBRSS, MeshConservativeAdvancementTraversalNodeOBBRSS, MeshCollisionTraversalNodeOBBRSS>(const CollisionGeometry* o1,
-                                                                                                                               const MotionBase* motion1,
-                                                                                                                               const CollisionGeometry* o2,
-                                                                                                                               const MotionBase* motion2,
-                                                                                                                               const CollisionRequest& request,
-                                                                                                                               CollisionResult& result,
-                                                                                                                               FCL_REAL& toc);
+																															   const MotionBase* motion1,
+																															   const CollisionGeometry* o2,
+																															   const MotionBase* motion2,
+																															   const CollisionRequest& request,
+																															   CollisionResult& result,
+																															   FCL_REAL& toc);
 
 }

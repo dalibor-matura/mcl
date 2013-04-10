@@ -754,7 +754,7 @@ void SaPCollisionManager::distance(BroadPhaseCollisionManager* other_manager_, v
 
 bool SaPCollisionManager::empty() const
 {
-  return AABB_arr.size();
+  return AABB_arr.size() != 0;
 }
 
 

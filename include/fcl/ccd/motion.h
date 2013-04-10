@@ -595,12 +595,12 @@ public:
     tv[0].remainder().setValue();*/
   }
 
-  const void setReferencePoint(const Vec3f& reference_point)
+  void setReferencePoint(const Vec3f& reference_point)
   {
     reference_point_ = reference_point;
   }
 
-  const Vec3f& getReferencePoint() const
+  Vec3f getReferencePoint() const
   {
     return reference_point_;
   }

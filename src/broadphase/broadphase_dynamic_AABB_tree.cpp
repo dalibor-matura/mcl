@@ -461,7 +461,7 @@ bool collisionRecurse(DynamicAABBTreeCollisionManager::DynamicAABBNode* root, Co
     
   if(!root->bv.overlap(query->getAABB())) return false;
 
-  int select_res = select(query->getAABB(), *(root->children[0]), *(root->children[1]));
+  int select_res = static_cast<int>(select(query->getAABB(), *(root->children[0]), *(root->children[1]) ) );
     
   if(collisionRecurse(root->children[select_res], query, cdata, callback))
     return true;
@@ -676,14 +676,14 @@ void DynamicAABBTreeCollisionManager::setup()
 {
   if(!setup_)
   {
-    int num = dtree.size();
+    int num = static_cast<int>(dtree.size() );
     if(num == 0) 
     {
       setup_ = true; 
       return;
     }
     
-    int height = dtree.getMaxHeight();
+    int height = static_cast<int>(dtree.getMaxHeight() );
 
     
     if(height - std::log((FCL_REAL)num) / std::log(2.0) < max_tree_nonbalanced_level)
@@ -739,9 +739,10 @@ void DynamicAABBTreeCollisionManager::update(const std::vector<CollisionObject*>
 void DynamicAABBTreeCollisionManager::collide(CollisionObject* obj, void* cdata, CollisionCallBack callback) const
 {
   if(size() == 0) return;
+
+#if FCL_HAVE_OCTOMAP
   switch(obj->getCollisionGeometry()->getNodeType())
   {
-#if FCL_HAVE_OCTOMAP
   case GEOM_OCTREE:
     {
       if(!octree_as_geometry_collide)
@@ -753,19 +754,24 @@ void DynamicAABBTreeCollisionManager::collide(CollisionObject* obj, void* cdata,
         details::dynamic_AABB_tree::collisionRecurse(dtree.getRoot(), obj, cdata, callback);
     }
     break;
-#endif
   default:
-    details::dynamic_AABB_tree::collisionRecurse(dtree.getRoot(), obj, cdata, callback);
+#endif
+
+  details::dynamic_AABB_tree::collisionRecurse(dtree.getRoot(), obj, cdata, callback);
+
+#if FCL_HAVE_OCTOMAP
   }
+#endif
 }
 
 void DynamicAABBTreeCollisionManager::distance(CollisionObject* obj, void* cdata, DistanceCallBack callback) const
 {
   if(size() == 0) return;
   FCL_REAL min_dist = std::numeric_limits<FCL_REAL>::max();
+
+#if FCL_HAVE_OCTOMAP
   switch(obj->getCollisionGeometry()->getNodeType())
   {
-#if FCL_HAVE_OCTOMAP
   case GEOM_OCTREE:
     {
       if(!octree_as_geometry_distance)
@@ -777,10 +783,14 @@ void DynamicAABBTreeCollisionManager::distance(CollisionObject* obj, void* cdata
         details::dynamic_AABB_tree::distanceRecurse(dtree.getRoot(), obj, cdata, callback, min_dist);          
     }
     break;
-#endif
   default:
-    details::dynamic_AABB_tree::distanceRecurse(dtree.getRoot(), obj, cdata, callback, min_dist);
+#endif
+
+  details::dynamic_AABB_tree::distanceRecurse(dtree.getRoot(), obj, cdata, callback, min_dist);
+
+#if FCL_HAVE_OCTOMAP
   }
+#endif
 }
 
 

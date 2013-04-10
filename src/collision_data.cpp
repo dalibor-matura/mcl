@@ -44,9 +44,65 @@ bool CollisionRequest::isSatisfied(const CollisionResult& result) const
   return (!enable_cost) && result.isCollision() && (num_max_contacts <= result.numContacts());
 }
 
+void CollisionRequest::assign(const CollisionRequest& request)
+{
+	operator=(request);
+}
+
+
 bool DistanceRequest::isSatisfied(const DistanceResult& result) const
 {
   return (result.min_distance <= 0);
+}
+
+
+bool CollisionResult::isCollision() const
+{
+	return contacts_.size() > 0;
+}
+
+size_t CollisionResult::numContacts() const
+{
+	return contacts_.size();
+}
+
+size_t CollisionResult::numCostSources() const
+{
+	return cost_sources_.size();
+}
+
+const Contact& CollisionResult::getContact(size_t i) const
+{
+	if(i < contacts_.size()) 
+		return contacts_[i];
+	else
+		return contacts_.back();
+}
+
+void CollisionResult::getContacts(std::vector<Contact>& contacts)
+{
+	contacts.resize(contacts_.size());
+	std::copy(contacts_.begin(), contacts_.end(), contacts.begin());
+}
+
+void CollisionResult::getCostSources(std::vector<CostSource>& cost_sources)
+{
+	cost_sources.resize(cost_sources_.size());
+	std::copy(cost_sources_.begin(), cost_sources_.end(), cost_sources.begin());
+}
+
+void CollisionResult::clear()
+{
+	contacts_.clear();
+	cost_sources_.clear();
+}
+
+
+void ContinuousCollisionResult::clear()
+{
+	CollisionResult::clear();
+
+	time_of_contact_ = 0.0;
 }
 
 }

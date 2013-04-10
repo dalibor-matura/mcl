@@ -36,12 +36,12 @@ public:
 
 	boost::shared_ptr<const Link> getBoundedLink() const;
 
+	// get parent joint of bounded link
+	boost::shared_ptr<Joint> getLastJoint() const;
+
 private:	
 	void initJointsChain();
-	const std::vector<boost::shared_ptr<const Joint> >& getJointsChain() const;
-
-	// get parent joint of bounded link
-	boost::shared_ptr<Joint> getLastJoint() const;					
+	const std::vector<boost::shared_ptr<const Joint> >& getJointsChain() const;					
 
 	// joints are ordered from last joint to root joint
 	FCL_REAL getJointsChainMotionBound() const;

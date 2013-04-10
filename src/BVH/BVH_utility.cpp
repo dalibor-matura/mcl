@@ -211,7 +211,7 @@ void getRadiusAndOriginAndRectangleSize(Vec3f* ps, Vec3f* ps2, Triangle* ts, uns
 
       for(int j = 0; j < 3; ++j)
       {
-        int point_id = t[j];
+        int point_id = static_cast<int>(t[j]);
         const Vec3f& p = ps[point_id];
         Vec3f v(p[0], p[1], p[2]);
         P[P_id][0] = axis[0].dot(v);
@@ -224,7 +224,7 @@ void getRadiusAndOriginAndRectangleSize(Vec3f* ps, Vec3f* ps2, Triangle* ts, uns
       {
         for(int j = 0; j < 3; ++j)
         {
-          int point_id = t[j];
+          int point_id = static_cast<int>(t[j]);
           const Vec3f& p = ps2[point_id];
           Vec3f v(p[0], p[1], p[2]);
           P[P_id][0] = axis[0].dot(v);
@@ -546,7 +546,7 @@ static inline void getExtentAndCenter_mesh(Vec3f* ps, Vec3f* ps2, Triangle* ts, 
 
     for(int j = 0; j < 3; ++j)
     {
-      int point_id = t[j];
+      int point_id = static_cast<int>(t[j]);
       const Vec3f& p = ps[point_id];
       Vec3f v(p[0], p[1], p[2]);
       FCL_REAL proj[3];
@@ -565,7 +565,7 @@ static inline void getExtentAndCenter_mesh(Vec3f* ps, Vec3f* ps2, Triangle* ts, 
     {
       for(int j = 0; j < 3; ++j)
       {
-        int point_id = t[j];
+        int point_id = static_cast<int>(t[j]);
         const Vec3f& p = ps2[point_id];
         Vec3f v(p[0], p[1], p[2]);
         FCL_REAL proj[3];
@@ -630,7 +630,7 @@ static inline FCL_REAL maximumDistance_mesh(Vec3f* ps, Vec3f* ps2, Triangle* ts,
 
     for(int j = 0; j < 3; ++j)
     {
-      int point_id = t[j];
+      int point_id = static_cast<int>(t[j]);
       const Vec3f& p = ps[point_id];
       
       FCL_REAL d = (p - query).sqrLength();
@@ -641,7 +641,7 @@ static inline FCL_REAL maximumDistance_mesh(Vec3f* ps, Vec3f* ps2, Triangle* ts,
     {
       for(int j = 0; j < 3; ++j)
       {
-        int point_id = t[j];
+        int point_id = static_cast<int>(t[j]);
         const Vec3f& p = ps2[point_id];
         
         FCL_REAL d = (p - query).sqrLength();
@@ -659,7 +659,7 @@ static inline FCL_REAL maximumDistance_pointcloud(Vec3f* ps, Vec3f* ps2, unsigne
   if(!indices) indirect_index = false;
 
   FCL_REAL maxD = 0;
-  for(unsigned int i = 0; i < n; ++i)
+  for(int i = 0; i < n; ++i)
   {
     int index = indirect_index ? indices[i] : i;
 

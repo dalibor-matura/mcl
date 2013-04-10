@@ -227,19 +227,19 @@ bool SSaPCollisionManager::collide_(CollisionObject* obj, void* cdata, Collision
 
   std::vector<CollisionObject*>::const_iterator pos_start1 = objs_x.begin();
   std::vector<CollisionObject*>::const_iterator pos_end1 = std::upper_bound(pos_start1, objs_x.end(), &dummyHigh, SortByXLow());
-  unsigned int d1 = pos_end1 - pos_start1;
+  unsigned int d1 = static_cast<unsigned int>(pos_end1 - pos_start1);
 
   if(d1 > CUTOFF)
   {
     std::vector<CollisionObject*>::const_iterator pos_start2 = objs_y.begin();
     std::vector<CollisionObject*>::const_iterator pos_end2 = std::upper_bound(pos_start2, objs_y.end(), &dummyHigh, SortByYLow());
-    unsigned int d2 = pos_end2 - pos_start2;
+    unsigned int d2 = static_cast<unsigned int>(pos_end2 - pos_start2);
 
     if(d2 > CUTOFF)
     {
       std::vector<CollisionObject*>::const_iterator pos_start3 = objs_z.begin();
       std::vector<CollisionObject*>::const_iterator pos_end3 = std::upper_bound(pos_start3, objs_z.end(), &dummyHigh, SortByZLow());
-      unsigned int d3 = pos_end3 - pos_start3;
+      unsigned int d3 = static_cast<unsigned int>(pos_end3 - pos_start3);
 
       if(d3 > CUTOFF)
       {
@@ -298,19 +298,19 @@ bool SSaPCollisionManager::distance_(CollisionObject* obj, void* cdata, Distance
     DummyCollisionObject dummyHigh((AABB(dummy_vector)));
 
     pos_end1 = std::upper_bound(pos_start1, objs_x.end(), &dummyHigh, SortByXLow());
-    unsigned int d1 = pos_end1 - pos_start1;
+    unsigned int d1 = static_cast<unsigned int>(pos_end1 - pos_start1);
 
     bool dist_res = false;
     
     if(d1 > CUTOFF)
     {
       pos_end2 = std::upper_bound(pos_start2, objs_y.end(), &dummyHigh, SortByYLow());
-      unsigned int d2 = pos_end2 - pos_start2;
+      unsigned int d2 = static_cast<unsigned int>(pos_end2 - pos_start2);
 
       if(d2 > CUTOFF)
       {
         pos_end3 = std::upper_bound(pos_start3, objs_z.end(), &dummyHigh, SortByZLow());
-        unsigned int d3 = pos_end3 - pos_start3;
+        unsigned int d3 = static_cast<unsigned int>(pos_end3 - pos_start3);
 
         if(d3 > CUTOFF)
         {

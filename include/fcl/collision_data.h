@@ -84,32 +84,32 @@ struct Contact
   static const int NONE = -1;
 
   Contact() : o1(NULL),
-              o2(NULL),
-              b1(NONE),
-              b2(NONE)
+			  o2(NULL),
+			  b1(NONE),
+			  b2(NONE)
   {}
 
   Contact(const CollisionGeometry* o1_, const CollisionGeometry* o2_, int b1_, int b2_) : o1(o1_),
-                                                                                          o2(o2_),
-                                                                                          b1(b1_),
-                                                                                          b2(b2_)
+																						  o2(o2_),
+																						  b1(b1_),
+																						  b2(b2_)
   {}
 
   Contact(const CollisionGeometry* o1_, const CollisionGeometry* o2_, int b1_, int b2_,
-          const Vec3f& pos_, const Vec3f& normal_, FCL_REAL depth_) : o1(o1_),
-                                                                      o2(o2_),
-                                                                      b1(b1_),
-                                                                      b2(b2_),
-                                                                      normal(normal_),
-                                                                      pos(pos_),
-                                                                      penetration_depth(depth_)
+		  const Vec3f& pos_, const Vec3f& normal_, FCL_REAL depth_) : o1(o1_),
+																	  o2(o2_),
+																	  b1(b1_),
+																	  b2(b2_),
+																	  normal(normal_),
+																	  pos(pos_),
+																	  penetration_depth(depth_)
   {}
 
   bool operator < (const Contact& other) const
   {
-    if(b1 == other.b1)
-      return b2 < other.b2;
-    return b1 < other.b1;
+	if(b1 == other.b1)
+	  return b2 < other.b2;
+	return b1 < other.b1;
   }
 };
 
@@ -128,38 +128,38 @@ struct CostSource
   FCL_REAL total_cost;
 
   CostSource(const Vec3f& aabb_min_, const Vec3f& aabb_max_, FCL_REAL cost_density_) : aabb_min(aabb_min_),
-                                                                                       aabb_max(aabb_max_),
-                                                                                       cost_density(cost_density_)
+																					   aabb_max(aabb_max_),
+																					   cost_density(cost_density_)
   {
-    total_cost = cost_density * (aabb_max[0] - aabb_min[0]) * (aabb_max[1] - aabb_min[1]) * (aabb_max[2] - aabb_min[2]);
+	total_cost = cost_density * (aabb_max[0] - aabb_min[0]) * (aabb_max[1] - aabb_min[1]) * (aabb_max[2] - aabb_min[2]);
   }
 
   CostSource(const AABB& aabb, FCL_REAL cost_density_) : aabb_min(aabb.min_),
-                                                         aabb_max(aabb.max_),
-                                                         cost_density(cost_density_)
+														 aabb_max(aabb.max_),
+														 cost_density(cost_density_)
   {
-    total_cost = cost_density * (aabb_max[0] - aabb_min[0]) * (aabb_max[1] - aabb_min[1]) * (aabb_max[2] - aabb_min[2]);
+	total_cost = cost_density * (aabb_max[0] - aabb_min[0]) * (aabb_max[1] - aabb_min[1]) * (aabb_max[2] - aabb_min[2]);
   }
 
   CostSource() {}
 
   bool operator < (const CostSource& other) const
   {
-    if(total_cost < other.total_cost) 
-      return false;
-    if(total_cost > other.total_cost)
-      return true;
-    
-    if(cost_density < other.cost_density)
-      return false;
-    if(cost_density > other.cost_density)
-      return true;
+	if(total_cost < other.total_cost) 
+	  return false;
+	if(total_cost > other.total_cost)
+	  return true;
+	
+	if(cost_density < other.cost_density)
+	  return false;
+	if(cost_density > other.cost_density)
+	  return true;
   
-    for(size_t i = 0; i < 3; ++i)
-      if(aabb_min[i] != other.aabb_min[i])
+	for(size_t i = 0; i < 3; ++i)
+	  if(aabb_min[i] != other.aabb_min[i])
 	return aabb_min[i] < other.aabb_min[i];
  
-    return false;
+	return false;
   }
 };
 
@@ -184,109 +184,112 @@ struct CollisionRequest
   bool use_approximate_cost;
 
   CollisionRequest(size_t num_max_contacts_ = 1,
-                   bool enable_contact_ = false,
-                   size_t num_max_cost_sources_ = 1,
-                   bool enable_cost_ = false,
-                   bool use_approximate_cost_ = true) : num_max_contacts(num_max_contacts_),
-                                                        enable_contact(enable_contact_),
-                                                        num_max_cost_sources(num_max_cost_sources_),
-                                                        enable_cost(enable_cost_),
-                                                        use_approximate_cost(use_approximate_cost_)
+				   bool enable_contact_ = false,
+				   size_t num_max_cost_sources_ = 1,
+				   bool enable_cost_ = false,
+				   bool use_approximate_cost_ = true)
+	:
+	num_max_contacts(num_max_contacts_),
+	enable_contact(enable_contact_),
+	num_max_cost_sources(num_max_cost_sources_),
+	enable_cost(enable_cost_),
+	use_approximate_cost(use_approximate_cost_)
   {
   }
 
   bool isSatisfied(const CollisionResult& result) const;
+
+  void assign(const CollisionRequest& request);
+};
+
+/// @brief request to the continuous collision algorithm
+struct ContinuousCollisionRequest
+	: CollisionRequest
+{
+	/// @brief what part (interval) of the movement should be tested
+	FCL_REAL start_time;
+	FCL_REAL end_time;
+
+	ContinuousCollisionRequest()
+		:
+		start_time(0.0),
+		end_time(1.0)
+	{
+	}
 };
 
 /// @brief collision result
 struct CollisionResult
 {
-private:
-  /// @brief contact information
-  std::vector<Contact> contacts_;
-
-  /// @brief cost sources
-  std::set<CostSource> cost_sources_;
-
-  FCL_REAL time_of_contact_;
-
 public:
-  CollisionResult() :
-	  time_of_contact_(0.0)
-  {
-  }
+	/// @brief add one contact into result structure
+	inline void addContact(const Contact& c) 
+	{
+		contacts_.push_back(c);
+	}
 
-  inline void setTimeOfContact(FCL_REAL time_of_contact)
-  {
-	  time_of_contact_ = time_of_contact;
-  }
+	/// @brief add one cost source into result structure
+	inline void addCostSource(const CostSource& c, std::size_t num_max_cost_sources)
+	{
+		cost_sources_.insert(c);
+		while (cost_sources_.size() > num_max_cost_sources)
+			cost_sources_.erase(--cost_sources_.end());
+	}
 
-  inline FCL_REAL getTimeOfContact() const
-  {
-	  return time_of_contact_;
-  }
+	/// @brief return binary collision result
+	bool isCollision() const;
 
-  /// @brief add one contact into result structure
-  inline void addContact(const Contact& c) 
-  {
-    contacts_.push_back(c);
-  }
+	/// @brief number of contacts_ found
+	size_t numContacts() const;
 
-  /// @brief add one cost source into result structure
-  inline void addCostSource(const CostSource& c, std::size_t num_max_cost_sources)
-  {
-    cost_sources_.insert(c);
-    while (cost_sources_.size() > num_max_cost_sources)
-      cost_sources_.erase(--cost_sources_.end());
-  }
+	/// @brief number of cost sources found
+	size_t numCostSources() const;
 
-  /// @brief return binary collision result
-  bool isCollision() const
-  {
-    return contacts_.size() > 0;
-  }
+	/// @brief get the i-th contact calculated
+	const Contact& getContact(size_t i) const;
 
-  /// @brief number of contacts_ found
-  size_t numContacts() const
-  {
-    return contacts_.size();
-  }
+	/// @brief get all the contacts_
+	void getContacts(std::vector<Contact>& contacts);
 
-  /// @brief number of cost sources found
-  size_t numCostSources() const
-  {
-    return cost_sources_.size();
-  }
+	/// @brief get all the cost sources 
+	void getCostSources(std::vector<CostSource>& cost_sources);
 
-  /// @brief get the i-th contact calculated
-  const Contact& getContact(size_t i) const
-  {
-    if(i < contacts_.size()) 
-      return contacts_[i];
-    else
-      return contacts_.back();
-  }
+	/// @brief clear the results obtained
+	void clear();
 
-  /// @brief get all the contacts_
-  void getContacts(std::vector<Contact>& contacts_)
-  {
-    contacts_.resize(contacts_.size());
-    std::copy(contacts_.begin(), contacts_.end(), contacts_.begin());
-  }
+private:
+	/// @brief contact information
+	std::vector<Contact> contacts_;
 
-  /// @brief get all the cost sources 
-  void getCostSources(std::vector<CostSource>& cost_sources_)
-  {
-    cost_sources_.resize(cost_sources_.size());
-    std::copy(cost_sources_.begin(), cost_sources_.end(), cost_sources_.begin());
-  }
+	std::set<CostSource> cost_sources_;
+};
 
-  /// @brief clear the results obtained
-  void clear()
-  {
-    contacts_.clear();
-    cost_sources_.clear();
-  }
+/// @brief continuous collision result
+struct ContinuousCollisionResult 
+	: public CollisionResult
+{
+public:
+	ContinuousCollisionResult()
+		:
+		time_of_contact_(0.0)
+	  {
+	  }
+
+	  inline void setTimeOfContact(FCL_REAL time_of_contact)
+	  {
+		  time_of_contact_ = time_of_contact;
+	  }
+
+	  inline FCL_REAL getTimeOfContact() const
+	  {
+		  return time_of_contact_;
+	  }	  
+
+	  /// @brief clear the results obtained
+	  void clear();
+
+private:
+	FCL_REAL time_of_contact_;
 };
 
 struct DistanceResult;
@@ -338,10 +341,10 @@ public:
   static const int NONE = -1;
   
   DistanceResult(FCL_REAL min_distance_ = std::numeric_limits<FCL_REAL>::max()) : min_distance(min_distance_), 
-                                                                                  o1(NULL),
-                                                                                  o2(NULL),
-                                                                                  b1(NONE),
-                                                                                  b2(NONE)
+																				  o1(NULL),
+																				  o2(NULL),
+																				  b1(NONE),
+																				  b2(NONE)
   {
   }
 
@@ -349,54 +352,54 @@ public:
   /// @brief add distance information into the result
   void update(FCL_REAL distance, const CollisionGeometry* o1_, const CollisionGeometry* o2_, int b1_, int b2_)
   {
-    if(min_distance > distance)
-    {
-      min_distance = distance;
-      o1 = o1_;
-      o2 = o2_;
-      b1 = b1_;
-      b2 = b2_;
-    }
+	if(min_distance > distance)
+	{
+	  min_distance = distance;
+	  o1 = o1_;
+	  o2 = o2_;
+	  b1 = b1_;
+	  b2 = b2_;
+	}
   }
 
   /// @brief add distance information into the result
   void update(FCL_REAL distance, const CollisionGeometry* o1_, const CollisionGeometry* o2_, int b1_, int b2_, const Vec3f& p1, const Vec3f& p2)
   {
-    if(min_distance > distance)
-    {
-      min_distance = distance;
-      o1 = o1_;
-      o2 = o2_;
-      b1 = b1_;
-      b2 = b2_;
-      nearest_points[0] = p1;
-      nearest_points[1] = p2;
-    }
+	if(min_distance > distance)
+	{
+	  min_distance = distance;
+	  o1 = o1_;
+	  o2 = o2_;
+	  b1 = b1_;
+	  b2 = b2_;
+	  nearest_points[0] = p1;
+	  nearest_points[1] = p2;
+	}
   }
 
   /// @brief add distance information into the result
   void update(const DistanceResult& other_result)
   {
-    if(min_distance > other_result.min_distance)
-    {
-      min_distance = other_result.min_distance;
-      o1 = other_result.o1;
-      o2 = other_result.o2;
-      b1 = other_result.b1;
-      b2 = other_result.b2;
-      nearest_points[0] = other_result.nearest_points[0];
-      nearest_points[1] = other_result.nearest_points[1];
-    }
+	if(min_distance > other_result.min_distance)
+	{
+	  min_distance = other_result.min_distance;
+	  o1 = other_result.o1;
+	  o2 = other_result.o2;
+	  b1 = other_result.b1;
+	  b2 = other_result.b2;
+	  nearest_points[0] = other_result.nearest_points[0];
+	  nearest_points[1] = other_result.nearest_points[1];
+	}
   }
 
   /// @brief clear the result
   void clear()
   {
-    min_distance = std::numeric_limits<FCL_REAL>::max();
-    o1 = NULL;
-    o2 = NULL;
-    b1 = NONE;
-    b2 = NONE;
+	min_distance = std::numeric_limits<FCL_REAL>::max();
+	o1 = NULL;
+	o2 = NULL;
+	b1 = NONE;
+	b2 = NONE;
   }
 };
 
