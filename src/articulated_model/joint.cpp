@@ -120,7 +120,7 @@ const Vec3f& Joint::getAxis() const
 
 void Joint::setAxis(const Vec3f& axis)
 {
-	BOOST_ASSERT_MSG(isNormalized(axis), "Axis is not normalized.");
+	BOOST_ASSERT(isNormalized(axis) && "Axis is not normalized.");
 
 	axis_ = axis;
 }
@@ -145,7 +145,7 @@ PrismaticJoint::PrismaticJoint(const boost::shared_ptr<Link>& link_parent, const
 							   const Vec3f& axis) :
   Joint(link_parent, link_child, transform_to_parent, name)
 {
-  BOOST_ASSERT_MSG(isNormalized(axis), "Axis is not normalized.");
+  BOOST_ASSERT(isNormalized(axis) && "Axis is not normalized.");
 
   setAxis(axis);
 
@@ -188,7 +188,7 @@ RevoluteJoint::RevoluteJoint(const boost::shared_ptr<Link>& link_parent, const b
 							 const Vec3f& axis) :
   Joint(link_parent, link_child, transform_to_parent, name)
 {
-  BOOST_ASSERT_MSG(isNormalized(axis), "Axis is not normalized.");
+  BOOST_ASSERT(isNormalized(axis) && "Axis is not normalized.");
 
   setAxis(axis); 
 

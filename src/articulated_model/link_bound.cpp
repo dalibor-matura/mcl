@@ -87,7 +87,7 @@ FCL_REAL LinkBound::getMotionBoundInParentFrame(const boost::shared_ptr<const Jo
 {
 	boost::shared_ptr<const Joint> parent = model_->getJointParent(joint);
 
-	BOOST_ASSERT_MSG(parent.use_count() != 0, "Joint is not assigned.");
+	BOOST_ASSERT(parent.use_count() != 0 && "Joint is not assigned.");
 
 	if (isRoot(parent) && isCurrentDirectionValid() )
 	{

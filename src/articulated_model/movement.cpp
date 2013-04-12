@@ -53,7 +53,7 @@ void Movement::addNewInterpolation(const boost::shared_ptr<const Joint>& joint,
 	std::map<std::string, boost::shared_ptr<Interpolation> >& interpolations)
 {
 	// for NOW works just for JT_PRISMATIC, JT_REVOLUTE joint types
-	BOOST_ASSERT_MSG((joint->getJointType() == JT_PRISMATIC) || (joint->getJointType() == JT_REVOLUTE),
+	BOOST_ASSERT((joint->getJointType() == JT_PRISMATIC) || (joint->getJointType() == JT_REVOLUTE) &&
 		"Joint type not supported yet");
 
 	const std::string& joint_name = joint->getName();	
@@ -126,8 +126,8 @@ void Movement::initChildParentDistanceBounds()
 FCL_REAL Movement::calculateChildParentDistanceBound(const boost::shared_ptr<const Joint>& joint,
 	const boost::shared_ptr<const Joint>& joint_parent) const
 {
-	BOOST_ASSERT_MSG(joint_parent.use_count() != 0, "Joint has no parent");
-	BOOST_ASSERT_MSG(model_->getJointParent(joint) == joint_parent,
+	BOOST_ASSERT(joint_parent.use_count() != 0 && "Joint has no parent");
+	BOOST_ASSERT(model_->getJointParent(joint) == joint_parent &&
 		"Given joint parent isn't set correctly");
 
 	Vec3f translation = joint->getTransformToParent().getTranslation();
@@ -155,7 +155,7 @@ const boost::shared_ptr<const Interpolation>& Movement::getInterpolation(const s
 {
 	std::map<std::string, boost::shared_ptr<const Interpolation> >::const_iterator it = joint_interpolation_.find(joint_name);
 
-	BOOST_ASSERT_MSG((it != joint_interpolation_.end()), "Joint name is not valid");
+	BOOST_ASSERT( (it != joint_interpolation_.end() ) && "Joint name is not valid");
 
 	return it->second;
 }
@@ -253,8 +253,8 @@ bool Movement::isJointTranslational(const boost::shared_ptr<const Joint>& joint)
 FCL_REAL Movement::getChildParentDistanceBound(const boost::shared_ptr<const Joint>& joint,
 	const boost::shared_ptr<const Joint>& joint_parent) const
 {		
-	BOOST_ASSERT_MSG(joint_parent.use_count() != 0, "Joint has no parent");
-	BOOST_ASSERT_MSG(model_->getJointParent(joint) == joint_parent,
+	BOOST_ASSERT(joint_parent.use_count() != 0 && "Joint has no parent");
+	BOOST_ASSERT(model_->getJointParent(joint) == joint_parent &&
 		"Given joint parent isn't set correctly");
 
 	std::map<std::string, FCL_REAL>::const_iterator it = 

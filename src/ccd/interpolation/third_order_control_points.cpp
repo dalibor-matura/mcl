@@ -82,21 +82,21 @@ void ThirdOrderControlPoints::initDistanceAndVelocityPoints()
 
 FCL_REAL ThirdOrderControlPoints::getTimePoint(const std::size_t index) const
 {
-	BOOST_ASSERT_MSG(index < 8, "Index not in range.");
+	BOOST_ASSERT(index < 8 && "Index not in range.");
 
 	return time_point_[index];
 }
 
 FCL_REAL ThirdOrderControlPoints::getVelocityPoint(const std::size_t index) const
 {
-	BOOST_ASSERT_MSG(index < 8, "Index not in range.");
+	BOOST_ASSERT(index < 8 && "Index not in range.");
 
 	return velocity_point_[index];
 }
 
 FCL_REAL ThirdOrderControlPoints::getDistancePoint(const std::size_t index) const
 {
-	BOOST_ASSERT_MSG(index < 8, "Index not in range.");
+	BOOST_ASSERT(index < 8 && "Index not in range.");
 
 	return distance_point_[index];
 }
@@ -108,7 +108,7 @@ FCL_REAL ThirdOrderControlPoints::getEntireTime() const
 
 std::size_t ThirdOrderControlPoints::getTimeUpperBound(const FCL_REAL time) const
 {
-	BOOST_ASSERT_MSG(time >= 0 , "Time must be positive value.");
+	BOOST_ASSERT(time >= 0 && "Time must be positive value.");
 
 	std::vector<FCL_REAL>::const_iterator it;
 

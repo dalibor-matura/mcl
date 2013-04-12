@@ -68,7 +68,7 @@ InterpolationFactory::create(const boost::shared_ptr<const InterpolationData>& d
 {
   std::map<InterpolationType, CreateFunction>::const_iterator it = creation_map_.find(data->getType() );
 
-  BOOST_ASSERT_MSG(it != creation_map_.end(), "CreateFunction wasn't found.");
+  BOOST_ASSERT(it != creation_map_.end() && "CreateFunction wasn't found.");
 
   return (it->second)(data, start_value, end_value);  
 }

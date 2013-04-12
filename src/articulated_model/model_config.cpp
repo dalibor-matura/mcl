@@ -74,7 +74,7 @@ void ModelConfig::initJointCFGsMap(const std::map<std::string, boost::shared_ptr
 JointConfig ModelConfig::getJointConfig(const std::string& joint_name) const
 {
   std::map<std::string, JointConfig>::const_iterator it = joint_cfgs_map_.find(joint_name);
-  BOOST_ASSERT_MSG((it != joint_cfgs_map_.end()), "Joint name not valid");
+  BOOST_ASSERT((it != joint_cfgs_map_.end()) && "Joint name not valid");
 
   return it->second;
 }
@@ -82,7 +82,7 @@ JointConfig ModelConfig::getJointConfig(const std::string& joint_name) const
 JointConfig& ModelConfig::getJointConfig(const std::string& joint_name)
 {
   std::map<std::string, JointConfig>::iterator it = joint_cfgs_map_.find(joint_name);
-  BOOST_ASSERT_MSG((it != joint_cfgs_map_.end()), "Joint name not valid");
+  BOOST_ASSERT((it != joint_cfgs_map_.end()) && "Joint name not valid");
 
   return it->second;
 }
@@ -117,7 +117,7 @@ ModelConfig applyFunction(const ModelConfig& first, const ModelConfig& second, b
 {
 	ModelConfig new_model_config(first.getModel() );
 
-	BOOST_ASSERT_MSG(first.getModel() == second.getModel(), "Can't add up model configuration of different models");
+	BOOST_ASSERT(first.getModel() == second.getModel() && "Can't add up model configuration of different models");
 
 	if (first.getModel() != second.getModel() )
 	{

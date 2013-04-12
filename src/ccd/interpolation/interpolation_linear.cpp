@@ -50,7 +50,7 @@ InterpolationLinear::InterpolationLinear(const boost::shared_ptr<const Interpola
     Interpolation(start_value, end_value),
     data_(boost::static_pointer_cast<const InterpolationLinearData>(data) )
 {
-    BOOST_ASSERT_MSG(data->getType() == interpolation_linear_type, "Static cast is not safe.");
+    BOOST_ASSERT(data->getType() == interpolation_linear_type && "Static cast is not safe.");
 }
 
 FCL_REAL InterpolationLinear::getValue(FCL_REAL time) const

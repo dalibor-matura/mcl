@@ -102,7 +102,7 @@ void Interpolation::isValueGrowing(const bool is_value_growing)
 
 void Interpolation::setMaxTimeScale(FCL_REAL max_scale)
 {
-    BOOST_ASSERT_MSG(max_scale >= 0, "Max Time Scale must be positive value.");
+    BOOST_ASSERT(max_scale >= 0 && "Max Time Scale must be positive value.");
 
     max_time_scale_ = max_scale;
 }
