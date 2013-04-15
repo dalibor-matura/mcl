@@ -64,7 +64,7 @@ int conservativeAdvancement(const CollisionGeometry* o1,
 
 	toc = continuous_result.getTimeOfContact();
 
-	return result.numContacts();
+	return static_cast<int>(result.numContacts() );
 }
 
 

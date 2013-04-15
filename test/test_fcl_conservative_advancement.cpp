@@ -307,6 +307,38 @@ BOOST_FIXTURE_TEST_CASE(test_backward_compability, ConservativeAdvancementFixtur
 	BOOST_CHECK_EQUAL(0, collisions_number);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_discrete_detection_in_time, ConservativeAdvancementFixture)
+{	
+	CollisionResult result;
+
+	int collisions_number = 0;
+
+	result.clear();
+	collisions_number = 
+		advancement_collision_->discrete_detection_in_time(0.0, result);
+	BOOST_CHECK_EQUAL(0, collisions_number);
+
+	result.clear();
+	collisions_number = 
+		advancement_collision_->discrete_detection_in_time(0.5, result);
+	BOOST_CHECK_LT(0, collisions_number); // should be in collision
+
+	result.clear();
+	collisions_number = 
+		advancement_collision_->discrete_detection_in_time(1.0, result);
+	BOOST_CHECK_EQUAL(0, collisions_number);
+
+	result.clear();
+	collisions_number =
+		advancement_collision_free_->discrete_detection_in_time(0.0, result);
+	BOOST_CHECK_EQUAL(0, collisions_number);
+
+	result.clear();
+	collisions_number =
+		advancement_collision_free_->discrete_detection_in_time(1.0, result);
+	BOOST_CHECK_EQUAL(0, collisions_number);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 ////////////////////////////////////////////////////////////////////////////////
 

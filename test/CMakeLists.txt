@@ -32,7 +32,7 @@ add_fcl_test(test_fcl_articulated_model test_fcl_articulated_model.cpp)
 add_fcl_test(test_fcl_articulated_collision test_fcl_articulated_collision.cpp test_fcl_utility.cpp)
 add_fcl_test(test_fcl_interpolation test_fcl_interpolation.cpp)
 add_fcl_test(test_fcl_broadphase_continues test_fcl_broadphase_continues.cpp test_fcl_utility.cpp)
-add_fcl_test(test_fcl_conservative_advancemen test_fcl_conservative_advancement.cpp test_fcl_utility.cpp)
+add_fcl_test(test_fcl_conservative_advancement test_fcl_conservative_advancement.cpp test_fcl_utility.cpp)
 
 if (FCL_HAVE_OCTOMAP)
   add_fcl_test(test_fcl_octomap test_fcl_octomap.cpp test_fcl_utility.cpp)

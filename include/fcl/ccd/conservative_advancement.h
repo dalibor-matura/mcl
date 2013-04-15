@@ -65,6 +65,8 @@ public:
 	// returns number of contacts
 	int collide(const ContinuousCollisionRequest& request, ContinuousCollisionResult& result);
 
+	int discrete_detection_in_time(FCL_REAL time, CollisionResult& result);
+
 private:
 	void setRequest(const ContinuousCollisionRequest& request);
 	void setResult(ContinuousCollisionResult& result);
@@ -164,7 +166,25 @@ int ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::col
 		performContinuousCollision();
 	}
 
-	return result_->numContacts();
+	return static_cast<int>(result_->numContacts() );
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+int ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::discrete_detection_in_time(
+	FCL_REAL time, CollisionResult& result)
+{
+	ContinuousCollisionResult continuous_result;	
+	setResult(continuous_result);
+
+	ContinuousCollisionRequest continuous_request;
+	setRequest(continuous_request);
+
+	integrateTimeToMotions(time);
+	performDiscreteCollision();	
+
+	result = *result_;
+
+	return static_cast<int>(result_->numContacts() );
 }
 
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
