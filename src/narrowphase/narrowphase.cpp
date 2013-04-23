@@ -1725,7 +1725,7 @@ double planeIntersectTolerance<double>()
 template<>
 float planeIntersectTolerance<float>()
 {
-  return 0.0001;
+  return static_cast<float>(0.0001);
 }
 
 bool spherePlaneIntersect(const Sphere& s1, const Transform3f& tf1,

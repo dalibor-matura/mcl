@@ -583,7 +583,7 @@ struct GJKSolver_indep
   FCL_REAL gjk_tolerance;
 
   /// @brief maximum number of iterations used for GJK iterations
-  FCL_REAL gjk_max_iterations;
+  unsigned int gjk_max_iterations;
 };
 
 /// @brief Fast implementation for sphere-sphere collision                                            

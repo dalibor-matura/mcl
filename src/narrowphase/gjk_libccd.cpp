@@ -45,6 +45,16 @@ namespace fcl
 namespace details
 {
 
+// Static cast conversion of double to ccd_vec3_t for ccdVec3Set 
+inline void ccdVec3SetStaticCast(ccd_vec3_t* v, double x, double y, double z)
+{
+  ccdVec3Set(v, 
+    static_cast<ccd_real_t>(x),
+	static_cast<ccd_real_t>(y),
+	static_cast<ccd_real_t>(z)
+  );
+}
+
 struct ccd_obj_t
 {
   ccd_vec3_t pos;
@@ -442,44 +452,50 @@ static void shapeToGJK(const ShapeBase& s, const Transform3f& tf, ccd_obj_t* o)
 {
   const Quaternion3f& q = tf.getQuatRotation();
   const Vec3f& T = tf.getTranslation();
-  ccdVec3Set(&o->pos, T[0], T[1], T[2]);
-  ccdQuatSet(&o->rot, q.getX(), q.getY(), q.getZ(), q.getW());
+  ccdVec3SetStaticCast(&o->pos, T[0], T[1], T[2]);
+  ccdQuatSet(
+    &o->rot,
+    static_cast<ccd_real_t>(q.getX() ),
+    static_cast<ccd_real_t>(q.getY() ),
+    static_cast<ccd_real_t>(q.getZ() ),
+    static_cast<ccd_real_t>(q.getW() )
+  );
   ccdQuatInvert2(&o->rot_inv, &o->rot);
 }
 
 static void boxToGJK(const Box& s, const Transform3f& tf, ccd_box_t* box)
 {
   shapeToGJK(s, tf, box);
-  box->dim[0] = s.side[0] / 2.0;
-  box->dim[1] = s.side[1] / 2.0;
-  box->dim[2] = s.side[2] / 2.0;
+  box->dim[0] = static_cast<ccd_real_t>(s.side[0] / 2.0);
+  box->dim[1] = static_cast<ccd_real_t>(s.side[1] / 2.0);
+  box->dim[2] = static_cast<ccd_real_t>(s.side[2] / 2.0);
 }
 
 static void capToGJK(const Capsule& s, const Transform3f& tf, ccd_cap_t* cap)
 {
   shapeToGJK(s, tf, cap);
-  cap->radius = s.radius;
-  cap->height = s.lz / 2;
+  cap->radius = static_cast<ccd_real_t>(s.radius);
+  cap->height = static_cast<ccd_real_t>(s.lz / 2.0);
 }
 
 static void cylToGJK(const Cylinder& s, const Transform3f& tf, ccd_cyl_t* cyl)
 {
   shapeToGJK(s, tf, cyl);
-  cyl->radius = s.radius;
-  cyl->height = s.lz / 2;
+  cyl->radius = static_cast<ccd_real_t>(s.radius);
+  cyl->height = static_cast<ccd_real_t>(s.lz / 2.0);
 }
 
 static void coneToGJK(const Cone& s, const Transform3f& tf, ccd_cone_t* cone)
 {
   shapeToGJK(s, tf, cone);
-  cone->radius = s.radius;
-  cone->height = s.lz / 2;
+  cone->radius = static_cast<ccd_real_t>(s.radius);
+  cone->height = static_cast<ccd_real_t>(s.lz / 2.0);
 }
 
 static void sphereToGJK(const Sphere& s, const Transform3f& tf, ccd_sphere_t* sph)
 {
   shapeToGJK(s, tf, sph);
-  sph->radius = s.radius;
+  sph->radius = static_cast<ccd_real_t>(s.radius);
 }
 
 static void convexToGJK(const Convex& s, const Transform3f& tf, ccd_convex_t* conv)
@@ -532,18 +548,19 @@ static void supportCyl(const void* obj, const ccd_vec3_t* dir_, ccd_vec3_t* v)
 {
   const ccd_cyl_t* cyl = static_cast<const ccd_cyl_t*>(obj);
   ccd_vec3_t dir;
-  double zdist, rad;
+  double zdist;
+  ccd_real_t rad;
 
   ccdVec3Copy(&dir, dir_);
   ccdQuatRotVec(&dir, &cyl->rot_inv);
 
   zdist = dir.v[0] * dir.v[0] + dir.v[1] * dir.v[1];
   zdist = sqrt(zdist);
-  if(ccdIsZero(zdist))
+  if(ccdIsZero(static_cast<ccd_real_t>(zdist) ) )
     ccdVec3Set(v, 0., 0., ccdSign(ccdVec3Z(&dir)) * cyl->height);
   else
   {
-    rad = cyl->radius / zdist;
+    rad = cyl->radius / static_cast<ccd_real_t>(zdist);
 
     ccdVec3Set(v, rad * ccdVec3X(&dir),
                   rad * ccdVec3Y(&dir),
@@ -563,7 +580,8 @@ static void supportCone(const void* obj, const ccd_vec3_t* dir_, ccd_vec3_t* v)
   ccdVec3Copy(&dir, dir_);
   ccdQuatRotVec(&dir, &cone->rot_inv);
 
-  double zdist, len, rad;
+  double zdist, len;
+  ccd_real_t rad;
   zdist = dir.v[0] * dir.v[0] + dir.v[1] * dir.v[1];
   len = zdist + dir.v[2] * dir.v[2];
   zdist = sqrt(zdist);
@@ -575,7 +593,7 @@ static void supportCone(const void* obj, const ccd_vec3_t* dir_, ccd_vec3_t* v)
     ccdVec3Set(v, 0., 0., cone->height);
   else if(zdist > 0)
   {
-    rad = cone->radius / zdist;
+    rad = cone->radius / static_cast<ccd_real_t>(zdist);
     ccdVec3Set(v, rad * ccdVec3X(&dir), rad * ccdVec3Y(&dir), -cone->height);
   }
   else
@@ -620,11 +638,21 @@ static void supportConvex(const void* obj, const ccd_vec3_t* dir_, ccd_vec3_t* v
 
   for(i = 0; i < c->convex->num_points; ++i, curp += 1)
   {
-    ccdVec3Set(&p, (*curp)[0] - center[0], (*curp)[1] - center[1], (*curp)[2] - center[2]);
+    ccdVec3Set(
+      &p,
+      static_cast<ccd_real_t>( (*curp)[0] - center[0]),
+      static_cast<ccd_real_t>( (*curp)[1] - center[1]),
+      static_cast<ccd_real_t>( (*curp)[2] - center[2])
+	);
     dot = ccdVec3Dot(&dir, &p);
     if(dot > maxdot)
     {
-      ccdVec3Set(v, (*curp)[0], (*curp)[1], (*curp)[2]);
+      ccdVec3Set(
+        v,
+        static_cast<ccd_real_t>( (*curp)[0]),
+        static_cast<ccd_real_t>( (*curp)[1]),
+        static_cast<ccd_real_t>( (*curp)[2])
+      );
       maxdot = dot;
     }
   }
@@ -671,7 +699,12 @@ static void centerShape(const void* obj, ccd_vec3_t* c)
 static void centerConvex(const void* obj, ccd_vec3_t* c)
 {
   const ccd_convex_t *o = static_cast<const ccd_convex_t*>(obj);
-  ccdVec3Set(c, o->convex->center[0], o->convex->center[1], o->convex->center[2]);
+  ccdVec3Set(
+    c,
+    static_cast<ccd_real_t>(o->convex->center[0]),
+    static_cast<ccd_real_t>(o->convex->center[1]),
+    static_cast<ccd_real_t>(o->convex->center[2])
+  );
   ccdQuatRotVec(c, &o->rot);
   ccdVec3Add(c, &o->pos);
 }
@@ -701,11 +734,11 @@ bool GJKCollide(void* obj1, ccd_support_fn supp1, ccd_center_fn cen1,
   ccd.center1 = cen1;
   ccd.center2 = cen2;
   ccd.max_iterations = max_iterations;
-  ccd.mpr_tolerance = tolerance;
+  ccd.mpr_tolerance = static_cast<ccd_real_t>(tolerance);
 
   if(!contact_points)
   {
-    return ccdMPRIntersect(obj1, obj2, &ccd);
+    return ccdMPRIntersect(obj1, obj2, &ccd) > 0;
   }
 
 
@@ -763,10 +796,10 @@ bool GJKDistance(void* obj1, ccd_support_fn supp1,
   ccd.support2 = supp2;
   
   ccd.max_iterations = max_iterations;
-  ccd.dist_tolerance = tolerance;
+  ccd.dist_tolerance = static_cast<ccd_real_t>(tolerance);
 
   ccd_simplex_t simplex;
-  dist = __ccdGJKDist(obj1, obj2, &ccd, &simplex, tolerance);
+  dist = __ccdGJKDist(obj1, obj2, &ccd, &simplex, static_cast<ccd_real_t>(tolerance) );
   *res = dist;
   if(dist < 0) return false;
   else return true;
@@ -949,10 +982,10 @@ void* triCreateGJKObject(const Vec3f& P1, const Vec3f& P2, const Vec3f& P3)
   ccd_triangle_t* o = new ccd_triangle_t;
   Vec3f center((P1[0] + P2[0] + P3[0]) / 3, (P1[1] + P2[1] + P3[1]) / 3, (P1[2] + P2[2] + P3[2]) / 3);
 
-  ccdVec3Set(&o->p[0], P1[0], P1[1], P1[2]);
-  ccdVec3Set(&o->p[1], P2[0], P2[1], P2[2]);
-  ccdVec3Set(&o->p[2], P3[0], P3[1], P3[2]);
-  ccdVec3Set(&o->c, center[0], center[1], center[2]);
+  ccdVec3SetStaticCast(&o->p[0], P1[0], P1[1], P1[2]);
+  ccdVec3SetStaticCast(&o->p[1], P2[0], P2[1], P2[2]);
+  ccdVec3SetStaticCast(&o->p[2], P3[0], P3[1], P3[2]);
+  ccdVec3SetStaticCast(&o->c, center[0], center[1], center[2]);
   ccdVec3Set(&o->pos, 0., 0., 0.);
   ccdQuatSet(&o->rot, 0., 0., 0., 1.);
   ccdQuatInvert2(&o->rot_inv, &o->rot);
@@ -965,14 +998,20 @@ void* triCreateGJKObject(const Vec3f& P1, const Vec3f& P2, const Vec3f& P3, cons
   ccd_triangle_t* o = new ccd_triangle_t;
   Vec3f center((P1[0] + P2[0] + P3[0]) / 3, (P1[1] + P2[1] + P3[1]) / 3, (P1[2] + P2[2] + P3[2]) / 3);
 
-  ccdVec3Set(&o->p[0], P1[0], P1[1], P1[2]);
-  ccdVec3Set(&o->p[1], P2[0], P2[1], P2[2]);
-  ccdVec3Set(&o->p[2], P3[0], P3[1], P3[2]);
-  ccdVec3Set(&o->c, center[0], center[1], center[2]);
+  ccdVec3SetStaticCast(&o->p[0], P1[0], P1[1], P1[2]);
+  ccdVec3SetStaticCast(&o->p[1], P2[0], P2[1], P2[2]);
+  ccdVec3SetStaticCast(&o->p[2], P3[0], P3[1], P3[2]);
+  ccdVec3SetStaticCast(&o->c, center[0], center[1], center[2]);
   const Quaternion3f& q = tf.getQuatRotation();
   const Vec3f& T = tf.getTranslation();
-  ccdVec3Set(&o->pos, T[0], T[1], T[2]);
-  ccdQuatSet(&o->rot, q.getX(), q.getY(), q.getZ(), q.getW());
+  ccdVec3SetStaticCast(&o->pos, T[0], T[1], T[2]);
+  ccdQuatSet(
+    &o->rot,
+    static_cast<ccd_real_t>(q.getX() ),
+    static_cast<ccd_real_t>(q.getY() ),
+    static_cast<ccd_real_t>(q.getZ() ),
+    static_cast<ccd_real_t>(q.getW() )
+  );
   ccdQuatInvert2(&o->rot_inv, &o->rot);
 
   return o;

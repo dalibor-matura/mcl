@@ -50,9 +50,9 @@ bool PolySolver::isZero(FCL_REAL v)
   return (v < NEAR_ZERO_THRESHOLD) && (v > -NEAR_ZERO_THRESHOLD);
 }
 
-bool PolySolver::cbrt(FCL_REAL v)
+FCL_REAL PolySolver::cbrt(FCL_REAL v)
 {
-  return powf(v, 1.0 / 3.0);
+  return std::pow(v, 1.0 / 3.0);
 }
 
 int PolySolver::solveLinear(FCL_REAL c[2], FCL_REAL s[1])

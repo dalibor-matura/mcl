@@ -103,7 +103,7 @@ static inline void meshCollisionOrientedNodeLeafTesting(int bv_node1_id, int bv_
         is_intersect = true;
         
         if(request.num_max_contacts < result.numContacts() + n_contacts)
-          n_contacts = (request.num_max_contacts > result.numContacts()) ? (request.num_max_contacts - result.numContacts()) : 0;
+          n_contacts = static_cast<unsigned int>( (request.num_max_contacts > result.numContacts()) ? (request.num_max_contacts - result.numContacts()) : 0);
         
         for(unsigned int i = 0; i < n_contacts; ++i)
         {

@@ -209,7 +209,7 @@ public:
           is_intersect = true;
           
           if(this->request.num_max_contacts < n_contacts + this->result->numContacts())
-            n_contacts = (this->request.num_max_contacts > this->result->numContacts()) ? (this->request.num_max_contacts - this->result->numContacts()) : 0;
+            n_contacts = static_cast<unsigned int>( (this->request.num_max_contacts > this->result->numContacts()) ? (this->request.num_max_contacts - this->result->numContacts()) : 0);
     
           for(unsigned int i = 0; i < n_contacts; ++i)
           {

@@ -61,7 +61,7 @@ private:
   static inline bool isZero(FCL_REAL v);
 
   /// @brief Compute v^{1/3} 
-  static inline bool cbrt(FCL_REAL v);
+  static inline FCL_REAL cbrt(FCL_REAL v);
 
   static const FCL_REAL NEAR_ZERO_THRESHOLD;
 };
