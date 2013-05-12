@@ -462,7 +462,8 @@ BOOST_FIXTURE_PARAM_TEST_CASE(test_get_absolute_max_derivation,
 }
 
 BOOST_FIXTURE_PARAM_TEST_CASE(test_get_absolute_max_derivation_on_time_interval, 
-	ThirdOrderInterpolationFixture, std::begin(time_absolute_max_derivation_pairs), 
+	ThirdOrderInterpolationFixture, 
+	std::begin(time_absolute_max_derivation_pairs), 
 	std::end(time_absolute_max_derivation_pairs) )
 {
 	FCL_REAL time = param.first;
@@ -488,22 +489,72 @@ BOOST_FIXTURE_TEST_CASE(
 {
 	FCL_REAL whole_time = third_order_interpolation_->getTimeScale();
 
-	equalWithEpsilon_9(9.9993319980, third_order_derivation_->getAbsoluteMaxDerivation(0.0093426760, whole_time - 8.0066733400) );
-	equalWithEpsilon_9(9.9961523085, third_order_derivation_->getAbsoluteMaxDerivation(0.0653987321, whole_time - 8.0160160160) );
-	equalWithEpsilon_9(8.4222059898, third_order_derivation_->getAbsoluteMaxDerivation(0.1214547881, whole_time - 8.3243243243) );
-	equalWithEpsilon_9(8.3299966633, third_order_derivation_->getAbsoluteMaxDerivation(0.3269936603, whole_time - 8.3336670003) );
-	equalWithEpsilon_9(9.9993319980, third_order_derivation_->getAbsoluteMaxDerivation(1.0183516850, whole_time - 8.0066733400) );
+	equalWithEpsilon_9(
+		9.9993319980, 
+		third_order_derivation_->getAbsoluteMaxDerivation(
+			0.0093426760, whole_time - 8.0066733400)
+	);
+	equalWithEpsilon_9(
+		9.9961523085, 
+		third_order_derivation_->getAbsoluteMaxDerivation(
+			0.0653987321, whole_time - 8.0160160160) 
+	);
+	equalWithEpsilon_9(
+		8.4222059898, 
+		third_order_derivation_->getAbsoluteMaxDerivation(
+			0.1214547881, whole_time - 8.3243243243) 
+	);
+	equalWithEpsilon_9(
+		8.3299966633, 
+		third_order_derivation_->getAbsoluteMaxDerivation(
+			0.3269936603, whole_time - 8.3336670003) 
+	);
+	equalWithEpsilon_9(
+		9.9993319980, 
+		third_order_derivation_->getAbsoluteMaxDerivation(
+			1.0183516850, whole_time - 8.0066733400) 
+	);
 
-	equalWithEpsilon_9(9.9993319980, third_order_derivation_->getAbsoluteMaxDerivation(8.0066733400, 9.0) );
-	equalWithEpsilon_9(9.9961523085, third_order_derivation_->getAbsoluteMaxDerivation(8.0160160160, 9.0) );
-	equalWithEpsilon_9(8.4222059898, third_order_derivation_->getAbsoluteMaxDerivation(8.3243243243, 9.0) );
-	equalWithEpsilon_9(8.3299966633, third_order_derivation_->getAbsoluteMaxDerivation(8.3336670003, 9.0) );
-	equalWithEpsilon_9(6.0877544211, third_order_derivation_->getAbsoluteMaxDerivation(8.5578912246, 9.0) );
-	equalWithEpsilon_9(1.6966966967, third_order_derivation_->getAbsoluteMaxDerivation(8.9969969970, 9.0) );
-	equalWithEpsilon_9(1.6038728084, third_order_derivation_->getAbsoluteMaxDerivation(9.0063396730, 9.5) );
-	equalWithEpsilon_9(1.5135322176, third_order_derivation_->getAbsoluteMaxDerivation(9.0156823490, 9.5) );
-	equalWithEpsilon_9(0.4726514970, third_order_derivation_->getAbsoluteMaxDerivation(9.1558224892, 9.5) );
-	equalWithEpsilon_9(0.0013092839, third_order_derivation_->getAbsoluteMaxDerivation(9.3239906573, 9.5) );
+	equalWithEpsilon_9(
+		9.9993319980, 
+		third_order_derivation_->getAbsoluteMaxDerivation(8.0066733400, 9.0) 
+	);
+	equalWithEpsilon_9(
+		9.9961523085, 
+		third_order_derivation_->getAbsoluteMaxDerivation(8.0160160160, 9.0) 
+	);
+	equalWithEpsilon_9(
+		8.4222059898, 
+		third_order_derivation_->getAbsoluteMaxDerivation(8.3243243243, 9.0) 
+	);
+	equalWithEpsilon_9(
+		8.3299966633, 
+		third_order_derivation_->getAbsoluteMaxDerivation(8.3336670003, 9.0) 
+	);
+	equalWithEpsilon_9(
+		6.0877544211, 
+		third_order_derivation_->getAbsoluteMaxDerivation(8.5578912246, 9.0) 
+	);
+	equalWithEpsilon_9(
+		1.6966966967, 
+		third_order_derivation_->getAbsoluteMaxDerivation(8.9969969970, 9.0) 
+	);
+	equalWithEpsilon_9(
+		1.6038728084, 
+		third_order_derivation_->getAbsoluteMaxDerivation(9.0063396730, 9.5) 
+	);
+	equalWithEpsilon_9(
+		1.5135322176, 
+		third_order_derivation_->getAbsoluteMaxDerivation(9.0156823490, 9.5) 
+	);
+	equalWithEpsilon_9(
+		0.4726514970, 
+		third_order_derivation_->getAbsoluteMaxDerivation(9.1558224892, 9.5) 
+	);
+	equalWithEpsilon_9(
+		0.0013092839, 
+		third_order_derivation_->getAbsoluteMaxDerivation(9.3239906573, 9.5) 
+	);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
