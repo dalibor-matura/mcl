@@ -30,7 +30,7 @@ add_fcl_test(test_fcl_frontlist test_fcl_frontlist.cpp test_fcl_utility.cpp)
 add_fcl_test(test_fcl_math test_fcl_math.cpp test_fcl_utility.cpp)
 add_fcl_test(test_fcl_articulated_model test_fcl_articulated_model.cpp)
 add_fcl_test(test_fcl_articulated_collision test_fcl_articulated_collision.cpp test_fcl_utility.cpp)
-add_fcl_test(test_fcl_interpolation test_fcl_interpolation.cpp)
+add_fcl_test(test_fcl_interpolation test_fcl_interpolation.cpp boost_auto_param_test_case.hpp)
 add_fcl_test(test_fcl_broadphase_continues test_fcl_broadphase_continues.cpp test_fcl_utility.cpp)
 add_fcl_test(test_fcl_conservative_advancement test_fcl_conservative_advancement.cpp test_fcl_utility.cpp)
 
