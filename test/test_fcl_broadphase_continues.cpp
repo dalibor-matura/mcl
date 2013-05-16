@@ -673,7 +673,7 @@ protected:
 		interp_motion_->integrate(0.0);
 
 		number_of_contacts = 
-			conservativeAdvancement<RSS, MeshConservativeAdvancementTraversalNodeRSS, MeshCollisionTraversalNodeRSS>(
+			conservativeAdvancement<RSS, MeshDistanceTraversalNodeRSS, MeshCollisionTraversalNodeRSS>(
 			//&model_robot_0_, articular_motion_.get(),
 			//&model_environment_0_, interp_motion_.get(),
 			model_robot_.get(), articular_motion_.get(),

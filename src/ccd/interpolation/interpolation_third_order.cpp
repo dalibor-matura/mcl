@@ -256,8 +256,6 @@ FCL_REAL InterpolationThirdOrder::getMovementLengthBound(FCL_REAL time) const
 {
 	BOOST_ASSERT(time >= 0 && time <= 1 && "Time is out of range [0, 1].");
 
-	scaleTimeIn(time);
-
 	if (isValueGrowing() )
 	{
 		return getValueUpperBound() - getValue(time);
@@ -265,6 +263,20 @@ FCL_REAL InterpolationThirdOrder::getMovementLengthBound(FCL_REAL time) const
 	else
 	{
 		return getValue(time) - getValueLowerBound();
+	}
+}
+
+FCL_REAL InterpolationThirdOrder::getBackwardMovementLengthBound(FCL_REAL time) const
+{
+	BOOST_ASSERT(time >= 0 && time <= 1 && "Time is out of range [0, 1].");
+
+	if (isValueGrowing() )
+	{
+		return getValue(time) - getValueLowerBound();
+	}
+	else
+	{
+		return getValueUpperBound() - getValue(time);		
 	}
 }
 

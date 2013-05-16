@@ -633,6 +633,11 @@ public:
 
   Matrix3f R;
   Vec3f T;
+
+  FCL_REAL toc;
+
+  /// @brief The delta_t each step
+  mutable FCL_REAL delta_t;
 };
 
 

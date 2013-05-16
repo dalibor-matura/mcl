@@ -18,19 +18,19 @@ class Model;
 class Movement;
 class Link;
 class Joint;
-class JointBoundInfo;
 
 class LinkBound 
 {
 public:
-	LinkBound(boost::shared_ptr<const Movement> movement, boost::shared_ptr<const Link> bounded_link);
+	LinkBound(boost::shared_ptr<const Movement> movement, 
+		boost::shared_ptr<const Link> bounded_link);
 
 	// direction must be normalized
-	FCL_REAL getMotionBound(const FCL_REAL& time, const Vec3f& direction, 
-		const FCL_REAL max_distance_from_joint_center = 0);	
+	FCL_REAL getMotionBound(FCL_REAL start_time, FCL_REAL end_time,
+		const Vec3f& direction, const FCL_REAL max_distance_from_joint_center = 0);	
 
-	FCL_REAL getNonDirectionalMotionBound(const FCL_REAL& time, 
-		const FCL_REAL max_distance_from_joint_center = 0);	
+	FCL_REAL getNonDirectionalMotionBound(const FCL_REAL& start_time, 
+		const FCL_REAL& end_time, const FCL_REAL max_distance_from_joint_center = 0);	
 
 	Transform3f getBoundedLinkGlobalTransform(const FCL_REAL& time) const;
 
@@ -42,6 +42,8 @@ public:
 private:	
 	void initJointsChain();
 	const std::vector<boost::shared_ptr<const Joint> >& getJointsChain() const;					
+
+	void sortTimes(FCL_REAL& start_time, FCL_REAL& end_time) const;
 
 	// joints are ordered from last joint to root joint
 	FCL_REAL getJointsChainMotionBound() const;
@@ -56,14 +58,25 @@ private:
 	bool isRoot(const boost::shared_ptr<const Joint>& joint) const;	
 
 	FCL_REAL getAccumulatedAngularBound(const boost::shared_ptr<const Joint>& joint, bool is_directional = false) const;	
+	FCL_REAL getAccumulatedAngularBoundForLastJointFrame(const boost::shared_ptr<const Joint>& joint) const;
 
 	void setCurrentDirection(const Vec3f& direction);
 	Vec3f getCurrentDirection() const;
 
 	bool isCurrentDirectionValid() const;
 
-	void setCurrentTime(const FCL_REAL& time);
-	FCL_REAL getCurrentTime() const;
+	void setStartTime(const FCL_REAL& time);
+	FCL_REAL getStartTime() const;
+
+	void setEndTime(const FCL_REAL& time);
+	FCL_REAL getEndTime() const;
+
+	void setLastStartTime(const FCL_REAL& time);
+	void setLastEndTime(const FCL_REAL& time);
+
+	void setLastDirection(const Vec3f& direction);
+
+	bool areTimesCashed() const;
 
 	void resetAngularBoundAccumulation();
 	void addAngularBoundAccumulation(const FCL_REAL& accumulation) const;
@@ -71,7 +84,9 @@ private:
 
 private:		
 	Vec3f direction_;
-	FCL_REAL time_;
+
+	FCL_REAL start_time_;
+	FCL_REAL end_time_;	
 
 	boost::shared_ptr<const Model> model_;
 	boost::shared_ptr<const Link> bounded_link_;
@@ -82,6 +97,18 @@ private:
 	// TODO: find out better solution then using of mutable
 	// Maybe could be changed together with adding cache mechanism for all calculations
 	mutable FCL_REAL accumulated_angular_bound_;
+
+	FCL_REAL last_start_time_;
+	FCL_REAL last_end_time_;
+
+	Vec3f last_direction_;
+
+	bool start_time_cached_;
+	bool end_time_cached_;
+
+	bool direction_cached_;
+
+	FCL_REAL cashed_joints_chain_motion_bound_;
 };
 
 }

@@ -24,7 +24,7 @@ namespace fcl {
 class ConservativeAdvancementFixture
 {
 public:
-	typedef ConservativeAdvancement<RSS, MeshConservativeAdvancementTraversalNodeRSS, MeshCollisionTraversalNodeRSS> ConservativeAdvancementType;
+	typedef ConservativeAdvancement<RSS, MeshDistanceTraversalNodeRSS, MeshCollisionTraversalNodeRSS> ConservativeAdvancementType;
 
 public:
 	ConservativeAdvancementFixture()
@@ -32,10 +32,7 @@ public:
 		init();
 	}
 
-	~ConservativeAdvancementFixture()
-	{
-
-	}	
+	~ConservativeAdvancementFixture() {}	
 
 private:
 	void init()
@@ -49,38 +46,35 @@ private:
 
 	void initModels()
 	{
-		std::vector<Vec3f> p;
-		std::vector<Triangle> t;	
-		boost::filesystem::path path(TEST_RESOURCES_DIR);
-
-		loadOBJFile((path / "box.obj").string().c_str(), p, t);	
 		box_side_ = 1.0;
 
-		SplitMethodType split_method = SPLIT_METHOD_MEAN;
+		std::vector<Vec3f> points;
+		std::vector<Triangle> triangles;	
+		boost::filesystem::path path(TEST_RESOURCES_DIR);
 
-		// prepares box for static ccd object
-		box_static_.reset(new BVHModel<RSS>() );
-		box_static_->bv_splitter.reset(new BVSplitter<RSS>(split_method));
+		loadOBJFile((path / "box.obj").string().c_str(), points, triangles);	
+		
+		box_static_ = createBox(points, triangles);
+		box_moving_ = createBox(points, triangles);
+	}
 
-		box_static_->beginModel();
-		box_static_->addSubModel(p, t);
-		box_static_->endModel();
+	boost::shared_ptr<BVHModel<RSS> > createBox(const std::vector<Vec3f>& points, 
+		const std::vector<Triangle>& triangles)
+	{
+		boost::shared_ptr<BVHModel<RSS> > box(new BVHModel<RSS>() );
+		box->bv_splitter.reset(new BVSplitter<RSS>(SPLIT_METHOD_MEAN) );
 
-		// prepares box for moving ccd object
-		box_moving_.reset(new BVHModel<RSS>() );
-		box_moving_->bv_splitter.reset(new BVSplitter<RSS>(split_method));
+		box->beginModel();
+		box->addSubModel(points, triangles);
+		box->endModel();
 
-		box_moving_->beginModel();
-		box_moving_->addSubModel(p, t);
-		box_moving_->endModel();
+		return box;
 	}
 
 	void initStaticMotion()
 	{
-		// no transformation
 		tf_static_ = Transform3f(Matrix3f::getIdentity(), Vec3f(0, 0, 0) );
 
-		// no movement, just stays on the place
 		static_motion_.reset(new InterpMotion(tf_static_, tf_static_) );
 	}
 
@@ -123,10 +117,10 @@ private:
 	void initConservativeAdvancement()
 	{
 		advancement_collision_ = 
-			boost::make_shared<ConservativeAdvancement<RSS, MeshConservativeAdvancementTraversalNodeRSS, MeshCollisionTraversalNodeRSS> >
+			boost::make_shared<ConservativeAdvancement<RSS, MeshDistanceTraversalNodeRSS, MeshCollisionTraversalNodeRSS> >
 			(static_ccd_object_.get(), collision_ccd_object_.get() );
 		advancement_collision_free_ =
-			boost::make_shared<ConservativeAdvancement<RSS, MeshConservativeAdvancementTraversalNodeRSS, MeshCollisionTraversalNodeRSS> >
+			boost::make_shared<ConservativeAdvancement<RSS,MeshDistanceTraversalNodeRSS, MeshCollisionTraversalNodeRSS> >
 			(static_ccd_object_.get(), collision_free_ccd_object_.get() );
 	}
 
@@ -278,6 +272,21 @@ BOOST_FIXTURE_TEST_CASE(test_collide, ConservativeAdvancementFixture)
 	BOOST_CHECK_EQUAL(0, collisions_number);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_collide_boolean, ConservativeAdvancementFixture)
+{
+	ContinuousCollisionRequest request;
+	ContinuousCollisionResult result;
+
+	bool collide = true;
+
+	collide = advancement_collision_->collideBoolean(request, result);
+	BOOST_CHECK_EQUAL(true, collide);
+
+	result.clear();
+	collide = advancement_collision_free_->collideBoolean(request, result);
+	BOOST_CHECK_EQUAL(false, collide);
+}
+
 BOOST_FIXTURE_TEST_CASE(test_backward_compability, ConservativeAdvancementFixture)
 {
 	CollisionRequest request;
@@ -288,7 +297,7 @@ BOOST_FIXTURE_TEST_CASE(test_backward_compability, ConservativeAdvancementFixtur
 
 	int collisions_number = 0;
 
-	collisions_number  = conservativeAdvancement<RSS, MeshConservativeAdvancementTraversalNodeRSS, MeshCollisionTraversalNodeRSS>(
+	collisions_number  = conservativeAdvancement<RSS,MeshDistanceTraversalNodeRSS, MeshCollisionTraversalNodeRSS>(
 		box_static_.get(), static_motion_.get(),
 		box_moving_.get(), interp_motion_collision.get(),
 		request,
@@ -297,7 +306,7 @@ BOOST_FIXTURE_TEST_CASE(test_backward_compability, ConservativeAdvancementFixtur
 	);
 	BOOST_CHECK_LT(0, collisions_number);
 
-	collisions_number  = conservativeAdvancement<RSS, MeshConservativeAdvancementTraversalNodeRSS, MeshCollisionTraversalNodeRSS>(
+	collisions_number  = conservativeAdvancement<RSS,MeshDistanceTraversalNodeRSS, MeshCollisionTraversalNodeRSS>(
 		box_static_.get(), static_motion_.get(),
 		box_moving_.get(), interp_motion_collision_free.get(),
 		request,
@@ -315,27 +324,27 @@ BOOST_FIXTURE_TEST_CASE(test_discrete_detection_in_time, ConservativeAdvancement
 
 	result.clear();
 	collisions_number = 
-		advancement_collision_->discrete_detection_in_time(0.0, result);
+		advancement_collision_->discreteDetectionInTime(0.0, result);
 	BOOST_CHECK_EQUAL(0, collisions_number);
 
 	result.clear();
 	collisions_number = 
-		advancement_collision_->discrete_detection_in_time(0.5, result);
+		advancement_collision_->discreteDetectionInTime(0.5, result);
 	BOOST_CHECK_LT(0, collisions_number); // should be in collision
 
 	result.clear();
 	collisions_number = 
-		advancement_collision_->discrete_detection_in_time(1.0, result);
+		advancement_collision_->discreteDetectionInTime(1.0, result);
 	BOOST_CHECK_EQUAL(0, collisions_number);
 
 	result.clear();
 	collisions_number =
-		advancement_collision_free_->discrete_detection_in_time(0.0, result);
+		advancement_collision_free_->discreteDetectionInTime(0.0, result);
 	BOOST_CHECK_EQUAL(0, collisions_number);
 
 	result.clear();
 	collisions_number =
-		advancement_collision_free_->discrete_detection_in_time(1.0, result);
+		advancement_collision_free_->discreteDetectionInTime(1.0, result);
 	BOOST_CHECK_EQUAL(0, collisions_number);
 }
 

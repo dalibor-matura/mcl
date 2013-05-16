@@ -50,7 +50,8 @@ int conservativeAdvancement(const CollisionGeometry* o1,
 							CollisionResult& result,
 							FCL_REAL& toc)
 {
-	typedef ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode> ConservativeAdvancementType;
+	typedef ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode> 
+		ConservativeAdvancementType;
 
 	boost::shared_ptr<ConservativeAdvancementType> advancement = 
 		boost::make_shared<ConservativeAdvancementType>(o1, motion1, o2, motion2);
@@ -69,20 +70,22 @@ int conservativeAdvancement(const CollisionGeometry* o1,
 
 
 template
-int conservativeAdvancement<RSS, MeshConservativeAdvancementTraversalNodeRSS, MeshCollisionTraversalNodeRSS>(const CollisionGeometry* o1,
-																											 const MotionBase* motion1,
-																											 const CollisionGeometry* o2,
-																											 const MotionBase* motion2,
-																											 const CollisionRequest& request,
-																											 CollisionResult& result,
-																											 FCL_REAL& toc);
+int conservativeAdvancement<RSS, MeshDistanceTraversalNodeRSS,
+MeshCollisionTraversalNodeRSS>(
+	const CollisionGeometry* o1,
+	const MotionBase* motion1,
+	const CollisionGeometry* o2,
+	const MotionBase* motion2,
+	const CollisionRequest& request,
+	CollisionResult& result,
+	FCL_REAL& toc);
 
-template int conservativeAdvancement<OBBRSS, MeshConservativeAdvancementTraversalNodeOBBRSS, MeshCollisionTraversalNodeOBBRSS>(const CollisionGeometry* o1,
-																															   const MotionBase* motion1,
-																															   const CollisionGeometry* o2,
-																															   const MotionBase* motion2,
-																															   const CollisionRequest& request,
-																															   CollisionResult& result,
-																															   FCL_REAL& toc);
+//template int conservativeAdvancement<OBBRSS, MeshConservativeAdvancementTraversalNodeOBBRSS, MeshCollisionTraversalNodeOBBRSS>(
+//	const CollisionGeometry* o1,
+//	const MotionBase* motion1,																								
+//	const CollisionGeometry* o2,																				
+//	const MotionBase* motion2,
+//	const CollisionRequest& request,
+//	CollisionResult& result,																										FCL_REAL& toc);
 
 }

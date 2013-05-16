@@ -77,6 +77,7 @@ public:
 
   /// @brief time value is from interval [0, 1]
   virtual FCL_REAL getMovementLengthBound(FCL_REAL time) const = 0;
+  virtual FCL_REAL getBackwardMovementLengthBound(FCL_REAL time) const = 0;
 
   /// @brief time value is from interval [0, 1]
   virtual FCL_REAL getVelocityBound(FCL_REAL start_time) const = 0;

@@ -166,12 +166,12 @@ const boost::shared_ptr<const Interpolation>& Movement::getInterpolation(const b
 }
 
 Vec3f Movement::getLinearVelocityBound(const boost::shared_ptr<const Joint>& joint,
-	const FCL_REAL& time) const
+	const FCL_REAL& start_time, const FCL_REAL& end_time) const
 {
 	if (isJointTranslational(joint) )
 	{
 		// suggest that vector returned by getAxis() method is normalized
-		return joint->getAxis() * getInterpolationVelocityBound(joint, time);
+		return joint->getAxis() * getInterpolationVelocityBound(joint, start_time, end_time);
 	}
 	else
 	{
@@ -180,20 +180,20 @@ Vec3f Movement::getLinearVelocityBound(const boost::shared_ptr<const Joint>& joi
 }
 
 FCL_REAL Movement::getInterpolationVelocityBound(const boost::shared_ptr<const Joint>& joint,
-	const FCL_REAL& time) const
+	const FCL_REAL& start_time, const FCL_REAL& end_time) const
 {
 	boost::shared_ptr<const Interpolation> interp = getInterpolation(joint);	
 
-	return interp->getVelocityBound(time);
+	return interp->getVelocityBound(start_time, end_time);
 }
 
 
 FCL_REAL Movement::getAbsoluteLinearVelocityBound(const boost::shared_ptr<const Joint>& joint,
-	const FCL_REAL& time) const
+	const FCL_REAL& start_time, const FCL_REAL& end_time) const
 {
 	if (isJointTranslational(joint) )
 	{
-		return std::abs(getInterpolationVelocityBound(joint, time));
+		return std::abs(getInterpolationVelocityBound(joint, start_time, end_time));
 	}
 	else
 	{
@@ -202,12 +202,12 @@ FCL_REAL Movement::getAbsoluteLinearVelocityBound(const boost::shared_ptr<const 
 }
 
 Vec3f Movement::getAngularVelocityBound(const boost::shared_ptr<const Joint>& joint,
-	const FCL_REAL& time) const
+	const FCL_REAL& start_time, const FCL_REAL& end_time) const
 {
 	if (isJointRevolute(joint) )
 	{
 		// suggest that vector returned by getAxis() method is normalized
-		return joint->getAxis() * getInterpolationVelocityBound(joint, time);
+		return joint->getAxis() * getInterpolationVelocityBound(joint, start_time, end_time);
 	}
 	else
 	{
@@ -216,11 +216,11 @@ Vec3f Movement::getAngularVelocityBound(const boost::shared_ptr<const Joint>& jo
 }
 
 FCL_REAL Movement::getAbsoluteAngularVelocityBound(const boost::shared_ptr<const Joint>& joint,
-	const FCL_REAL& time) const
+	const FCL_REAL& start_time, const FCL_REAL& end_time) const
 {
 	if (isJointRevolute(joint) )
 	{
-		return std::abs(getInterpolationVelocityBound(joint, time) );
+		return std::abs(getInterpolationVelocityBound(joint, start_time, end_time) );
 	}
 	else
 	{

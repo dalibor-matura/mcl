@@ -415,6 +415,11 @@ public:
   {
     if (motion_->isArticular() )
     {
+      /*Vec3f v(1000000000.0, 1000000000.0, 1000000000.0);
+      aabb_.min_ = -v;
+	  aabb_.max_ = v;
+      return;*/
+
       computeArticularAABB();
       return;
     }
@@ -461,17 +466,21 @@ public:
     boost::shared_ptr<ArticularMotion> articular_motion = 
       boost::static_pointer_cast<ArticularMotion>(motion_);
 
-    static FCL_REAL square_root_of_three = 1.7320508075688772935274463415059;
-
     FCL_REAL time = 0.0;
     motion_->integrate(time);
     
     Vec3f translation;
     motion_->getCurrentTranslation(translation);
+	
+	FCL_REAL aabb_center_to_geometry_center_distance = 
+		(cgeom_->aabb_center - articular_motion->getReferencePoint() ).length();
+
+	static FCL_REAL square_root_of_three = 1.7320508075688772935274463415059;
+	// radius from center of cube (a = 2 * aabb_radius) to the its vertex
+	FCL_REAL aabb_sphere_radius = square_root_of_three * cgeom_->aabb_radius;
 
     FCL_REAL max_distance_from_geometry_center = 
-      (cgeom_->aabb_center - articular_motion->getReferencePoint() ).length() + 
-      square_root_of_three * cgeom_->aabb_radius;
+      aabb_center_to_geometry_center_distance + aabb_sphere_radius;      
 
     FCL_REAL initial_motion_bound = 
       articular_motion->getNonDirectionalMotionBound(max_distance_from_geometry_center);

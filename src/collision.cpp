@@ -148,7 +148,7 @@ std::size_t collide(const ContinuousCollisionObject* o1, const ContinuousCollisi
                     const ContinuousCollisionRequest& request,
                     ContinuousCollisionResult& result)
 {
-  typedef ConservativeAdvancement<RSS, MeshConservativeAdvancementTraversalNodeRSS, MeshCollisionTraversalNodeRSS>
+  typedef ConservativeAdvancement<RSS, MeshDistanceTraversalNodeRSS, MeshCollisionTraversalNodeRSS>
     ConservativeAdvancementType;
 
   ConservativeAdvancementType advancement = ConservativeAdvancementType(o1, o2);
@@ -162,7 +162,7 @@ std::size_t collide(const CollisionGeometry* o1, const MotionBase* motion1,
                     CollisionResult& result)
 {
   FCL_REAL toc;
-  return conservativeAdvancement<RSS, MeshConservativeAdvancementTraversalNodeRSS, MeshCollisionTraversalNodeRSS>(
+  return conservativeAdvancement<RSS, MeshDistanceTraversalNodeRSS, MeshCollisionTraversalNodeRSS>(
                                                                                                                   o1, motion1,
                                                                                                                   o2, motion2,
                                                                                                                   request,

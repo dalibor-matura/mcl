@@ -111,8 +111,17 @@ public:
   
   virtual ~MotionBase() {}
 
+  MotionBase* clone() const
+  {
+	MotionBase* motion = doClone();
+
+	assert( typeid(*motion) == typeid(*this) && "DoClone incorrectly overridden" );
+
+	return motion;
+  }  
+
   /** \brief Integrate the motion from 0 to dt */
-  virtual bool integrate(double dt) const = 0;
+  virtual bool integrate(double start_time, double end_time = -1.0) const = 0;
 
   /** \brief Compute the motion bound for a bounding volume, given the closest direction n between two query objects */
   virtual FCL_REAL computeMotionBound(const BVMotionBoundVisitor& mb_visitor) const= 0;
@@ -141,7 +150,19 @@ public:
     return is_articular_;
   }
 
+  bool isMovingBackward() const
+  {
+	return is_moving_backward_;
+  }
+
+  void isMovingBackward(bool is_moving_backward)
+  {
+	is_moving_backward_ = is_moving_backward;
+  }
+
 protected:
+  virtual MotionBase* doClone() const = 0;
+
   void isArticular(bool is_articular)
   {
     is_articular_ = is_articular;
@@ -152,6 +173,7 @@ protected:
 
 private:
   bool is_articular_;
+  bool is_moving_backward_;
 };
 
 

@@ -22,14 +22,17 @@ class Movement
 {
 public:
 	Movement(boost::shared_ptr<const Model> model,
-		boost::shared_ptr<const ModelConfig> cfg_start, boost::shared_ptr<const ModelConfig> cfg_end);
+		boost::shared_ptr<const ModelConfig> cfg_start, 
+		boost::shared_ptr<const ModelConfig> cfg_end);
 
 	boost::shared_ptr<const ModelConfig> getStartCfg() const;
 	boost::shared_ptr<const ModelConfig> getEndCfg() const;
 
-	Transform3f getGlobalTransform(const boost::shared_ptr<const Joint>& joint, const FCL_REAL& time) const;		
+	Transform3f getGlobalTransform(const boost::shared_ptr<const Joint>& joint, 
+		const FCL_REAL& time) const;		
 
-	Transform3f getGlobalTransform(const boost::shared_ptr<const Link>& link, const FCL_REAL& time) const;
+	Transform3f getGlobalTransform(const boost::shared_ptr<const Link>& link, 
+		const FCL_REAL& time) const;
 
 	boost::shared_ptr<ModelConfig> getModelConfig(const FCL_REAL& time) const;
 	void getModelConfig(const FCL_REAL& time, boost::shared_ptr<ModelConfig>& model_config) const;	
@@ -37,14 +40,14 @@ public:
 	/* setCurrentTime must be called before any other method is called */
 
 	Vec3f getLinearVelocityBound(const boost::shared_ptr<const Joint>& joint,
-		const FCL_REAL& time) const;
+		const FCL_REAL& start_time, const FCL_REAL& end_time) const;
 	FCL_REAL getAbsoluteLinearVelocityBound(const boost::shared_ptr<const Joint>& joint,
-		const FCL_REAL& time) const;
+		const FCL_REAL& start_time, const FCL_REAL& end_time) const;
 
 	Vec3f getAngularVelocityBound(const boost::shared_ptr<const Joint>& joint,
-		const FCL_REAL& time) const;	
+		const FCL_REAL& start_time, const FCL_REAL& end_time) const;	
 	FCL_REAL getAbsoluteAngularVelocityBound(const boost::shared_ptr<const Joint>& joint,
-		const FCL_REAL& time) const;	
+		const FCL_REAL& start_time, const FCL_REAL& end_time) const;	
 
 	FCL_REAL getChildParentDistanceBound(const boost::shared_ptr<const Joint>& joint,
 		const boost::shared_ptr<const Joint>& joint_parent) const;	
@@ -75,7 +78,7 @@ private:
 		const boost::shared_ptr<const Joint>& joint_parent) const;
 
 	FCL_REAL getInterpolationVelocityBound(const boost::shared_ptr<const Joint>& joint,
-		const FCL_REAL& time) const;
+		const FCL_REAL& start_time, const FCL_REAL& end_time) const;
 
 	const boost::shared_ptr<const Interpolation>& getInterpolation(const std::string& joint_name) const;	
 	const boost::shared_ptr<const Interpolation>& getInterpolation(const boost::shared_ptr<const Joint>& joint) const;	

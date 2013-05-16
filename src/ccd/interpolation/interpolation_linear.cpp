@@ -104,6 +104,11 @@ FCL_REAL InterpolationLinear::getMovementLengthBound(FCL_REAL time) const
   return getValueUpperBound() - getValue(time);
 }
 
+FCL_REAL InterpolationLinear::getBackwardMovementLengthBound(FCL_REAL time) const
+{
+	return getValue(time) - getValueLowerBound();
+}
+
 FCL_REAL InterpolationLinear::getVelocityBound(FCL_REAL start_time) const
 {
   return (getEndValue() - getStartValue() );

@@ -343,7 +343,11 @@ static inline void distancePostprocessOrientedNode(const BVHModel<BV>* model1, c
 
 }
 
-MeshDistanceTraversalNodeRSS::MeshDistanceTraversalNodeRSS() : MeshDistanceTraversalNode<RSS>()
+MeshDistanceTraversalNodeRSS::MeshDistanceTraversalNodeRSS()
+	:
+	MeshDistanceTraversalNode<RSS>(),
+	toc(0.0),
+	delta_t(1.0)
 {
   R.setIdentity();
 }
@@ -446,7 +450,7 @@ const Vec3f& getBVAxis<OBBRSS>(const OBBRSS& bv, int i)
 
 
 template<typename BV>
-bool meshConservativeAdvancementTraversalNodeCanStop(FCL_REAL c,
+bool meshConservativeAdvancementTraversalNodeCanStop(FCL_REAL distance,
                                                      FCL_REAL min_distance,
                                                      FCL_REAL abs_err, FCL_REAL rel_err, FCL_REAL w,
                                                      const BVHModel<BV>* model1, const BVHModel<BV>* model2,
@@ -454,14 +458,14 @@ bool meshConservativeAdvancementTraversalNodeCanStop(FCL_REAL c,
                                                      std::vector<ConservativeAdvancementStackData>& stack,
                                                      FCL_REAL& delta_t)
 {
-  if((c >= w * (min_distance - abs_err)) && (c * (1 + rel_err) >= w * min_distance))
+  if((distance >= w * (min_distance - abs_err)) && (distance * (1 + rel_err) >= w * min_distance))
   {
     const ConservativeAdvancementStackData& data = stack.back();
     FCL_REAL d = data.d;
     Vec3f n;
     int c1, c2;
 
-    if(d > c)
+    if(d > distance)
     {
       const ConservativeAdvancementStackData& data2 = stack[stack.size() - 2];
       d = data2.d;
@@ -477,7 +481,7 @@ bool meshConservativeAdvancementTraversalNodeCanStop(FCL_REAL c,
       c2 = data.c2;
     }
 
-    assert(c == d);
+    assert(distance == d);
 
     Vec3f n_transformed =
       getBVAxis(model1->getBV(c1).bv, 0) * n[0] +
@@ -491,8 +495,8 @@ bool meshConservativeAdvancementTraversalNodeCanStop(FCL_REAL c,
     FCL_REAL bound = bound1 + bound2;
 
     FCL_REAL cur_delta_t;
-    if(bound <= c) cur_delta_t = 1;
-    else cur_delta_t = c / bound;
+    if(bound <= distance) cur_delta_t = 1;
+    else cur_delta_t = distance / bound;
 
     if(cur_delta_t < delta_t)
       delta_t = cur_delta_t;
@@ -506,7 +510,7 @@ bool meshConservativeAdvancementTraversalNodeCanStop(FCL_REAL c,
     const ConservativeAdvancementStackData& data = stack.back();
     FCL_REAL d = data.d;
 
-    if(d > c)
+    if(d > distance)
       stack[stack.size() - 2] = stack[stack.size() - 1];
 
     stack.pop_back();

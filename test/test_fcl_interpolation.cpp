@@ -358,6 +358,50 @@ BOOST_FIXTURE_TEST_CASE(test_get_velocity_bound_on_time_interval_other_cases,
 	);
 }
 
+BOOST_FIXTURE_TEST_CASE(test_get_movement_length_bound, 
+	ThirdOrderInterpolationFixture)
+{
+	FCL_REAL whole_movement_lenght = 
+		third_order_interpolation_->getValueUpperBound() -
+		third_order_interpolation_->getValueLowerBound();
+
+	BOOST_CHECK_EQUAL(
+		whole_movement_lenght,
+		third_order_interpolation_->getMovementLengthBound(0.0)
+	);
+
+	FCL_REAL movement_lenght = 
+		third_order_interpolation_->getValueUpperBound() -
+		third_order_interpolation_->getValue(0.4);
+
+	BOOST_CHECK_EQUAL(
+		movement_lenght,
+		third_order_interpolation_->getMovementLengthBound(0.4)
+	);
+}
+
+BOOST_FIXTURE_TEST_CASE(test_get_backward_movement_length_bound, 
+	ThirdOrderInterpolationFixture)
+{
+	FCL_REAL whole_movement_lenght = 
+		third_order_interpolation_->getValueUpperBound() -
+		third_order_interpolation_->getValueLowerBound();
+
+	BOOST_CHECK_EQUAL(
+		whole_movement_lenght,
+		third_order_interpolation_->getBackwardMovementLengthBound(1.0)
+	);
+
+	FCL_REAL movement_lenght = 
+		third_order_interpolation_->getValue(0.4) - 
+		third_order_interpolation_->getValueLowerBound();
+
+	BOOST_CHECK_EQUAL(
+		movement_lenght,
+		third_order_interpolation_->getBackwardMovementLengthBound(0.4)
+	);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 ////////////////////////////////////////////////////////////////////////////////
 BOOST_AUTO_TEST_SUITE(test_third_order_derivation)

@@ -153,12 +153,12 @@ SplineMotion::SplineMotion(const Vec3f& Td0, const Vec3f& Td1, const Vec3f& Td2,
   integrate(0.0);
 }
 
-bool SplineMotion::integrate(double dt) const
+bool SplineMotion::integrate(double start_time, double end_time) const
 {
-  if(dt > 1) dt = 1;
+  if(start_time > 1) start_time = 1;
 
-  Vec3f cur_T = Td[0] * getWeight0(dt) + Td[1] * getWeight1(dt) + Td[2] * getWeight2(dt) + Td[3] * getWeight3(dt);
-  Vec3f cur_w = Rd[0] * getWeight0(dt) + Rd[1] * getWeight1(dt) + Rd[2] * getWeight2(dt) + Rd[3] * getWeight3(dt);
+  Vec3f cur_T = Td[0] * getWeight0(start_time) + Td[1] * getWeight1(start_time) + Td[2] * getWeight2(start_time) + Td[3] * getWeight3(start_time);
+  Vec3f cur_w = Rd[0] * getWeight0(start_time) + Rd[1] * getWeight1(start_time) + Rd[2] * getWeight2(start_time) + Rd[3] * getWeight3(start_time);
   FCL_REAL cur_angle = cur_w.length();
   cur_w.normalize();
 
@@ -167,7 +167,7 @@ bool SplineMotion::integrate(double dt) const
 
   tf.setTransform(cur_q, cur_T);
 
-  tf_t = dt;
+  tf_t = start_time;
 
   return true;
 }
@@ -492,12 +492,12 @@ InterpMotion::InterpMotion(const Transform3f& tf1_, const Transform3f& tf2_, con
 {
 }
 
-bool InterpMotion::integrate(double dt) const
+bool InterpMotion::integrate(double start_time, double end_time) const
 {
-  if(dt > 1) dt = 1;
+  if(start_time > 1) start_time = 1;
 
-  tf.setQuatRotation(absoluteRotation(dt));
-  tf.setTranslation(linear_vel * dt + tf1.transform(reference_p) - tf.getQuatRotation().transform(reference_p));
+  tf.setQuatRotation(absoluteRotation(start_time));
+  tf.setTranslation(linear_vel * start_time + tf1.transform(reference_p) - tf.getQuatRotation().transform(reference_p));
 
   return true;
 }
@@ -533,19 +533,29 @@ ArticularMotion::ArticularMotion(boost::shared_ptr<LinkBound> link_bound) :
   link_bound_(link_bound),
   reference_point_(Vec3f(0, 0, 0) ),
   //reference_point_(link_bound->getLastJoint()->getTransformToParent().getTranslation() ),
-  time_(0.0)
+  start_time_(0.0)
 {
   isArticular(true);
 
   integrate(0);
 }
 
-bool ArticularMotion::integrate(double dt) const
+bool ArticularMotion::integrate(double start_time, double end_time) const
 {
-  if(dt > 1) dt = 1;
+  start_time_ = start_time;
+  end_time_ = end_time;
 
-  time_ = dt;
-  tf_ = link_bound_->getBoundedLinkGlobalTransform(dt); 
+  if(start_time_ > 1.0) 
+  {
+    start_time_ = 1.0;  
+  }
+
+  if(end_time_ < 0.0 || end_time_ > 1.0) 
+  {
+	  end_time_ = 1.0;  
+  }
+
+  tf_ = link_bound_->getBoundedLinkGlobalTransform(start_time); 
 
   return true;
 }
@@ -553,13 +563,27 @@ bool ArticularMotion::integrate(double dt) const
 FCL_REAL ArticularMotion::getMotionBound(const Vec3f& direction,
   const FCL_REAL max_distance_from_joint_center) const
 {
-  return link_bound_->getMotionBound(time_, direction, max_distance_from_joint_center);
+  if (start_time_ <= end_time_)
+  {
+	return link_bound_->getMotionBound(start_time_, end_time_, direction, max_distance_from_joint_center);
+  }
+  else
+  {
+	return link_bound_->getMotionBound(end_time_, start_time_, direction, max_distance_from_joint_center);
+  }
 }
 
 FCL_REAL ArticularMotion::getNonDirectionalMotionBound(
   const FCL_REAL max_distance_from_joint_center) const
 {
-  return link_bound_->getNonDirectionalMotionBound(time_, max_distance_from_joint_center);
+  if (start_time_ <= end_time_)
+  {
+	  return link_bound_->getNonDirectionalMotionBound(start_time_, end_time_, max_distance_from_joint_center);
+  }
+  else
+  {
+	  return link_bound_->getNonDirectionalMotionBound(end_time_, start_time_, max_distance_from_joint_center);
+  }
 }
 
 /// @brief Compute the motion bound for a bounding volume along a given direction n

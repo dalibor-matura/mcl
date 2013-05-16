@@ -65,6 +65,7 @@ public:
   virtual InterpolationType getType() const;
 
   virtual FCL_REAL getMovementLengthBound(FCL_REAL time) const;
+  virtual FCL_REAL getBackwardMovementLengthBound(FCL_REAL time) const;
 
   virtual FCL_REAL getVelocityBound(FCL_REAL start_time) const;
   virtual FCL_REAL getVelocityBound(FCL_REAL start_time, FCL_REAL end_time) const;

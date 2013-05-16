@@ -60,7 +60,7 @@ public:
   
   /// @brief Integrate the motion from 0 to dt
   /// We compute the current transformation from zero point instead of from last integrate time, for precision.
-  bool integrate(double dt) const;
+  bool integrate(double start_time, double end_time = -1.0) const;
 
   /// @brief Compute the motion bound for a bounding volume along a given direction n, which is defined in the visitor
   FCL_REAL computeMotionBound(const BVMotionBoundVisitor& mb_visitor) const
@@ -175,6 +175,11 @@ public:
   }
 
 protected:
+  virtual MotionBase* doClone() const
+  {
+    return new SplineMotion(*this);
+  }
+
   void computeSplineParameter()
   {
   }
@@ -246,14 +251,14 @@ public:
 
   /// @brief Integrate the motion from 0 to dt
   /// We compute the current transformation from zero point instead of from last integrate time, for precision.
-  bool integrate(double dt) const
+  bool integrate(double start_time, double end_time = -1.0) const
   {
-    if(dt > 1) dt = 1;
+    if(start_time > 1) start_time = 1;
     
-    tf.setQuatRotation(absoluteRotation(dt));
+    tf.setQuatRotation(absoluteRotation(start_time));
     
-    Quaternion3f delta_rot = deltaRotation(dt);
-    tf.setTranslation(p + axis * (dt * linear_vel) + delta_rot.transform(tf1.getTranslation() - p));
+    Quaternion3f delta_rot = deltaRotation(start_time);
+    tf.setTranslation(p + axis * (start_time * linear_vel) + delta_rot.transform(tf1.getTranslation() - p));
 
     return true;
   }
@@ -317,6 +322,11 @@ public:
   }
 
 protected:
+  virtual MotionBase* doClone() const
+  {
+    return new ScrewMotion(*this);
+  }
+
   void computeScrewParameter()
   {
     Quaternion3f deltaq = tf2.getQuatRotation() * inverse(tf1.getQuatRotation());
@@ -377,7 +387,6 @@ protected:
   FCL_REAL angular_vel;
 
 public:
-
   inline FCL_REAL getLinearVelocity() const
   {
     return linear_vel;
@@ -428,7 +437,7 @@ public:
 
   /// @brief Integrate the motion from 0 to dt
   /// We compute the current transformation from zero point instead of from last integrate time, for precision.
-  bool integrate(double dt) const;
+  bool integrate(double start_time, double end_time = -1.0) const;
 
   /// @brief Compute the motion bound for a bounding volume along a given direction n, which is defined in the visitor
   FCL_REAL computeMotionBound(const BVMotionBoundVisitor& mb_visitor) const
@@ -487,13 +496,18 @@ public:
   }
 
 protected:
+  virtual MotionBase* doClone() const
+  {
+    return new InterpMotion(*this);
+  }
 
   void computeVelocity();
 
   Quaternion3f deltaRotation(FCL_REAL dt) const;
   
   Quaternion3f absoluteRotation(FCL_REAL dt) const;
-  
+
+protected:  
   /// @brief The transformation at time 0
   Transform3f tf1;
 
@@ -545,7 +559,7 @@ public:
 
   /// @brief Integrate the motion from 0 to dt
   /// We compute the current transformation from zero point instead of from last integrate time, for precision.
-  bool integrate(double dt) const;
+  bool integrate(double start_time, double end_time = -1.0) const;
 
   /// @brief Compute the motion bound for a bounding volume along a given direction n, which is defined in the visitor
   FCL_REAL computeMotionBound(const BVMotionBoundVisitor& mb_visitor) const
@@ -605,10 +619,16 @@ public:
     return reference_point_;
   }
 
+protected:
+	virtual MotionBase* doClone() const
+	{
+		return new ArticularMotion(*this);
+	}
+
 private:
   // Non parametrized constructor is not allowed
   ArticularMotion() :
-    time_(0.0) {};
+    start_time_(0.0) {};
 
 private:
   boost::shared_ptr<LinkBound> link_bound_;
@@ -617,7 +637,8 @@ private:
   mutable Transform3f tf_;
 
   /// @brief The transformation at current time t
-  mutable FCL_REAL time_;
+  mutable FCL_REAL start_time_;
+  mutable FCL_REAL end_time_;
 
   /// @brief Reference point for the motion (in the object's local frame)
   Vec3f reference_point_;  

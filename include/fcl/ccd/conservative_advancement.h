@@ -47,6 +47,9 @@
 #include "fcl/traversal/traversal_recurse.h"
 #include "fcl/collision.h"
 
+#include <vector>
+#include <utility>
+
 namespace fcl
 {
 
@@ -65,7 +68,9 @@ public:
 	// returns number of contacts
 	int collide(const ContinuousCollisionRequest& request, ContinuousCollisionResult& result);
 
-	int discrete_detection_in_time(FCL_REAL time, CollisionResult& result);
+	bool collideBoolean(const ContinuousCollisionRequest& request, ContinuousCollisionResult& result);
+
+	int discreteDetectionInTime(FCL_REAL time, CollisionResult& result);
 
 private:
 	void setRequest(const ContinuousCollisionRequest& request);
@@ -79,14 +84,14 @@ private:
 	bool isNodeTypeRSS(const CollisionGeometry* geometry) const;
 
 	void initCollisionDetection();
-	void setStartConfigurations();
 
-	void integrateTimeToMotions(FCL_REAL time);
+	void integrateTimeToMotions(FCL_REAL start_time, FCL_REAL end_time = -1.0);
 
 	void clearResult();
 
-	void performDiscreteCollision();
-	void initDiscreteCollision(CollisionNode& node);
+	void performDiscreteCollision(FCL_REAL time);
+	void initDiscreteCollision(FCL_REAL time);
+	void initDiscreteCollisionNode(CollisionNode& node);
 	Transform3f getCurrentTransform(const MotionBase* motion);
 	
 	bool isCollisionFree() const;
@@ -97,6 +102,7 @@ private:
 	bool stepsRemains(ConservativeAdvancementNode& node) const;
 	void performOneConservativeStep(ConservativeAdvancementNode& node);
 	void initDistanceRecurse(ConservativeAdvancementNode& node);
+	void distanceRecurse(ConservativeAdvancementNode& node) const;
 
 	bool isColliding(ConservativeAdvancementNode& node) const;	
 
@@ -104,6 +110,25 @@ private:
 
 	void addContact(ConservativeAdvancementNode& node);
 	void doTimeStep(ConservativeAdvancementNode& node);
+
+	bool performBooleanContinuousCollision();
+
+	void calculateVelocityBound();
+	FCL_REAL getMaxRadius(const BVHModel<BV>* model, const MotionBase* motion);
+
+	FCL_REAL getVelocityBound() const;
+
+	FCL_REAL getLeftTimeStep(ConservativeAdvancementNode& node,
+		const FCL_REAL& start_time, const FCL_REAL& end_time);
+	FCL_REAL getRightTimeStep(ConservativeAdvancementNode& node,
+		const FCL_REAL& start_time, const FCL_REAL& end_time);
+
+	FCL_REAL getTimeStep(ConservativeAdvancementNode& node) const;
+
+	FCL_REAL getMinDistance(ConservativeAdvancementNode& node) const;
+
+	FCL_REAL moveForward();
+	void booleanCoolisionDetectionStep();
 
 private:
 	const CollisionGeometry* geometry1_;
@@ -116,7 +141,12 @@ private:
 	const BVHModel<BV>* model2_;
 
 	const ContinuousCollisionRequest* request_;
-	ContinuousCollisionResult* result_;
+	ContinuousCollisionResult* result_;	
+
+	DistanceRequest distance_request_;
+	DistanceResult distance_result_;
+
+	FCL_REAL velocity_bound_;
 };
 
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
@@ -128,7 +158,8 @@ ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::Conserv
 	motion1_(o1->getMotion() ),
 	motion2_(o2->getMotion() ),
 	model1_(static_cast<const BVHModel<BV>*>(o1->getCollisionGeometry() ) ),
-	model2_(static_cast<const BVHModel<BV>*>(o2->getCollisionGeometry() ) )
+	model2_(static_cast<const BVHModel<BV>*>(o2->getCollisionGeometry() ) ),
+	velocity_bound_(0.0)
 {
 }
 
@@ -142,7 +173,8 @@ ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::Conserv
 	motion1_(motion1),
 	motion2_(motion2),
 	model1_(static_cast<const BVHModel<BV>*>(geometry1) ),
-	model2_(static_cast<const BVHModel<BV>*>(geometry2) )
+	model2_(static_cast<const BVHModel<BV>*>(geometry2) ),
+	velocity_bound_(0.0)
 {
 }
 
@@ -159,7 +191,8 @@ int ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::col
 	}
 
 	initCollisionDetection();
-	performDiscreteCollision();	
+
+	performDiscreteCollision(request_->start_time);	
 
 	if (isCollisionFree() )
 	{
@@ -170,7 +203,7 @@ int ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::col
 }
 
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
-int ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::discrete_detection_in_time(
+int ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::discreteDetectionInTime(
 	FCL_REAL time, CollisionResult& result)
 {
 	ContinuousCollisionResult continuous_result;	
@@ -179,8 +212,7 @@ int ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::dis
 	ContinuousCollisionRequest continuous_request;
 	setRequest(continuous_request);
 
-	integrateTimeToMotions(time);
-	performDiscreteCollision();	
+	performDiscreteCollision(time);	
 
 	result = *result_;
 
@@ -250,21 +282,7 @@ bool ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::is
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
 void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::initCollisionDetection()
 {
-	setStartConfigurations();
 	clearResult();
-}
-
-template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
-void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::setStartConfigurations()
-{
-	integrateTimeToMotions(request_->start_time);
-}
-
-template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
-void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::integrateTimeToMotions(FCL_REAL time)
-{
-	motion1_->integrate(time);
-	motion2_->integrate(time);
 }
 
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
@@ -274,16 +292,34 @@ void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::cl
 }
 
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
-void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::performDiscreteCollision()
+void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::performDiscreteCollision
+	(FCL_REAL time)
 {
+	initDiscreteCollision(time);
+
 	CollisionNode node;
-	initDiscreteCollision(node);
+	initDiscreteCollisionNode(node);
 
 	::fcl::collide(&node);
 }
 
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
-void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::initDiscreteCollision(CollisionNode& node)
+void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::initDiscreteCollision
+	(FCL_REAL time)
+{
+	integrateTimeToMotions(time);
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::integrateTimeToMotions
+	(FCL_REAL start_time, FCL_REAL end_time = -1.0)
+{
+	motion1_->integrate(start_time, end_time);
+	motion2_->integrate(start_time, end_time);
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::initDiscreteCollisionNode(CollisionNode& node)
 {	
 	bool succeded = initialize(
 		node,
@@ -333,11 +369,13 @@ void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::in
 	initialize(
 		node, 
 		*model1_, getCurrentTransform(motion1_),
-		*model2_, getCurrentTransform(motion2_)
+		*model2_, getCurrentTransform(motion2_),
+		distance_request_,
+		distance_result_
 		);
 
-	node.motion1 = motion1_;
-	node.motion2 = motion2_;
+	//node.motion1 = motion1_;
+	//node.motion2 = motion2_;
 }
 
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
@@ -359,7 +397,11 @@ template<typename BV, typename ConservativeAdvancementNode, typename CollisionNo
 void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::performOneConservativeStep(ConservativeAdvancementNode& node)
 {
 	initDistanceRecurse(node);
-	distanceRecurse(&node, 0, 0, NULL);
+
+	//distanceRecurse(node);
+	calculateVelocityBound();
+	node.delta_t = getTimeStep(node);	
+
 	processRecurseResult(node);	
 }
 
@@ -369,21 +411,26 @@ void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::in
 	Matrix3f R1_t, R2_t;
 	Vec3f T1_t, T2_t;
 
-	node.motion1->getCurrentTransform(R1_t, T1_t);
-	node.motion2->getCurrentTransform(R2_t, T2_t);
+	motion1_->getCurrentTransform(R1_t, T1_t);
+	motion2_->getCurrentTransform(R2_t, T2_t);
 
 	relativeTransform(R1_t, T1_t, R2_t, T2_t, node.R, node.T);
 
 	node.delta_t = request_->end_time;
-	node.min_distance = std::numeric_limits<FCL_REAL>::max();
+	//node.min_distance = std::numeric_limits<FCL_REAL>::max();
 }
 
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
-bool ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::isColliding(ConservativeAdvancementNode& node) const
+void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::distanceRecurse(
+	ConservativeAdvancementNode& node) const
 {
-	return (node.delta_t <= node.t_err);
-}
+	//distanceRecurse(&node, 0, 0, NULL);
 
+	//BVHFrontList front_list;
+	int queue_size = 1000;
+	//distanceQueueRecurse(&node, 0, 0, &front_list, queue_size);
+	distanceQueueRecurse(&node, 0, 0, NULL, queue_size);
+}
 
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
 void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::processRecurseResult(ConservativeAdvancementNode& node)
@@ -399,9 +446,16 @@ void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::pr
 }
 
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+bool ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::isColliding(ConservativeAdvancementNode& node) const
+{
+	return (node.delta_t <= (FCL_REAL)0.00001); //node.t_err);
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
 void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::addContact(ConservativeAdvancementNode& node)
 {
-	result_->addContact(Contact(model1_, model2_, node.last_tri_id1, node.last_tri_id2) );
+	//result_->addContact(Contact(model1_, model2_, node.last_tri_id1, node.last_tri_id2) );
+	result_->addContact(Contact(model1_, model2_, 0, 0) );
 }
 
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
@@ -416,6 +470,200 @@ void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::do
 	{
 		integrateTimeToMotions(node.toc);
 	}
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+bool ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::collideBoolean(
+	const ContinuousCollisionRequest& request, ContinuousCollisionResult& result)
+{
+	setRequest(request);
+	setResult(result);
+
+	if (!areInvariantsSatisfied() )
+	{
+		return false;
+	}
+
+	initCollisionDetection();
+
+	return performBooleanContinuousCollision();		
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+bool ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::performBooleanContinuousCollision()
+{
+	performDiscreteCollision(request_->start_time);	
+	performDiscreteCollision(request_->end_time);	
+
+	if (!isCollisionFree() )
+	{
+		return true;
+	}	
+
+	ConservativeAdvancementNode node;
+	initContinuousCollision(node);
+
+	// Prepare time interval pairs
+	std::vector<std::pair<FCL_REAL, FCL_REAL> > time_pairs;
+	time_pairs.push_back(std::make_pair(request_->start_time, request_->end_time) );
+
+	while (!time_pairs.empty() )
+	{
+		std::pair<FCL_REAL, FCL_REAL> one_time_pair = time_pairs.back();
+		time_pairs.pop_back();
+
+		const FCL_REAL& left_time = one_time_pair.first;
+		const FCL_REAL& right_time = one_time_pair.second;		
+
+		integrateTimeToMotions(left_time, right_time);
+		calculateVelocityBound();
+
+		FCL_REAL left_time_step = getLeftTimeStep(node, left_time, right_time);
+		FCL_REAL right_time_step = getRightTimeStep(node, left_time, right_time);
+
+		if ( (left_time_step + right_time_step) < (right_time - left_time) ) 		
+		{
+			FCL_REAL new_left_time = left_time + left_time_step;
+			FCL_REAL new_right_time = right_time - right_time_step;
+
+			FCL_REAL middle_time = (new_left_time + new_right_time) / 2.0;
+
+			performDiscreteCollision(middle_time);	
+
+			if (!isCollisionFree() )
+			{
+				return true;
+			}	
+
+			time_pairs.push_back(std::make_pair(new_left_time, middle_time) );
+			time_pairs.push_back(std::make_pair(middle_time, new_right_time) );
+		}
+	}
+
+	return false;
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::calculateVelocityBound()
+{
+	// FAKE computation
+	// velocity_bound_ = 0.000001;
+	// return;
+
+	FCL_REAL model1_max_radius = getMaxRadius(model1_, motion1_);
+	FCL_REAL model2_max_radius = getMaxRadius(model2_, motion2_);	
+
+	velocity_bound_ = 0.0;
+
+	Vec3f nullPoint, distancePoint_1, distancePoint_2;
+
+	distancePoint_1[0] = model1_max_radius;
+	distancePoint_2[0] = model2_max_radius;
+
+	TriangleMotionBoundVisitor mb_visitor1(distancePoint_1, nullPoint, nullPoint, Vec3f(0.0, 0.0, 0.0) );
+	TriangleMotionBoundVisitor mb_visitor2(distancePoint_2, nullPoint, nullPoint, Vec3f(0.0, 0.0, 0.0) );
+
+	velocity_bound_ += motion1_->computeMotionBound(mb_visitor1);
+	velocity_bound_ += motion2_->computeMotionBound(mb_visitor2);
+
+	//velocity_bound_ += motion1_->getMotionBound(Vec3f(0.0, 0.0, 0.0), model1_max_radius);
+	//velocity_bound_ += motion2_->getMotionBound(Vec3f(0.0, 0.0, 0.0), model2_max_radius);
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+FCL_REAL ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::getMaxRadius(
+	const BVHModel<BV>* model, const MotionBase* motion)
+{
+	// Expects RSS as BV template variable
+
+	FCL_REAL proj_max = 0;
+	FCL_REAL tmp = 0;
+
+	if (model1_->getNumBVs() <= 0)
+	{
+		return 0.0;
+	}
+
+	BV bv = model->getBV(0).bv;
+
+	proj_max = (bv.Tr).sqrLength();
+
+	tmp = (bv.Tr + bv.axis[0] * bv.l[0]).sqrLength();
+	if(tmp > proj_max) proj_max = tmp;
+	tmp = (bv.Tr + bv.axis[1] * bv.l[1]).sqrLength();
+	if(tmp > proj_max) proj_max = tmp;
+	tmp = (bv.Tr + bv.axis[0] * bv.l[0] + bv.axis[1] * bv.l[1]).sqrLength();
+	if(tmp > proj_max) proj_max = tmp;
+
+	proj_max = std::sqrt(proj_max);
+
+	return proj_max;
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+FCL_REAL ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::getVelocityBound() const
+{
+	return velocity_bound_;
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+FCL_REAL ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::getLeftTimeStep(
+	ConservativeAdvancementNode& node, const FCL_REAL& start_time, const FCL_REAL& end_time)
+{
+	//integrateTimeToMotions(start_time, end_time);
+
+	return getTimeStep(node);
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+FCL_REAL ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::getTimeStep(
+	ConservativeAdvancementNode& node) const
+{
+	FCL_REAL min_distance = getMinDistance(node);
+	FCL_REAL velocity_bound = getVelocityBound();
+
+	return min_distance / velocity_bound;
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+FCL_REAL ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::getMinDistance(
+	ConservativeAdvancementNode& node) const
+{
+	Matrix3f R1_t, R2_t;
+	Vec3f T1_t, T2_t;
+
+	motion1_->getCurrentTransform(R1_t, T1_t);
+	motion2_->getCurrentTransform(R2_t, T2_t);
+
+	relativeTransform(R1_t, T1_t, R2_t, T2_t, node.R, node.T);
+
+	node.delta_t = 1.0;
+	//node.min_distance = std::numeric_limits<FCL_REAL>::max();
+
+	distanceRecurse(node);
+
+	return node.result->min_distance;
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+FCL_REAL ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::getRightTimeStep(
+	ConservativeAdvancementNode& node, const FCL_REAL& start_time, const FCL_REAL& end_time)
+{
+	integrateTimeToMotions(end_time, start_time);
+
+	return getTimeStep(node);
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+FCL_REAL ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::moveForward()
+{
+
+}
+
+template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
+void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::booleanCoolisionDetectionStep()
+{
+
 }
 
 
