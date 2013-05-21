@@ -119,7 +119,12 @@ public:
 class DistanceTraversalNodeBase : public TraversalNodeBase
 {
 public:
-  DistanceTraversalNodeBase() : result(NULL), enable_statistics(false) {}
+	DistanceTraversalNodeBase() : 
+		result(NULL),
+		enable_statistics(false),
+		can_stop_distance_(std::numeric_limits<FCL_REAL>::max() ),
+		whole_distance_(std::numeric_limits<FCL_REAL>::max() )
+	{}
 
   virtual ~DistanceTraversalNodeBase();
 
@@ -143,6 +148,16 @@ public:
 
   /// @brief Whether stores statistics 
   bool enable_statistics;
+
+  // Helpers that need refactoring
+  FCL_REAL can_stop_distance_;
+  FCL_REAL whole_distance_;
+
+  /// @brief collision object 1
+  const CollisionGeometry* o1;
+
+  /// @brief collision object 2
+  const CollisionGeometry* o2;
 };
 
 }

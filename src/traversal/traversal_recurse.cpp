@@ -256,12 +256,19 @@ void distanceRecurse(DistanceTraversalNodeBase* node, int bv_node1_id, int bv_no
 /** \brief Bounding volume test structure */
 struct BVT
 {
-  /** \brief distance between bvs */
-  FCL_REAL d;
+	BVT() :
+		depth(0)
+	{
+	}
 
-  /** \brief bv indices for a pair of bvs in two models */
-  int bv_node1_id;
-  int bv_node2_id;
+	/** \brief distance between bvs */
+	FCL_REAL d;
+
+	/** \brief bv indices for a pair of bvs in two models */
+	int bv_node1_id;
+	int bv_node2_id;
+
+	int depth;
 };
 
 /** \brief Comparer between two BVT */
@@ -323,6 +330,8 @@ void distanceQueueRecurse(DistanceTraversalNodeBase* node, int bv_node1_id, int 
   min_test.bv_node1_id = bv_node1_id;
   min_test.bv_node2_id = bv_node2_id;
 
+  FCL_REAL whole_distance_fraction = node->whole_distance_ / 10.0;
+
   while(1)
   {
     bool l1 = node->isFirstNodeLeaf(min_test.bv_node1_id);
@@ -349,6 +358,7 @@ void distanceQueueRecurse(DistanceTraversalNodeBase* node, int bv_node1_id, int 
       {
         int c1 = node->getFirstLeftChild(min_test.bv_node1_id);
         int c2 = node->getFirstRightChild(min_test.bv_node1_id);
+
         bvt1.bv_node1_id = c1;
         bvt1.bv_node2_id = min_test.bv_node2_id;
         bvt1.d = node->BVTesting(bvt1.bv_node1_id, bvt1.bv_node2_id);
@@ -361,6 +371,7 @@ void distanceQueueRecurse(DistanceTraversalNodeBase* node, int bv_node1_id, int 
       {
         int c1 = node->getSecondLeftChild(min_test.bv_node2_id);
         int c2 = node->getSecondRightChild(min_test.bv_node2_id);
+
         bvt1.bv_node1_id = min_test.bv_node1_id;
         bvt1.bv_node2_id = c1;
         bvt1.d = node->BVTesting(bvt1.bv_node1_id, bvt1.bv_node2_id);
@@ -368,7 +379,10 @@ void distanceQueueRecurse(DistanceTraversalNodeBase* node, int bv_node1_id, int 
         bvt2.bv_node1_id = min_test.bv_node1_id;
         bvt2.bv_node2_id = c2;
         bvt2.d = node->BVTesting(bvt2.bv_node1_id, bvt2.bv_node2_id);
-      }
+      }	  
+
+	  bvt1.depth = min_test.depth + 1;
+	  bvt2.depth = min_test.depth + 1;
 
       bvtq.push(bvt1);
       bvtq.push(bvt2);
@@ -381,8 +395,19 @@ void distanceQueueRecurse(DistanceTraversalNodeBase* node, int bv_node1_id, int 
       min_test = bvtq.top();
       bvtq.pop();
 
-      if(node->canStop(min_test.d))
+      if (node->canStop(min_test.d) )
       {
+        updateFrontList(front_list, min_test.bv_node1_id, min_test.bv_node2_id);
+        break;
+      }	  
+
+      if (
+		  min_test.d >= node->can_stop_distance_
+		  || (min_test.depth <= 2 && min_test.d >= whole_distance_fraction)
+		 )
+      {
+        node->result->update(min_test.d, node->o1, node->o2, min_test.bv_node1_id, min_test.bv_node2_id);
+
         updateFrontList(front_list, min_test.bv_node1_id, min_test.bv_node2_id);
         break;
       }

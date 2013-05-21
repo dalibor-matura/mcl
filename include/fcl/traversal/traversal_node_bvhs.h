@@ -557,7 +557,7 @@ public:
     tri_indices2 = NULL;
 
     rel_err = 0;
-    abs_err = 0;
+    abs_err = 0;	
   }
 
   /// @brief Distance testing between leaves (two triangles)
@@ -601,7 +601,11 @@ public:
   /// @brief Whether the traversal process can stop early
   bool canStop(FCL_REAL c) const
   {
-    if((c >= this->result->min_distance - abs_err) && (c * (1 + rel_err) >= this->result->min_distance))
+    if (
+        (c >= this->result->min_distance - abs_err) && (c * (1 + rel_err) >= this->result->min_distance)
+	    // || (this->result->min_distance != std::numeric_limits<FCL_REAL>::max() &&
+		// this->result->min_distance >= can_stop_distance_)
+	  )
       return true;
     return false;
   }

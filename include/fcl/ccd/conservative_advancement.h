@@ -147,6 +147,8 @@ private:
 	DistanceResult distance_result_;
 
 	FCL_REAL velocity_bound_;
+
+	FCL_REAL delta_time_;
 };
 
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
@@ -374,8 +376,14 @@ void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::in
 		distance_result_
 		);
 
-	//node.motion1 = motion1_;
-	//node.motion2 = motion2_;
+	// Set whole distance to node
+	calculateVelocityBound();
+
+	FCL_REAL whole_time = request_->end_time - request_->start_time;
+	node.whole_distance_ = getVelocityBound() *  (whole_time + 0.000001);
+
+	node.o1 = geometry1_;
+	node.o2 = geometry2_;
 }
 
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
@@ -398,9 +406,20 @@ void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::pe
 {
 	initDistanceRecurse(node);
 
+	delta_time_ = request_->end_time - node.toc;
+
 	//distanceRecurse(node);
 	calculateVelocityBound();
-	node.delta_t = getTimeStep(node);	
+
+	// if (getVelocityBound() <= 0.000001)
+	if (getVelocityBound() <= std::numeric_limits<FCL_REAL>::min() )
+	{
+		node.delta_t = 1.0;
+	}
+	else
+	{	
+		node.delta_t = getTimeStep(node);	
+	}
 
 	processRecurseResult(node);	
 }
@@ -427,7 +446,8 @@ void ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::di
 	//distanceRecurse(&node, 0, 0, NULL);
 
 	//BVHFrontList front_list;
-	int queue_size = 1000;
+	//int queue_size = 1000;
+	int queue_size = 800; //std::numeric_limits<int>::max();
 	//distanceQueueRecurse(&node, 0, 0, &front_list, queue_size);
 	distanceQueueRecurse(&node, 0, 0, NULL, queue_size);
 }
@@ -503,6 +523,13 @@ bool ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::pe
 	ConservativeAdvancementNode node;
 	initContinuousCollision(node);
 
+	//if (getVelocityBound() <= 0.000001)
+
+	if (getVelocityBound() <= std::numeric_limits<FCL_REAL>::min() )
+	{
+		return false;
+	}
+
 	// Prepare time interval pairs
 	std::vector<std::pair<FCL_REAL, FCL_REAL> > time_pairs;
 	time_pairs.push_back(std::make_pair(request_->start_time, request_->end_time) );
@@ -514,6 +541,8 @@ bool ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::pe
 
 		const FCL_REAL& left_time = one_time_pair.first;
 		const FCL_REAL& right_time = one_time_pair.second;		
+
+		delta_time_ = right_time - left_time;
 
 		integrateTimeToMotions(left_time, right_time);
 		calculateVelocityBound();
@@ -619,8 +648,15 @@ template<typename BV, typename ConservativeAdvancementNode, typename CollisionNo
 FCL_REAL ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::getTimeStep(
 	ConservativeAdvancementNode& node) const
 {
-	FCL_REAL min_distance = getMinDistance(node);
 	FCL_REAL velocity_bound = getVelocityBound();
+
+	// if (velocity_bound <= 0.000001)
+	if (velocity_bound <= std::numeric_limits<FCL_REAL>::min() )
+	{
+		return 1.0;
+	}
+	
+	FCL_REAL min_distance = getMinDistance(node);
 
 	return min_distance / velocity_bound;
 }
@@ -629,6 +665,9 @@ template<typename BV, typename ConservativeAdvancementNode, typename CollisionNo
 FCL_REAL ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::getMinDistance(
 	ConservativeAdvancementNode& node) const
 {
+	// FAKE computation
+	// return 100.0;
+
 	Matrix3f R1_t, R2_t;
 	Vec3f T1_t, T2_t;
 
@@ -638,7 +677,11 @@ FCL_REAL ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>
 	relativeTransform(R1_t, T1_t, R2_t, T2_t, node.R, node.T);
 
 	node.delta_t = 1.0;
+	node.can_stop_distance_ = getVelocityBound() * (delta_time_ + 0.000001);	
+	// motion1_->getTimeInterval;
+
 	//node.min_distance = std::numeric_limits<FCL_REAL>::max();
+	node.result->clear();
 
 	distanceRecurse(node);
 
