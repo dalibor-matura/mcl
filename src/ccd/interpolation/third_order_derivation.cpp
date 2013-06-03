@@ -119,6 +119,12 @@ FCL_REAL ThirdOrderDerivation::getAbsoluteMaxDerivation(FCL_REAL start_time) con
 FCL_REAL ThirdOrderDerivation::getAbsoluteMaxDerivation(FCL_REAL start_time, FCL_REAL end_time) const
 {
 	BOOST_ASSERT(start_time >= 0.0);
+	
+	if (start_time > end_time)
+	{
+		std::swap(start_time, end_time);
+	}
+
 	BOOST_ASSERT(start_time <= end_time);
 
 	FCL_REAL half_of_entire_time = points_->getEntireTime() / 2.0;

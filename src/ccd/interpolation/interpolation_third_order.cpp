@@ -295,8 +295,14 @@ FCL_REAL InterpolationThirdOrder::getVelocityBound(FCL_REAL start_time) const
 FCL_REAL InterpolationThirdOrder::getVelocityBound(FCL_REAL start_time, FCL_REAL end_time) const
 {
 	BOOST_ASSERT(start_time >= 0.0);
-	BOOST_ASSERT(start_time <= end_time);
 	BOOST_ASSERT(end_time <= 1.0);
+
+	if (start_time > end_time)
+	{
+		std::swap(start_time, end_time);
+	}
+
+	BOOST_ASSERT(start_time <= end_time);
 
 	scaleTimeIn(start_time);
 	scaleTimeIn(end_time);

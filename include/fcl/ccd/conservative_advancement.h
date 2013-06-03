@@ -512,15 +512,18 @@ bool ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::co
 template<typename BV, typename ConservativeAdvancementNode, typename CollisionNode>
 bool ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::performBooleanContinuousCollision()
 {
-	performDiscreteCollision(request_->start_time);	
-	performDiscreteCollision(request_->end_time);	
-
-	if (!isCollisionFree() )
-	{
-		return true;
-	}	
+	// Other CCQ Variant
+	// performDiscreteCollision(request_->start_time);	
+	// performDiscreteCollision(request_->end_time);	
+    //
+	// if (!isCollisionFree() )
+	// {
+	// 	return true;
+	// }	
 
 	ConservativeAdvancementNode node;
+
+	integrateTimeToMotions(request_->start_time, request_->end_time);
 	initContinuousCollision(node);
 
 	//if (getVelocityBound() <= 0.000001)
@@ -540,17 +543,42 @@ bool ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::pe
 		time_pairs.pop_back();
 
 		const FCL_REAL& left_time = one_time_pair.first;
-		const FCL_REAL& right_time = one_time_pair.second;		
+		const FCL_REAL& right_time = one_time_pair.second;	
+
+		FCL_REAL middle_time = (left_time + right_time) / 2.0;
+
+		performDiscreteCollision(middle_time);	
+
+		if (!isCollisionFree() )
+		{
+			return true;
+		}	
 
 		delta_time_ = right_time - left_time;
 
 		integrateTimeToMotions(left_time, right_time);
 		calculateVelocityBound();
 
-		FCL_REAL left_time_step = getLeftTimeStep(node, left_time, right_time);
-		FCL_REAL right_time_step = getRightTimeStep(node, left_time, right_time);
+		// Other CCQ Variant
+		// FCL_REAL left_time_step = getLeftTimeStep(node, left_time, right_time);
+		// FCL_REAL right_time_step = getRightTimeStep(node, left_time, right_time);
 
-		if ( (left_time_step + right_time_step) < (right_time - left_time) ) 		
+		FCL_REAL left_time_step = getLeftTimeStep(node, middle_time, right_time);
+		FCL_REAL right_time_step = getRightTimeStep(node, left_time, middle_time);
+
+		FCL_REAL difference_time = middle_time - left_time;
+
+		if (left_time_step < difference_time)
+		{
+			time_pairs.push_back(std::make_pair(middle_time + left_time_step, right_time) );
+		}
+
+		if (right_time_step < difference_time)
+		{
+			time_pairs.push_back(std::make_pair(left_time, middle_time - right_time_step) );
+		}
+
+		/*if ( (left_time_step + right_time_step) < (right_time - left_time) ) 		
 		{
 			FCL_REAL new_left_time = left_time + left_time_step;
 			FCL_REAL new_right_time = right_time - right_time_step;
@@ -566,7 +594,7 @@ bool ConservativeAdvancement<BV, ConservativeAdvancementNode, CollisionNode>::pe
 
 			time_pairs.push_back(std::make_pair(new_left_time, middle_time) );
 			time_pairs.push_back(std::make_pair(middle_time, new_right_time) );
-		}
+		}*/
 	}
 
 	return false;

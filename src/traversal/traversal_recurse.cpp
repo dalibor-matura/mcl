@@ -330,7 +330,7 @@ void distanceQueueRecurse(DistanceTraversalNodeBase* node, int bv_node1_id, int 
   min_test.bv_node1_id = bv_node1_id;
   min_test.bv_node2_id = bv_node2_id;
 
-  FCL_REAL whole_distance_fraction = node->whole_distance_ / 10.0;
+  FCL_REAL whole_distance_fraction = node->whole_distance_ / 100.0;
 
   while(1)
   {
