@@ -5,7 +5,7 @@ The branch of FCL - Fast Collision Library (Flexible Collision Library).
 In nutshell I used information from "Continuous Collision Detection for Articulated Models using Taylor Models and Temporal Culling" paper http://graphics.ewha.ac.kr/CATCH/ and implemented:
 * Articulated model for robotic arms
 * Third order interpolation
-* And motion bound calculation that.
+* And motion bound calculation.
 
 That all together allowed Continuous Collision detection via Conservative Advancement steps (defined by Brian Mirtich's) on multi-axis robotic arms and devices with arbitrary number of articulated joints. Motion interpolations can be adjusted to many motion types that can be simulated via third order interpolations.
 
