@@ -1,8 +1,8 @@
 # MCL (Modern Collision Library)
 
-The branch of FCL - Fast Collision Library (Flexible Collision Library).
+Fork of FCL - Fast Collision Library (Flexible Collision Library) project, extended mainly by Articulated Model and Conservative Advancement steps.
 
-In nutshell, I used information from "Continuous Collision Detection for Articulated Models using Taylor Models and Temporal Culling" paper http://graphics.ewha.ac.kr/CATCH/ and implemented:
+I used information from "Continuous Collision Detection for Articulated Models using Taylor Models and Temporal Culling" paper http://graphics.ewha.ac.kr/CATCH/ and implemented:
 * Articulated model for robotic arms
 * Third order smooth interpolation
 * And motion bound calculation
